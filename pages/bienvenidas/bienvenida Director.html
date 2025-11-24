@@ -48,10 +48,16 @@
     </main>
     <script src="../../scripts/loadDependencies.js"></script>
     <script>
+        // DEBUG: Verificar localStorage inmediatamente
+        console.log('=== DEBUG BIENVENIDA DIRECTOR ===');
+        console.log('localStorage.currentUser:', localStorage.getItem('currentUser'));
+        console.log('localStorage.authToken:', localStorage.getItem('authToken'));
+        
         // Proteger esta página solo para admins
         (function() {
             function waitForRouteGuard(roles) {
                 if (typeof RouteGuard !== 'undefined') {
+                    console.log('RouteGuard cargado, protegiendo página...');
                     RouteGuard.protect(roles);
                 } else {
                     setTimeout(function() { waitForRouteGuard(roles); }, 50);

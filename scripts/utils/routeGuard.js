@@ -89,14 +89,22 @@ class RouteGuard {
      * @private
      */
     static _executeProtection(allowedRoles, redirectTo) {
+        console.log('=== RouteGuard._executeProtection ===');
+        console.log('allowedRoles:', allowedRoles);
+        console.log('redirectTo:', redirectTo);
+        
         // Verificar que haya un usuario logueado
         const user = this.getCurrentUser();
+        console.log('getCurrentUser() retornó:', user);
         
         if (!user) {
             console.warn('🔒 Acceso denegado: No hay usuario autenticado');
+            console.warn('Redirigiendo a:', redirectTo);
             this.redirectToLogin(redirectTo);
             return;
         }
+
+        console.log('Usuario encontrado:', user.usuario, 'rol:', user.rol);
 
         // Verificar que tenga el rol correcto
         if (allowedRoles.length > 0 && !this.hasRole(allowedRoles)) {

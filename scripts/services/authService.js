@@ -26,32 +26,45 @@ class AuthService {
                 u.password === credentials.password
             );
 
+            console.log('Búsqueda de usuario:', {
+                buscado: credentials.usuario,
+                encontrado: !!user,
+                rol: user ? user.rol : 'N/A'
+            });
+
             if (!user) {
+                console.error('Usuario no encontrado. Credenciales incorrectas.');
                 throw new Error('Usuario o contraseña incorrectos');
             }
 
             // Verificar que el usuario esté activo
             if (user.estado && user.estado.toLowerCase() !== 'activo') {
+                console.error('Usuario inactivo:', user.estado);
                 throw new Error('Usuario inactivo. Contacta al administrador.');
             }
 
-            console.log('Login exitoso para:', user.nombre, user.ape_p);
+            console.log('✅ Login exitoso para:', user.nombre, user.ape_p, '| Rol:', user.rol);
 
             // Generar un token simple (en producción debería venir del backend)
             const token = btoa(`${user.id_usuario}:${user.usuario}:${Date.now()}`);
 
+            const userData = {
+                id_usuario: user.id_usuario,
+                usuario: user.usuario,
+                nombre: user.nombre,
+                ape_p: user.ape_p,
+                ape_m: user.ape_m,
+                rol: user.rol,
+                estado: user.estado,
+                sexo: user.sexo
+            };
+
+            console.log('Datos del usuario a retornar:', userData);
+            console.log('Token generado:', token);
+
             return { 
                 token, 
-                user: {
-                    id_usuario: user.id_usuario,
-                    usuario: user.usuario,
-                    nombre: user.nombre,
-                    ape_p: user.ape_p,
-                    ape_m: user.ape_m,
-                    rol: user.rol,
-                    estado: user.estado,
-                    sexo: user.sexo
-                },
+                user: userData,
                 raw: user 
             };
         } catch (error) {

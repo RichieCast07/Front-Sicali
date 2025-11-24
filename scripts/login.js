@@ -19,9 +19,17 @@
             
             const res = await authService.login(creds);
             console.log('Respuesta de login:', res);
+            console.log('Usuario recibido:', res.user);
+            console.log('Rol del usuario:', res.user?.rol);
             
             if (!res || !res.token) {
                 alert('Login falló: token no recibido');
+                return;
+            }
+
+            if (!res.user || !res.user.rol) {
+                console.error('Error: Usuario sin rol definido');
+                alert('Error: Usuario sin rol asignado');
                 return;
             }
 
@@ -29,27 +37,40 @@
             httpClient.setAuthToken(res.token);
             
             // Redirección según rol
-            const role = (res.user && res.user.rol) ? String(res.user.rol).toLowerCase() : null;
+            const role = String(res.user.rol).toLowerCase().trim();
+            console.log('Rol normalizado para redirección:', role);
             
             try { 
-                localStorage.setItem('currentUser', JSON.stringify(res.user || res.raw || {}));
+                localStorage.setItem('currentUser', JSON.stringify(res.user));
                 localStorage.setItem('authToken', res.token);
+                console.log('✅ Datos guardados en localStorage');
+                console.log('   - currentUser:', localStorage.getItem('currentUser'));
+                console.log('   - authToken:', localStorage.getItem('authToken'));
             } catch(e){
-                console.error('Error guardando en localStorage:', e);
+                console.error('❌ Error guardando en localStorage:', e);
+                alert('Error al guardar sesión. Por favor, intenta de nuevo.');
+                return;
             }
 
             console.log('Usuario guardado:', localStorage.getItem('currentUser'));
             console.log('Rol del usuario:', role);
 
             const redirectMap = {
-                docente: './pages/bienvenidas/bienvenida Docente.html',
-                admin: './pages/bienvenidas/bienvenida Director.html',
-                tutor: './pages/bienvenidas/bienvenida Tutor.html',
-                estudiante: './pages/bienvenidas/bienvenida Estudiante.html'
+                'docente': './pages/bienvenidas/bienvenida Docente.html',
+                'admin': './pages/bienvenidas/bienvenida Director.html',
+                'tutor': './pages/bienvenidas/bienvenida Tutor.html',
+                'estudiante': './pages/bienvenidas/bienvenida Estudiante.html'
             };
 
-            const target = (role && redirectMap[role]) ? redirectMap[role] : './index.html';
-            console.log('Redirigiendo a:', target);
+            const target = redirectMap[role];
+            
+            if (!target) {
+                console.error('Rol no reconocido:', role);
+                alert('Error: Rol de usuario no reconocido (' + role + ')');
+                return;
+            }
+            
+            console.log('✅ Redirigiendo a:', target);
             
             // Pequeña pausa para asegurar que localStorage se guarde
             setTimeout(() => {
