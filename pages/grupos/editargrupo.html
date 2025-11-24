@@ -110,7 +110,16 @@
 
     <script>
     // Proteger esta página solo para directores
-    waitForRouteGuard(['director']);
+    (function() {
+        function waitForRouteGuard(roles) {
+            if (typeof RouteGuard !== 'undefined') {
+                RouteGuard.protect(roles);
+            } else {
+                setTimeout(function() { waitForRouteGuard(roles); }, 50);
+            }
+        }
+        waitForRouteGuard(['director']);
+    })();
 
     // Editar grupo: habilita formulario, carga datos por id y guarda cambios
     (function(){

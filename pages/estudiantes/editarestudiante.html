@@ -149,7 +149,16 @@
 
 <script>
     // Proteger esta página solo para directores
-    waitForRouteGuard(['director']);
+    (function() {
+        function waitForRouteGuard(roles) {
+            if (typeof RouteGuard !== 'undefined') {
+                RouteGuard.protect(roles);
+            } else {
+                setTimeout(function() { waitForRouteGuard(roles); }, 50);
+            }
+        }
+        waitForRouteGuard(['director']);
+    })();
 
     (function(){
       document.querySelector(".back-link").addEventListener("click", function () {

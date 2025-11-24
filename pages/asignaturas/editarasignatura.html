@@ -90,7 +90,16 @@
   <!-- Servicio de Asignaturas (inline) -->
   <script>
     // Proteger esta página solo para directores
-    waitForRouteGuard(['director']);
+    (function() {
+        function waitForRouteGuard(roles) {
+            if (typeof RouteGuard !== 'undefined') {
+                RouteGuard.protect(roles);
+            } else {
+                setTimeout(function() { waitForRouteGuard(roles); }, 50);
+            }
+        }
+        waitForRouteGuard(['director']);
+    })();
 
     class AsignaturasService {
       async getById(id) {

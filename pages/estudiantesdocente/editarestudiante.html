@@ -135,7 +135,16 @@
 </section>
 <script>
   // Proteger esta página para docentes y directores
-  waitForRouteGuard(['docente', 'director']);
+  (function() {
+      function waitForRouteGuard(roles) {
+          if (typeof RouteGuard !== 'undefined') {
+              RouteGuard.protect(roles);
+          } else {
+              setTimeout(function() { waitForRouteGuard(roles); }, 50);
+          }
+      }
+      waitForRouteGuard(['docente', 'director']);
+  })();
 
   function getIdFromQuery(){ const p = new URLSearchParams(location.search); return p.get('id'); }
   function navigateToSave(){ const id = getIdFromQuery(); window.location.href = 'guardarestudiante.html' + (id? '?id='+encodeURIComponent(id): ''); }
