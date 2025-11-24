@@ -75,10 +75,10 @@ class RouteGuard {
 
     /**
      * Protege una ruta verificando autenticación y roles
-     * @param {string[]} allowedRoles - Roles permitidos (ej: ['docente', 'director'])
+     * @param {string[]} allowedRoles - Roles permitidos (ej: ['docente', 'admin'])
      * @param {string} redirectTo - URL a la que redirigir si no autorizado (default: index.html)
      */
-    static protect(allowedRoles = [], redirectTo = '/index.html') {
+    static protect(allowedRoles = [], redirectTo = 'index.html') {
         // Ejecutar la protección de forma síncrona (inmediata)
         // Esto previene que el usuario vea contenido antes de la redirección
         this._executeProtection(allowedRoles, redirectTo);
@@ -116,7 +116,7 @@ class RouteGuard {
      * Redirige al login
      * @param {string} redirectTo - URL del login
      */
-    static redirectToLogin(redirectTo = '/index.html') {
+    static redirectToLogin(redirectTo = 'index.html') {
         // Guardar la URL actual para redirigir después del login
         try {
             sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
@@ -137,7 +137,7 @@ class RouteGuard {
             estudiante: '/pages/bienvenidas/bienvenida Estudiante.html'
         };
 
-        const targetPage = rolePages[String(role).toLowerCase()] || '/index.html';
+        const targetPage = rolePages[String(role).toLowerCase()] || 'index.html';
         
         alert(`No tienes permiso para acceder a esta página.\nSerás redirigido a tu página principal.`);
         window.location.href = targetPage;

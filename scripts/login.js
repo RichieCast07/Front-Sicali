@@ -32,13 +32,13 @@
             // Redirección según rol
             const role = (res.user && res.user.rol) ? String(res.user.rol).toLowerCase() : null;
             const redirectMap = {
-                docente: '/pages/bienvenidas/bienvenida Docente.html',
-                admin: '/pages/bienvenidas/bienvenida Director.html',
-                tutor: '/pages/bienvenidas/bienvenida Tutor.html',
-                estudiante: '/pages/bienvenidas/bienvenida Estudiante.html'
+                docente: 'pages/bienvenidas/bienvenida Docente.html',
+                admin: 'pages/bienvenidas/bienvenida Director.html',
+                tutor: 'pages/bienvenidas/bienvenida Tutor.html',
+                estudiante: 'pages/bienvenidas/bienvenida Estudiante.html'
             };
 
-            const target = (role && redirectMap[role]) ? redirectMap[role] : '/index.html';
+            const target = (role && redirectMap[role]) ? redirectMap[role] : 'index.html';
             window.location.href = target;
         } catch (err) {
             console.error('Error en login:', err);
