@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Login Simple</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .log { background: #f0f0f0; padding: 10px; margin: 5px 0; border-left: 3px solid #333; }
+        .success { border-color: green; background: #e8f5e9; }
+        .error { border-color: red; background: #ffebee; }
+        input, button { padding: 10px; margin: 5px; font-size: 16px; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Test de Login Simplificado</h1>
+    
+    <div>
+        <input type="text" id="usuario" placeholder="Usuario" value="carlos.garcia">
+        <input type="password" id="password" placeholder="Password" value="Director2024!">
+        <button onclick="testLogin()">Test Login</button>
+    </div>
+
+    <div id="logs"></div>
+
+    <script>
+        function log(msg, type = 'log') {
+            const div = document.createElement('div');
+            div.className = 'log ' + type;
+            div.textContent = new Date().toLocaleTimeString() + ' - ' + msg;
+            document.getElementById('logs').appendChild(div);
+            console.log(msg);
+        }
+
+        async function testLogin() {
+            const usuario = document.getElementById('usuario').value;
+            const password = document.getElementById('password').value;
+
+            log('=== INICIANDO TEST DE LOGIN ===');
+            log('Usuario: ' + usuario);
+
+            try {
+                // 1. GET de usuarios
+                log('Paso 1: Obteniendo lista de usuarios...');
+                const response = await fetch('https://sicalibackend.mangelg.space/api/usuarios');
+                const usuarios = await response.json();
+                log('✅ Usuarios obtenidos: ' + usuarios.length, 'success');
+
+                // 2. Buscar usuario
+                log('Paso 2: Buscando usuario con credenciales...');
+                const user = usuarios.find(u => u.usuario === usuario && u.password === password);
+                
+                if (!user) {
+                    log('❌ ERROR: Usuario o contraseña incorrectos', 'error');
+                    return;
+                }
+                log('✅ Usuario encontrado: ' + user.nombre + ' ' + user.ape_p, 'success');
+                log('Rol: ' + user.rol, 'success');
+
+                // 3. Verificar estado
+                log('Paso 3: Verificando estado...');
+                if (user.estado.toLowerCase() !== 'activo') {
+                    log('❌ ERROR: Usuario inactivo', 'error');
+                    return;
+                }
+                log('✅ Usuario activo', 'success');
+
+                // 4. Generar token
+                log('Paso 4: Generando token...');
+                const token = btoa(user.id_usuario + ':' + user.usuario + ':' + Date.now());
+                log('✅ Token: ' + token.substring(0, 20) + '...', 'success');
+
+                // 5. Guardar en localStorage
+                log('Paso 5: Guardando en localStorage...');
+                const userData = {
+                    id_usuario: user.id_usuario,
+                    usuario: user.usuario,
+                    nombre: user.nombre,
+                    ape_p: user.ape_p,
+                    ape_m: user.ape_m,
+                    rol: user.rol,
+                    estado: user.estado,
+                    sexo: user.sexo
+                };
+                localStorage.setItem('currentUser', JSON.stringify(userData));
+                localStorage.setItem('authToken', token);
+                log('✅ Datos guardados en localStorage', 'success');
+
+                // 6. Verificar lectura
+                log('Paso 6: Verificando lectura de localStorage...');
+                const saved = localStorage.getItem('currentUser');
+                const parsed = JSON.parse(saved);
+                log('✅ currentUser leído: ' + parsed.usuario + ' (rol: ' + parsed.rol + ')', 'success');
+
+                // 7. Determinar redirección
+                log('Paso 7: Determinando página de redirección...');
+                const role = parsed.rol.toLowerCase();
+                const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+                const redirectMap = {
+                    'docente': baseUrl + '/pages/bienvenidas/bienvenida Docente.html',
+                    'admin': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
+                    'tutor': baseUrl + '/pages/bienvenidas/bienvenida Tutor.html',
+                    'estudiante': baseUrl + '/pages/bienvenidas/bienvenida Estudiante.html'
+                };
+                const target = redirectMap[role];
+                
+                if (!target) {
+                    log('❌ ERROR: Rol no reconocido: ' + role, 'error');
+                    return;
+                }
+
+                log('✅ URL de redirección: ' + target, 'success');
+                log('=== TEST COMPLETADO EXITOSAMENTE ===', 'success');
+                
+                // 8. Preguntar si redirigir
+                if (confirm('¿Redirigir a la página de bienvenida?')) {
+                    window.location.href = target;
+                }
+
+            } catch (error) {
+                log('❌ ERROR: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
