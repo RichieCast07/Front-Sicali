@@ -1,5 +1,7 @@
 // login.js - maneja el formulario de login en `index.html`
 (function(){
+    console.log('=== login.js cargado ===');
+    
     function $(sel) { return document.querySelector(sel); }
 
     async function onSubmit(evt) {
@@ -7,6 +9,13 @@
         if (evt) {
             evt.preventDefault();
             console.log('preventDefault ejecutado');
+        }
+        
+        // Verificar que las dependencias estén disponibles
+        if (typeof authService === 'undefined' || typeof httpClient === 'undefined') {
+            console.error('Dependencias no disponibles aún');
+            alert('El sistema aún está cargando. Por favor, espera un momento e intenta de nuevo.');
+            return false;
         }
         
         const user = $('#user').value;
@@ -120,16 +129,44 @@
                 return;
             }
             
+            // Deshabilitar el botón inicialmente
+            btn.disabled = true;
+            btn.textContent = 'Cargando...';
+            
+            // Esperar a que las dependencias estén listas
+            const checkDeps = setInterval(() => {
+                if (typeof authService !== 'undefined' && typeof httpClient !== 'undefined') {
+                    clearInterval(checkDeps);
+                    btn.disabled = false;
+                    btn.textContent = 'Ingresar';
+                    console.log('✅ Dependencias listas, botón habilitado');
+                }
+            }, 100);
+            
+            // Timeout después de 10 segundos
+            setTimeout(() => {
+                if (btn.disabled) {
+                    clearInterval(checkDeps);
+                    btn.textContent = 'Error al cargar';
+                    console.error('❌ Timeout: No se cargaron las dependencias');
+                }
+            }, 10000);
+            
             // Agregar evento al botón
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
+                console.log('Click en botón detectado');
                 onSubmit(null);
+                return false;
             });
             
             // También prevenir el submit del formulario por si acaso
             if (form) {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Submit del form interceptado');
                     onSubmit(null);
                     return false;
                 });
