@@ -60,7 +60,7 @@
     </main>
         <script src="../../scripts/loadDependencies.js"></script>
         <script>
-            // Proteger esta página para tutores y directores
+            // Proteger esta página para tutores y admins
             (function() {
                 function waitForRouteGuard(roles) {
                     if (typeof RouteGuard !== 'undefined') {
@@ -69,7 +69,7 @@
                         setTimeout(function() { waitForRouteGuard(roles); }, 50);
                     }
                 }
-                waitForRouteGuard(['tutor', 'director']);
+                waitForRouteGuard(['tutor', 'admin']);
             })();
 
             // Cargar información del tutor logueado

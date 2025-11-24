@@ -113,7 +113,7 @@
     </div>
 
     <script>
-    // Proteger esta página solo para directores
+    // Proteger esta página solo para admins
     (function() {
         function waitForRouteGuard(roles) {
             if (typeof RouteGuard !== 'undefined') {
@@ -122,7 +122,7 @@
                 setTimeout(function() { waitForRouteGuard(roles); }, 50);
             }
         }
-        waitForRouteGuard(['director']);
+        waitForRouteGuard(['admin']);
     })();
 
     (function(){

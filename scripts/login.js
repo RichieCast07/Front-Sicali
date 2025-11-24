@@ -33,7 +33,7 @@
             const role = (res.user && res.user.rol) ? String(res.user.rol).toLowerCase() : null;
             const redirectMap = {
                 docente: '/pages/bienvenidas/bienvenida Docente.html',
-                director: '/pages/bienvenidas/bienvenida Director.html',
+                admin: '/pages/bienvenidas/bienvenida Director.html',
                 tutor: '/pages/bienvenidas/bienvenida Tutor.html',
                 estudiante: '/pages/estudiantes/estudiante.html'
             };

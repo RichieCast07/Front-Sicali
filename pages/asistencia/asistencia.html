@@ -224,7 +224,7 @@
     <!-- CÓDIGO DE LA PÁGINA                          -->
     <!-- ============================================ -->
     <script>
-        // Proteger esta página para docentes y directores
+        // Proteger esta página para docentes y admins
         (function() {
             function waitForRouteGuard(roles) {
                 if (typeof RouteGuard !== 'undefined') {
@@ -233,7 +233,7 @@
                     setTimeout(function() { waitForRouteGuard(roles); }, 50);
                 }
             }
-            waitForRouteGuard(['docente', 'director']);
+            waitForRouteGuard(['docente', 'admin']);
         })();
 
         // Variables globales

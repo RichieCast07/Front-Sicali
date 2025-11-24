@@ -132,7 +132,7 @@ class RouteGuard {
     static redirectToHomePage(role) {
         const rolePages = {
             docente: '/pages/bienvenidas/bienvenida Docente.html',
-            director: '/pages/bienvenidas/bienvenida Director.html',
+            admin: '/pages/bienvenidas/bienvenida Director.html',
             tutor: '/pages/bienvenidas/bienvenida Tutor.html',
             estudiante: '/pages/estudiantes/estudiante.html'
         };
