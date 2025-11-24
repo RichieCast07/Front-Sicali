@@ -20,14 +20,14 @@
         <div class="right-section">
             <div class="login-box">
                 <h2>Inicio de sesión</h2>
-                <form>
+                <form id="loginForm" onsubmit="return false;">
                     <label for="usuario">Usuario</label>
                     <input type="text" id="user" name="user" required>
 
                     <label for="password">Contraseña</label>
                     <input type="password" id="password" name="password" required>
 
-                    <button type="submit">Ingresar</button>
+                    <button type="button" id="loginBtn">Ingresar</button>
                 </form>
             </div>
                 </div>

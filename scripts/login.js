@@ -4,8 +4,10 @@
 
     async function onSubmit(evt) {
         console.log('=== onSubmit llamado ===');
-        evt.preventDefault();
-        console.log('preventDefault ejecutado');
+        if (evt) {
+            evt.preventDefault();
+            console.log('preventDefault ejecutado');
+        }
         
         const user = $('#user').value;
         const password = $('#password').value;
@@ -14,7 +16,7 @@
 
         if (!user || !password) {
             alert('Completa usuario y contraseña');
-            return;
+            return false;
         }
 
         try {
@@ -90,6 +92,8 @@
             const msg = err && err.message ? err.message : 'Error en login';
             alert(msg);
         }
+        
+        return false;
     }
 
     // esperar a que loadDependencies cargue httpClient & authService
@@ -105,14 +109,33 @@
         };
 
         const attach = () => {
-            const form = document.querySelector('form');
+            const btn = document.getElementById('loginBtn');
+            const form = document.getElementById('loginForm');
+            
+            console.log('Botón encontrado:', !!btn);
             console.log('Form encontrado:', !!form);
-            if (!form) {
-                console.error('No se encontró el formulario');
+            
+            if (!btn) {
+                console.error('No se encontró el botón de login');
                 return;
             }
-            form.addEventListener('submit', onSubmit);
-            console.log('✅ Event listener agregado al formulario');
+            
+            // Agregar evento al botón
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                onSubmit(null);
+            });
+            
+            // También prevenir el submit del formulario por si acaso
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    onSubmit(null);
+                    return false;
+                });
+            }
+            
+            console.log('✅ Event listeners agregados');
         };
 
         if (ready()) {
