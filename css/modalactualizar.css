@@ -1,0 +1,152 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    gap: 18px;
+    position: absolute;
+    width: 379px;
+    height: 278px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: #FFFFFF;
+    box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.25);
+    border-radius: 20px;
+}
+
+.modal h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.modal p {
+    color: #666;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.modal-buttons button {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 18px;
+    gap: 10px;
+    width: 190px;
+    height: 37px;
+    border: none;
+    box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.25);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+}
+
+.modal-buttons .confirm {
+    background: #5596E2;
+    color: white;
+}
+
+.modal-buttons .guardar {
+    background: #9BAD4B;
+    color: white;
+}
+
+.modal-buttons .eliminar {
+    background: #DE5757;
+    color: white;
+}
+
+.modal-buttons .cancel {
+    background: #F0F0F0;
+    color: black;
+    width: 99px;
+}
+
+.student-list table {
+    font-size: 12px;
+    width: 100%;
+    table-layout: auto;
+}
+.student-list th, .student-list td {
+    padding: 5px;
+    white-space: nowrap;
+}
+#add-modal-overlay .modal {
+    width: auto;
+    height: 50vh;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow: auto;
+}
+
+ .modal-overlay-asignatura {
+    display: none; /* Oculto por defecto */
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background: rgba(0,0,0,0.55);
+    z-index: 10000; /* Debe estar por encima de todo */
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-asignatura {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    width: 360px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    z-index: 10001;
+}
+
+/* Estilos para inputs dentro de la modal */
+.modal-asignatura .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.modal-asignatura label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.modal-asignatura input {
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.modal-asignatura input:focus {
+    border-color: #5596E2; /* azul suave al enfocar */
+    box-shadow: 0 0 5px rgba(85, 150, 226, 0.4);
+}

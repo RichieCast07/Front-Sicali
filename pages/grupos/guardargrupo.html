@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Grupo</title>
+  <link rel="stylesheet" href="../../css/editardocente.css">
+  <link rel="stylesheet" href="../../css/navbar.css">
+  <link rel="stylesheet" href="../../css/modalactualizar.css">
+  <link rel="stylesheet" href="../../css/estudiantesdegrupo.css">
+
+</head>
+
+<body>
+  <header class="header">
+    <div class="left-section">
+      <h1 class="logo">SICALI</h1>
+    </div>
+    <div class="user-info">
+      <div class="text-info">
+        <div class="role">Director</div>
+        <div class="name">Jorge Luis Omalley Pinacho</div>
+      </div>
+      <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+    </div>
+  </header>
+
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+            <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+            <li class="active"><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+  <main class="content">
+    <button type="button" class="back-link">
+      <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /></span>
+      <span class="text">Atrás</span>
+    </button>
+
+    <section class="editar-docente">
+      <h2>Grupo</h2>
+
+      <form class="form-docente">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre del Grupo:</label>
+            <input type="text" value="A">
+          </div>
+          <div class="form-group">
+            <label>Grado:</label>
+            <select>
+              <option>Seleccionar</option>
+              <option selected>Primero</option>
+              <option>Segundo</option>
+              <option>Tercero</option>
+              <option>Cuarto</option>
+              <option>Quinto</option>
+              <option>Sexto</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Docente Asignado:</label>
+            <select id="docenteSelect">
+              <option value="">Cargando docentes...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Capacidad:</label>
+            <input type="number" value="25">
+          </div>
+        </div>
+
+        <div class="container">
+        <h2>Estudiantes</h2>
+        <div class="acciones-superiores">
+            <div class="buscador-con-icono">
+                
+            </div>
+
+            <div class="agregar">
+                <label for="">Estudiante</label>
+                <button type="button" class="btn-agregar" onclick="showAddModal()">
+                  <img src="../../icons/agregar.svg" alt="Icono agregar" class="icono-agregar"/>
+                    Agregar
+                </button>
+            </div>
+        </div>
+
+
+
+        <table class="students-table">
+            <thead>
+                <tr>
+                    <th>Acciones</th>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Apellido Paterno</th>
+                    <th>Apellido Materno</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><button type="button" class="btn-eliminar" onclick="showDeleteModal()"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button></td>
+                    <td>1</td>
+                    <td>Evelyn Hayde</td>
+                    <td>Giron</td>
+                    <td>Mendez</td>
+                </tr>
+                <tr>
+                    <td><button type="button" class="btn-eliminar" onclick="showDeleteModal()"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button></td>
+                    <td>2</td>
+                    <td>Gilberto</td>
+                    <td>Giron</td>
+                    <td>Mendez</td>
+                </tr>
+                <tr>
+                    <td><button type="button" class="btn-eliminar" onclick="showDeleteModal()"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button></td>
+                    <td>3</td>
+                    <td>Melissa Isabel</td>
+                    <td>Lopez</td>
+                    <td>Giron</td>
+                </tr>
+                <tr>
+                    <td><button type="button" class="btn-eliminar" onclick="showDeleteModal()"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button></td>
+                    <td>4</td>
+                    <td>Sarai</td>
+                    <td>Lopez</td>
+                    <td>Morales</td>
+                </tr>
+                <tr>
+                    <td><button type="button" class="btn-eliminar" onclick="showDeleteModal()"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button></td>
+                    <td>5</td>
+                    <td>Rodrigo Miguel</td>
+                    <td>Luna</td>
+                    <td>Diaz</td>
+                </tr>
+                <tr>
+                    <td><button type="button" class="btn-eliminar" onclick="showDeleteModal()"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button></td>
+                    <td>6</td>
+                    <td>Briana Lineth</td>
+                    <td>Mejia</td>
+                    <td>Giron</td>
+                </tr>
+                <tr>
+                    <td><button type="button" class="btn-eliminar" onclick="showDeleteModal()"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button></td>
+                    <td>7</td>
+                    <td>Jeremias</td>
+                    <td>Mendez</td>
+                    <td>Diaz</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+
+
+        <div class="boton-editar">
+          <button type="button" onclick="showModal()" class="btn-editar">
+            <img src="../../icons/guardar.svg" class="btn-icon" alt="Guardar">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </section>
+
+
+<div id="modal-overlay" class="modal-overlay">
+   <div class="modal">
+       <img src="../../icons/info.svg" alt="info" class="modal-icon">
+       <h3>¿Desea Actualizarlo?</h3>
+       <p>Los datos actuales serán reemplazados por la nueva información</p>
+       <div class="modal-buttons">
+           <button class="confirm" onclick="confirmSave()">Guardar</button>
+           <button class="cancel" onclick="closeModal()">Cancelar</button>
+       </div>
+   </div>
+</div>
+
+
+<div id="success-modal-overlay" class="modal-overlay">
+   <div class="modal">
+       <img src="../../icons/success.svg" alt="info" class="modal-icon">
+       <h3>Actualizado Correctamente</h3>
+       <p>Se actualizo la información existente</p>
+       <div class="modal-buttons">
+           <button class="confirm" onclick="closeSuccessModal()">Aceptar</button>
+       </div>
+   </div>
+</div>
+
+
+<div id="add-modal-overlay" class="modal-overlay">
+   <div class="modal" style="width: auto; max-width: 90%;">
+       <h3>Agregar Estudiantes</h3>
+       <p>Selecciona los estudiantes a agregar al grupo:</p>
+       <div class="student-list">
+           <table  class="students-table">
+               <thead>
+                   <tr>
+                       <th>Seleccionar</th>
+                       <th>Nombre</th>
+                       <th>Apellido Paterno</th>
+                       <th>Apellido Materno</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td><input type="checkbox"></td>
+                       <td>Ana</td>
+                       <td>García</td>
+                       <td>García</td>
+                   </tr>
+                   <tr>
+                       <td><input type="checkbox"></td>
+                       <td>Juan</td>
+                       <td>Pérez</td>
+                       <td>Martínez</td>
+                   </tr>
+                   <tr>
+                       <td><input type="checkbox"></td>
+                       <td>María</td>
+                       <td>López</td>
+                       <td>Hernández</td>
+                   </tr>
+                   <tr>
+                       <td><input type="checkbox"></td>
+                       <td>Carlos</td>
+                       <td>Rodríguez</td>
+                       <td>Sánchez</td>
+                   </tr>
+               </tbody>
+           </table>
+       </div>
+       <div class="modal-buttons">
+            <div class="agregar">
+                <button type="button" class="btn-agregar" onclick="addStudents()">
+                  <img src="../../icons/agregar.svg" alt="Icono agregar" class="icono-agregar"/>
+                    Agregar
+                </button>
+            </div>
+           <button class="cancel" onclick="closeAddModal()">Cancelar</button>
+       </div>
+   </div>
+</div>
+
+
+<div id="add-success-modal-overlay" class="modal-overlay">
+   <div class="modal">
+       <img src="../../icons/successverde.svg" alt="success" class="modal-icon success-icon">
+       <h3>Agregado Correctamente</h3>
+       <p>Los estudiantes seleccionados se agregaron al grupo</p>
+       <div class="modal-buttons">
+           <button class="guardar" onclick="closeAddSuccessModal()">Aceptar</button>
+       </div>
+   </div>
+</div>
+
+
+<div id="delete-modal-overlay" class="modal-overlay">
+   <div class="modal">
+       <img src="../../icons/inforojo.svg" alt="eliminar" class="modal-icon">
+       <h3>¿Desea eliminarlo?</h3>
+       <p>Estas acción es permanente y no podrá deshacerse</p>
+       <div class="modal-buttons">
+           <button class="eliminar" onclick="confirmDelete()">Eliminar</button>
+           <button class="cancel" onclick="closeDeleteModal()">Cancelar</button>
+       </div>
+   </div>
+</div>
+
+<div id="delete-success-modal-overlay" class="modal-overlay">
+   <div class="modal">
+       <img src="../../icons/successrojo.svg" alt="success" class="modal-icon">
+       <h3>Eliminado correctamente</h3>
+       <p>El registro que seleccionaste se elimino del sistema</p>
+       <div class="modal-buttons">
+           <button class="eliminar" onclick="closeDeleteSuccessModal()">Aceptar</button>
+       </div>
+   </div>
+</div>
+
+<script>
+// Proteger esta página solo para directores
+RouteGuard.protect(['director']);
+
+function showModal() {
+   document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function closeModal() {
+   document.getElementById('modal-overlay').style.display = 'none';
+}
+
+function closeSuccessModal() {
+   document.getElementById('success-modal-overlay').style.display = 'none';
+}
+
+function confirmSave() {
+   closeModal();
+   document.getElementById('success-modal-overlay').style.display = 'flex';
+}
+
+function showAddModal() {
+   document.getElementById('add-modal-overlay').style.display = 'flex';
+}
+
+function closeAddModal() {
+   document.getElementById('add-modal-overlay').style.display = 'none';
+}
+
+function addStudents() {
+   closeAddModal();
+   document.getElementById('add-success-modal-overlay').style.display = 'flex';
+}
+
+function closeAddSuccessModal() {
+   document.getElementById('add-success-modal-overlay').style.display = 'none';
+}
+
+function showDeleteModal() {
+   document.getElementById('delete-modal-overlay').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+   document.getElementById('delete-modal-overlay').style.display = 'none';
+}
+
+function closeDeleteSuccessModal() {
+   document.getElementById('delete-success-modal-overlay').style.display = 'none';
+}
+
+function confirmDelete() {
+   closeDeleteModal();
+   document.getElementById('delete-success-modal-overlay').style.display = 'flex';
+}
+
+document.querySelector(".back-link").addEventListener("click", function () {
+  window.history.back();
+  });
+</script>
+  </main>
+  <script src="../../scripts/loadDependencies.js"></script>
+
+<script>
+// Grupo page: listar estudiantes del grupo, poblar modal de agregar y gestionar inscripciones
+(function(){
+  function isReady(name){ try{ return typeof eval(name) !== 'undefined'; }catch(e){ return false; } }
+  function waitFor(names, timeout=3000){
+    return new Promise((resolve,reject)=>{ const start=Date.now(); (function poll(){ if(names.every(isReady)) return resolve(); if(Date.now()-start>timeout) return reject(new Error('Servicios no disponibles: '+names.join(','))); setTimeout(poll,50); })(); });
+  }
+
+  function getIdFromQuery(){ const p = new URLSearchParams(location.search); return p.get('id'); }
+
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  async function loadGroupStudents(idGrupo){
+    try{
+      const items = await estudianteGrupoService.getByGrupo(Number(idGrupo));
+      const arr = Array.isArray(items) ? items : (items? [items]: []);
+      const tbody = document.querySelector('.students-table tbody');
+      const newTbody = tbody.cloneNode(false);
+      arr.forEach((it, idx) => {
+        // item may be estudiante object or inscription object { estudiante: {...} }
+        const estudiante = it.estudiante || it;
+        const tr = document.createElement('tr');
+        const id = estudiante.id || estudiante.id_usuario || estudiante.idEstudiante || '';
+        tr.setAttribute('data-id', id);
+        tr.innerHTML = `
+          <td><button type="button" class="btn-eliminar"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button></td>
+          <td>${idx+1}</td>
+          <td>${escapeHtml(estudiante.nombre||'')}</td>
+          <td>${escapeHtml(estudiante.ape_p||'')}</td>
+          <td>${escapeHtml(estudiante.ape_m||'')}</td>`;
+        newTbody.appendChild(tr);
+        tr.querySelector('.btn-eliminar').addEventListener('click', async (e)=>{
+          e.preventDefault();
+          if(!confirm('¿Desea dar de baja a este estudiante del grupo?')) return;
+          try{
+            await estudianteGrupoService.delete(Number(id), Number(idGrupo));
+            await loadGroupStudents(idGrupo);
+            document.getElementById('delete-success-modal-overlay').style.display='flex';
+          }catch(err){ console.error('Error al dar de baja estudiante',err); alert('Error: '+(err.message||err)); }
+        });
+      });
+      tbody.parentNode.replaceChild(newTbody, tbody);
+    }catch(err){ console.error('Error cargando estudiantes del grupo',err); }
+  }
+
+  async function populateAddModal(idGrupo){
+    try{
+      const estudiantes = await usuariosService.getByRol('estudiante');
+      const list = Array.isArray(estudiantes)? estudiantes : (estudiantes? [estudiantes]: []);
+      const tbody = document.querySelector('#add-modal-overlay .students-table tbody');
+      tbody.innerHTML = '';
+      list.forEach(st => {
+        const id = st.id || st.id_usuario || '';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><input type="checkbox" data-id="${id}"></td><td>${escapeHtml(st.nombre||'')}</td><td>${escapeHtml(st.ape_p||'')}</td><td>${escapeHtml(st.ape_m||'')}</td>`;
+        tbody.appendChild(tr);
+      });
+    }catch(err){ console.error('Error poblando modal de estudiantes',err); }
+  }
+
+  async function addStudentsHandler(){
+    try{
+      const idGrupo = getIdFromQuery(); if(!idGrupo) return alert('ID de grupo no especificado');
+      const checkboxes = Array.from(document.querySelectorAll('#add-modal-overlay .students-table tbody input[type=checkbox]'));
+      const ids = checkboxes.filter(cb=>cb.checked).map(cb=>Number(cb.dataset.id));
+      if(!ids.length) return alert('Selecciona al menos un estudiante');
+      // fechaInscripcion default hoy
+      const fecha = new Date().toISOString().slice(0,10);
+      await estudianteGrupoService.enrollMultiple(Number(idGrupo), ids, fecha);
+      document.getElementById('add-modal-overlay').style.display='none';
+      document.getElementById('add-success-modal-overlay').style.display='flex';
+      await loadGroupStudents(idGrupo);
+    }catch(err){ console.error('Error agregando estudiantes',err); alert('Error: '+(err.message||err)); }
+  }
+
+  // Wire modal open/close and add button
+  document.querySelector('.back-link')?.addEventListener('click', ()=> window.history.back());
+
+  async function populateDocentes(){
+    try{
+      const select = document.getElementById('docenteSelect');
+      if(!select) return;
+      select.innerHTML = '';
+      const docentes = await usuariosService.getByRol('docente');
+      const opts = Array.isArray(docentes) ? docentes : (docentes? [docentes]:[]);
+      const placeholder = document.createElement('option'); placeholder.value=''; placeholder.textContent='Seleccionar'; select.appendChild(placeholder);
+      opts.forEach(d=>{
+        const o = document.createElement('option');
+        o.value = d.id || d.id_usuario || '';
+        o.textContent = `${d.nombre || ''} ${d.ape_p || ''} ${d.ape_m || ''}`.trim();
+        select.appendChild(o);
+      });
+    }catch(err){ console.error('Error poblando docentes',err); }
+  }
+
+  waitFor(['estudianteGrupoService','usuariosService','gruposService']).then(async ()=>{
+    const idGrupo = getIdFromQuery();
+    // Cargar docentes primero
+    await populateDocentes();
+    if(idGrupo){
+      // populate group basic info if needed
+      try{ 
+        const grupo = await gruposService.getById(Number(idGrupo)); 
+        if(grupo){ 
+          document.querySelector('.form-docente input[type=text]').value = grupo.nombre || '';
+          // Seleccionar docente asignado si existe
+          const docenteSelect = document.getElementById('docenteSelect');
+          if(grupo.idDocente && docenteSelect) {
+            docenteSelect.value = (grupo.idDocente.id || grupo.idDocente.id_usuario || grupo.idDocente) || '';
+          }
+        } 
+      }catch(e){}
+      await loadGroupStudents(idGrupo);
+      // prepare add modal when opened
+      document.querySelector('.btn-agregar')?.addEventListener('click', async ()=>{ await populateAddModal(idGrupo); document.getElementById('add-modal-overlay').style.display='flex'; });
+      // add students button inside modal
+      const addBtn = document.querySelector('#add-modal-overlay .btn-agregar');
+      if(addBtn) addBtn.addEventListener('click', addStudentsHandler);
+    }
+  }).catch(err=>console.warn('Servicios de grupo no disponibles:',err.message));
+
+})();
+</script>
+  </body>
+  </html>

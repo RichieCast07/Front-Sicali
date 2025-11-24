@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadistica Director</title>
+    <link rel="stylesheet" href="../../css/estadisticadirector.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role">Director</div>
+                <div class="name">Jorge Luis Omalley Pinacho</div>
+            </div>
+            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+        </div>
+    </header>
+    
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+            <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+            <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+
+    <main class="content" id="content">
+    
+    <section class="statistics-container">
+        <h1 class="statistics-title">Estadísticas</h1>
+        <div class="filters">
+        <div class="filter-group">
+            <label class="filter-label">Grupo:</label>
+            <div class="periodo-select">
+                <select class="filter-select">
+                    <option>seleccionar</option>
+                    <option>Primero A</option>
+                    <option>Segundo A</option>
+                    <option>Tercero A</option>
+                    <option>Cuarto A</option>
+                    <option>Quinto A</option>
+                    <option>Sexto A</option>
+                </select>
+                <img src="../../icons/seleccionar.svg" alt="" class="select-icon">
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <label class="filter-label">Periodo:</label>
+            <div class="periodo-select">
+                <select class="filter-select">
+                    <option>seleccionar</option>
+                    <option>Periodo 1</option>
+                    <option>Periodo 2</option>
+                    <option>Periodo 3</option>
+                </select>
+                <img src="../../icons/seleccionar.svg" alt="" class="select-icon">
+            </div>
+        </div>
+    </div>
+    </div>
+    
+  
+    
+    <div class="chart-container">
+        <div class="chart">
+            <div class="y-axis">
+                <span class="y-label">100</span>
+                <span class="y-label">80</span>
+                <span class="y-label">60</span>
+                <span class="y-label">40</span>
+                <span class="y-label">20</span>
+                <span class="y-label">0</span>
+            </div>
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+            
+            <div class="bars">
+                <div class="bar-group">
+                    <div class="bar color-1" style="height: 180px;"></div>
+                    <div class="bar-label">  Multiples <br> Lenguajes </div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar color-2" style="height: 150px;"></div>
+                    <div class="bar-label">Saberes y pensamiento científico</div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar color-3" style="height: 140px;"></div>
+                    <div class="bar-label">Ética, naturaleza y sociedades</div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar color-4" style="height: 200px;"></div>
+                    <div class="bar-label">De lo humano y lo comunitario</div>
+                </div>
+            </div>
+        </div>
+    </div>
+ </section>
+</main>
+    <script src="../../scripts/loadDependencies.js"></script>
+    <script>
+    // Proteger esta página solo para directores
+    RouteGuard.protect(['director']);
+
+    (function(){
+        function waitFor(names, timeout = 5000) {
+            return new Promise((resolve, reject) => {
+                const start = Date.now();
+                (function poll() {
+                    try {
+                        const ok = names.every(n => { try { return typeof eval(n) !== 'undefined'; } catch(e){ return false; } });
+                        if (ok) return resolve();
+                    } catch (e) {}
+                    if (Date.now() - start > timeout) return reject(new Error('Servicios no disponibles'));
+                    setTimeout(poll, 50);
+                })();
+            });
+        }
+
+        async function loadEstadisticas() {
+            try {
+                console.log('📊 Cargando estadísticas...');
+                
+                // Cargar datos necesarios
+                const [grupos, ciclos] = await Promise.all([
+                    gruposService.getAll(),
+                    ciclosService.getAll()
+                ]);
+
+                console.log('✅ Grupos cargados:', grupos.length);
+                console.log('✅ Ciclos cargados:', ciclos.length);
+
+                // Llenar select de grupos
+                const grupoSelect = document.querySelector('.filters .filter-select');
+                grupoSelect.innerHTML = '<option value="">Seleccionar grupo</option>';
+                grupos.forEach(grupo => {
+                    const option = document.createElement('option');
+                    option.value = grupo.idGrupo;
+                    option.textContent = `${grupo.nombre} - Grado ${grupo.grado}`;
+                    grupoSelect.appendChild(option);
+                });
+
+                // Llenar select de periodos
+                const periodoSelect = document.querySelectorAll('.filter-select')[1];
+                periodoSelect.innerHTML = '<option value="">Seleccionar periodo</option>';
+                ciclos.forEach(ciclo => {
+                    const option = document.createElement('option');
+                    option.value = ciclo.idCiclo;
+                    option.textContent = `${ciclo.nombre} (${ciclo.anio_inicio}-${ciclo.anio_fin})`;
+                    periodoSelect.appendChild(option);
+                });
+
+                console.log('✅ Selects actualizados');
+
+            } catch (error) {
+                console.error('❌ Error cargando estadísticas:', error);
+            }
+        }
+
+        console.log('🔍 Esperando servicios...');
+        waitFor(['gruposService', 'ciclosService']).then(() => {
+            console.log('✅ Servicios cargados');
+            loadEstadisticas();
+        }).catch(err => console.error('❌ Error:', err));
+    })();
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignaturas</title>
+    <link rel="stylesheet" href="../../css/estudiantes.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+    <link rel="stylesheet" href="../../css/modalactualizar.css">
+</head>
+<body>
+<header class="header">
+    <div class="left-section"><h1 class="logo">SICALI</h1></div>
+    <div class="user-info">
+        <div class="text-info">
+            <div class="role">Director</div>
+            <div class="name">Jorge Luis Omalley Pinacho</div>
+        </div>
+        <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+    </div>
+</header>
+
+<nav class="sidebar" id="sidebar">
+    <ul class="menu-list">
+        <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+        <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+        <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+        <li class="active"><a href="asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+        <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+    </ul>
+</nav>
+
+<main class="content" id="content">
+<section class="docentes-section">
+    <h1 class="titulo">Asignaturas</h1>
+
+    <div class="acciones-superiores">
+        <div class="buscador-con-icono">
+            <img src="../../icons/buscador.svg" alt="Icono de buscador" class="icono-input" />
+            <input type="text" placeholder="Buscar" id="buscarAsignatura" onkeyup="filtrarAsignaturas()" />
+        </div>
+
+        <div class="agregar">
+            <label for="">Asignatura</label>
+            <button class="btn-agregar" onclick="showAgregarModal()">
+                <img src="../../icons/agregar.svg" alt="Icono agregar" class="icono-agregar"/>
+                Agregar
+            </button>
+        </div>
+    </div>
+
+    <table class="tabla-docentes">
+        <thead>
+            <tr>
+                <th style="width:10%;">#</th>
+                <th style="width:30%;">Nombre</th>
+                <th style="width:20%;">Código</th>
+                <th style="width:30%;">Descripción</th>
+                <th style="width:10%;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tbody-asignaturas">
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 40px;">
+                    Cargando asignaturas...
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- ------------------------- MODAL AGREGAR -------------------------- -->
+<div id="modal-overlay-asignatura" class="modal-overlay-asignatura">
+    <div class="modal-asignatura">
+        <h3 id="modal-title">Agregar Asignatura</h3>
+        <div class="form-group">
+            <label>Nombre:</label>
+            <input type="text" id="agregar-nombre" placeholder="Ej: Matemáticas">
+        </div>
+        <div class="form-group">
+            <label>Código:</label>
+            <input type="text" id="agregar-codigo" placeholder="Ej: MAT101">
+        </div>
+        <div class="form-group">
+            <label>Descripción:</label>
+            <input type="text" id="agregar-desc" placeholder="Descripción breve">
+        </div>
+        <div class="modal-buttons">
+            <button class="guardar" onclick="guardarAsignatura()">Guardar</button>
+            <button class="cancel" onclick="closeAgregarModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ------------------------- MODAL ÉXITO AGREGAR -------------------------- -->
+<div id="success-modal-overlay" class="modal-overlay">
+    <div class="modal">
+        <img src="../../icons/successverde.svg" alt="success" class="modal-icon">
+        <h3>Agregado Correctamente</h3>
+        <p>Este registro se guardó en el sistema</p>
+    </div>
+</div>
+
+<!-- ------------------------- MODAL ELIMINAR -------------------------- -->
+<div id="delete-modal-overlay" class="modal-overlay">
+    <div class="modal">
+        <img src="../../icons/inforojo.svg" alt="eliminar" class="modal-icon">
+        <h3>¿Desea eliminarlo?</h3>
+        <p>Esta acción es permanente y no podrá deshacerse</p>
+        <div class="modal-buttons">
+            <button class="eliminar" onclick="confirmDelete(event)">Eliminar</button>
+            <button class="cancel" onclick="closeDeleteModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ------------------------- MODAL ÉXITO ELIMINAR -------------------------- -->
+<div id="delete-success-modal-overlay" class="modal-overlay">
+    <div class="modal">
+        <img src="../../icons/successrojo.svg" alt="success" class="modal-icon">
+        <h3>Eliminado correctamente</h3>
+        <p>El registro que seleccionaste se eliminó del sistema</p>
+        <div class="modal-buttons">
+            <button class="eliminar" onclick="closeDeleteSuccessModal()">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SCRIPTS DEL SISTEMA - AGREGAR AL FINAL      -->
+<!-- ============================================ -->
+<script src="../../scripts/loadDependencies.js"></script>
+
+<!-- NOTA: Necesitas crear este servicio basado en los ejemplos -->
+<script>
+// ==========================================
+// SERVICIO DE ASIGNATURAS (inline por ahora)
+// ==========================================
+class AsignaturasService {
+    async getAll() {
+        try {
+            const response = await httpClient.get('/asignaturas');
+            console.log('AsignaturasService.getAll - raw response:', response);
+            if (response && response.success) {
+                // Log type and length for debugging
+                try {
+                    console.log('AsignaturasService.getAll - data type:', Array.isArray(response.data) ? 'array' : typeof response.data, 'length:', Array.isArray(response.data) ? response.data.length : 'n/a');
+                } catch (e) {
+                    console.warn('AsignaturasService.getAll - could not inspect data:', e);
+                }
+                return response.data;
+            }
+            throw new Error(response && response.message ? response.message : 'Error al obtener asignaturas');
+        } catch (error) {
+            console.error('Error al obtener asignaturas:', error);
+            throw error;
+        }
+    }
+
+    async create(asignatura) {
+        try {
+            const response = await httpClient.post('/asignaturas', asignatura);
+            if (response.success) {
+                return response.data;
+            }
+            // Propagar mensaje del servidor si existe (puede ser texto o {error: ...})
+            const serverMsg = response.data && (typeof response.data === 'string' ? response.data : (response.data.error || null));
+            throw new Error(serverMsg || response.message);
+        } catch (error) {
+            console.error('Error al crear asignatura:', error);
+            throw error;
+        }
+    }
+
+    async update(id, asignatura) {
+        try {
+            const response = await httpClient.put(`/asignaturas/${id}`, asignatura);
+            if (response.success) {
+                return response.data;
+            }
+            const serverMsg = response.data && (typeof response.data === 'string' ? response.data : (response.data.error || null));
+            throw new Error(serverMsg || response.message);
+        } catch (error) {
+            console.error('Error al actualizar asignatura:', error);
+            throw error;
+        }
+    }
+
+    async delete(id) {
+        try {
+            const idNum = Number(id);
+            if (Number.isNaN(idNum)) {
+                throw new Error('ID inválido para eliminar asignatura');
+            }
+            console.log('AsignaturasService.delete - calling DELETE:', `/asignaturas/${idNum}`, 'idNum type:', typeof idNum);
+            const response = await httpClient.delete(`/asignaturas/${idNum}`);
+            // Devolver la respuesta completa para que el llamador pueda decidir cómo mostrar mensajes
+            return response;
+        } catch (error) {
+            console.error('Error al eliminar asignatura:', error);
+            throw error;
+        }
+    }
+}
+
+const asignaturasService = new AsignaturasService();
+</script>
+
+<!-- ============================================ -->
+<!-- CÓDIGO DE LA PÁGINA                          -->
+<!-- ============================================ -->
+<script>
+// Proteger esta página solo para directores
+RouteGuard.protect(['director']);
+
+// Variables globales
+let asignaturaEditando = null;
+let idAsignaturaEliminar = null;
+let todasLasAsignaturas = [];
+
+// Cargar asignaturas al iniciar (esperar que las dependencias estén cargadas)
+document.addEventListener('DOMContentLoaded', function() {
+    const ready = () => (typeof httpClient !== 'undefined' && typeof UIUtils !== 'undefined');
+
+    if (ready()) {
+        cargarAsignaturas();
+        return;
+    }
+
+    let tries = 0;
+    const maxTries = 50; // ~5s
+    const iv = setInterval(() => {
+        if (ready()) {
+            clearInterval(iv);
+            cargarAsignaturas();
+            return;
+        }
+        tries += 1;
+        if (tries > maxTries) {
+            clearInterval(iv);
+            console.error('Dependencias no cargadas: httpClient/UIUtils');
+            const tbody = document.getElementById('tbody-asignaturas');
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #ef4444;">
+                            ⚠️ Error: dependencias de la aplicación no cargadas. Recarga la página.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+    }, 100);
+});
+
+// ==========================================
+// FUNCIÓN PRINCIPAL: CARGAR ASIGNATURAS
+// ==========================================
+async function cargarAsignaturas() {
+    try {
+        // Mostrar loader
+        UIUtils.showLoader('Cargando asignaturas...');
+        
+        // Obtener asignaturas de la API
+        todasLasAsignaturas = await asignaturasService.getAll();
+        console.log('cargarAsignaturas - fetched asignaturas:', todasLasAsignaturas);
+        console.log('cargarAsignaturas - tipo:', typeof todasLasAsignaturas, 'esArray:', Array.isArray(todasLasAsignaturas), 'length:', Array.isArray(todasLasAsignaturas) ? todasLasAsignaturas.length : 'n/a');
+        
+        // Mostrar en tabla
+        mostrarAsignaturas(todasLasAsignaturas);
+        
+        // Ocultar loader
+        UIUtils.hideLoader();
+        
+    } catch (error) {
+        UIUtils.hideLoader();
+        UIUtils.showError('Error al cargar asignaturas: ' + error.message);
+        console.error(error);
+        
+        // Mostrar mensaje en la tabla
+        document.getElementById('tbody-asignaturas').innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 40px; color: #ef4444;">
+                    ⚠️ Error al cargar asignaturas. Verifica tu conexión.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// ==========================================
+// MOSTRAR ASIGNATURAS EN TABLA
+// ==========================================
+function mostrarAsignaturas(asignaturas) {
+    const tbody = document.getElementById('tbody-asignaturas');
+    console.log('mostrarAsignaturas - recibidas:', asignaturas);
+    // Defensive: asegurar que `asignaturas` es siempre un array para evitar errores si la API devolvió null/undefined
+    if (!Array.isArray(asignaturas)) {
+        console.warn('mostrarAsignaturas - expected array but got:', typeof asignaturas, asignaturas);
+        asignaturas = [];
+    }
+
+    if (asignaturas.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 40px;">
+                    📭 No hay asignaturas registradas
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = asignaturas.map((asig, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${asig.nombre || 'Sin nombre'}</td>
+            <td>${asig.codigo || 'Sin código'}</td>
+            <td>${asig.descripcion || 'Sin descripción'}</td>
+            <td>
+                <button class="btn-editar" onclick="editarAsignatura(${asig.idAsignatura})">
+                    <img src="../../icons/visualizar.svg" alt="editar"/>
+                </button>
+                <button class="btn-eliminar" onclick="prepararEliminar(event, ${asig.idAsignatura})">
+                    <img src="../../icons/eliminar.svg" alt="eliminar"/>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// ==========================================
+// FILTRAR ASIGNATURAS (BÚSQUEDA)
+// ==========================================
+function filtrarAsignaturas() {
+    const busqueda = document.getElementById('buscarAsignatura').value.toLowerCase();
+    
+    if (!busqueda) {
+        mostrarAsignaturas(todasLasAsignaturas);
+        return;
+    }
+    
+    const filtradas = todasLasAsignaturas.filter(asig => 
+        (asig.nombre || '').toLowerCase().includes(busqueda) ||
+        (asig.codigo || '').toLowerCase().includes(busqueda) ||
+        (asig.descripcion || '').toLowerCase().includes(busqueda)
+    );
+    
+    mostrarAsignaturas(filtradas);
+}
+
+// ==========================================
+// MODAL AGREGAR/EDITAR
+// ==========================================
+function showAgregarModal() {
+    document.getElementById('modal-title').textContent = 'Agregar Asignatura';
+    document.getElementById('modal-overlay-asignatura').style.display = 'flex';
+    asignaturaEditando = null;
+}
+
+function closeAgregarModal() {
+    document.getElementById('modal-overlay-asignatura').style.display = 'none';
+    document.getElementById('agregar-nombre').value = '';
+    document.getElementById('agregar-codigo').value = '';
+    document.getElementById('agregar-desc').value = '';
+    asignaturaEditando = null;
+}
+
+// ==========================================
+// GUARDAR ASIGNATURA (CREAR O ACTUALIZAR)
+// ==========================================
+async function guardarAsignatura() {
+    const nombre = document.getElementById('agregar-nombre').value.trim();
+    const codigo = document.getElementById('agregar-codigo').value.trim();
+    const descripcion = document.getElementById('agregar-desc').value.trim();
+
+    // Validar
+    if (!nombre || !codigo) {
+        UIUtils.showWarning('Debes llenar Nombre y Código');
+        return;
+    }
+
+    try {
+        // Mostrar loader
+        UIUtils.showLoader(asignaturaEditando ? 'Actualizando...' : 'Guardando...');
+        
+        const datos = {
+            nombre: nombre,
+            codigo: codigo,
+            descripcion: descripcion
+        };
+
+        // Crear o actualizar y obtener posible mensaje devuelto por el servidor
+        let resultMessage = null;
+        if (asignaturaEditando) {
+            resultMessage = await asignaturasService.update(asignaturaEditando, datos);
+        } else {
+            resultMessage = await asignaturasService.create(datos);
+        }
+
+        // Cerrar modal de formulario
+        closeAgregarModal();
+        
+        // Ocultar loader
+        UIUtils.hideLoader();
+
+        // Mostrar modal de éxito
+        document.getElementById('success-modal-overlay').style.display = 'flex';
+        
+        // Cerrar modal de éxito después de 1.5 segundos
+        setTimeout(() => {
+            document.getElementById('success-modal-overlay').style.display = 'none';
+        }, 1500);
+
+        // Recargar tabla
+        await cargarAsignaturas();
+        
+        // Mostrar notificación: si el backend devolvió texto, mostrarlo; si devolvió objeto, usar mensaje genérico
+        const notifyMsg = (typeof resultMessage === 'string' && resultMessage.trim())
+            ? resultMessage
+            : (asignaturaEditando ? 'Asignatura actualizada' : 'Asignatura creada');
+        UIUtils.showSuccess(notifyMsg);
+
+    } catch (error) {
+        UIUtils.hideLoader();
+        UIUtils.showError('Error al guardar: ' + error.message);
+        console.error(error);
+    }
+}
+
+// ==========================================
+// EDITAR ASIGNATURA
+// ==========================================
+async function editarAsignatura(idAsignatura) {
+    try {
+        UIUtils.showLoader('Cargando datos...');
+        
+        // Buscar asignatura en el array local (o puedes hacer GETById)
+        const asignatura = todasLasAsignaturas.find(a => a.idAsignatura === idAsignatura);
+        
+        if (!asignatura) {
+            throw new Error('Asignatura no encontrada');
+        }
+        
+        // Llenar formulario
+        document.getElementById('agregar-nombre').value = asignatura.nombre || '';
+        document.getElementById('agregar-codigo').value = asignatura.codigo || '';
+        document.getElementById('agregar-desc').value = asignatura.descripcion || '';
+        
+        // Cambiar título y marcar como edición
+        document.getElementById('modal-title').textContent = 'Editar Asignatura';
+        asignaturaEditando = idAsignatura;
+        
+        // Mostrar modal
+        document.getElementById('modal-overlay-asignatura').style.display = 'flex';
+        
+        UIUtils.hideLoader();
+        
+    } catch (error) {
+        UIUtils.hideLoader();
+        UIUtils.showError('Error al cargar asignatura: ' + error.message);
+        console.error(error);
+    }
+}
+
+// ==========================================
+// MODAL ELIMINAR
+// ==========================================
+function prepararEliminar(event, idAsignatura) {
+    try {
+        if (event && event.stopImmediatePropagation) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+        }
+    } catch (e) {
+        console.warn('prepararEliminar: could not stop event propagation', e);
+    }
+    idAsignaturaEliminar = idAsignatura;
+    document.getElementById('delete-modal-overlay').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    document.getElementById('delete-modal-overlay').style.display = 'none';
+    idAsignaturaEliminar = null;
+}
+
+async function confirmDelete(event) {
+    try {
+        if (event && event.stopImmediatePropagation) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+        }
+    } catch (e) {
+        console.warn('confirmDelete: could not stop event propagation', e);
+    }
+    if (!idAsignaturaEliminar) return;
+    // Guardar el id en una variable local antes de cerrar el modal
+    const idToDelete = idAsignaturaEliminar;
+    
+    try {
+        // Cerrar modal de confirmación
+        closeDeleteModal();
+        
+        // Mostrar loader
+        UIUtils.showLoader('Eliminando asignatura...');
+        
+        // Log id being deleted (type + value) for debugging
+        console.log('confirmDelete - idToDelete (type):', typeof idToDelete, 'value:', idToDelete);
+
+        // Eliminar de la API (usar la variable local guardada)
+        const resultado = await asignaturasService.delete(idToDelete);
+        console.log('confirmDelete - delete resultado:', resultado);
+
+        UIUtils.hideLoader();
+
+        // Resultado ahora es el objeto de respuesta retornado por httpClient
+        if (resultado && resultado.success) {
+            // Recargar tabla
+            await cargarAsignaturas();
+            console.log('confirmDelete - after cargarAsignaturas, todasLasAsignaturas:', todasLasAsignaturas);
+
+            // Pequeña espera para dejar que event handlers externos (extensiones) finalicen
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            // Reemplazar el tbody por una copia limpia para evitar nodos/handlers inyectados
+            try {
+                const tbody = document.getElementById('tbody-asignaturas');
+                if (tbody && tbody.parentNode) {
+                    const fresh = tbody.cloneNode(false);
+                    tbody.parentNode.replaceChild(fresh, tbody);
+                    // Volver a renderizar usando los datos frescos
+                    mostrarAsignaturas(todasLasAsignaturas || []);
+                }
+            } catch (e) {
+                console.warn('confirmDelete - error al reemplazar tbody:', e);
+            }
+
+            // Verificar que el elemento realmente fue eliminado en la lista recargada
+            const stillExists = todasLasAsignaturas && todasLasAsignaturas.find(a => a.idAsignatura === Number(idToDelete));
+            if (stillExists) {
+                // Si el servidor no eliminó (o hay inconsistencia), informar al usuario
+                UIUtils.hideLoader();
+                UIUtils.showError('La asignatura sigue presente en el servidor. Intenta nuevamente o verifica el servidor.');
+                console.warn('confirmDelete - eliminado reportado pero el elemento sigue en GET:', stillExists);
+                idAsignaturaEliminar = null;
+                return;
+            }
+
+            // Mostrar modal de éxito
+            document.getElementById('delete-success-modal-overlay').style.display = 'flex';
+
+            // Cerrar automáticamente después de 1.5 segundos
+            setTimeout(() => {
+                closeDeleteSuccessModal();
+            }, 1500);
+
+            try {
+                console.log('confirmDelete - tbody innerHTML (after reload):', document.getElementById('tbody-asignaturas').innerHTML);
+            } catch (e) {
+                console.warn('confirmDelete - no se pudo leer tbody:', e);
+            }
+
+            // Mostrar mensaje del servidor si existe
+            const deleteMsg = (resultado.data && typeof resultado.data === 'string' && resultado.data.trim())
+                ? resultado.data
+                : 'Asignatura eliminada correctamente';
+            UIUtils.showSuccess(deleteMsg);
+            idAsignaturaEliminar = null;
+        } else if (resultado && resultado.success === false) {
+            // Mostrar mensaje de error informado por el backend si existe
+            const serverErr = (resultado.data && (resultado.data.error || resultado.data)) || resultado.message || 'No se pudo eliminar la asignatura';
+            UIUtils.showError(String(serverErr));
+        } else {
+            UIUtils.showError('No se pudo eliminar la asignatura');
+        }
+        
+    } catch (error) {
+        UIUtils.hideLoader();
+        UIUtils.showError('Error al eliminar: ' + error.message);
+        console.error(error);
+    }
+}
+
+function closeDeleteSuccessModal() {
+    document.getElementById('delete-success-modal-overlay').style.display = 'none';
+    idAsignaturaEliminar = null;
+}
+
+// ==========================================
+// CERRAR MODALES AL HACER CLIC FUERA
+// ==========================================
+document.getElementById('modal-overlay-asignatura').addEventListener('click', function(e) {
+    if (e.target === this) closeAgregarModal();
+});
+
+document.getElementById('delete-modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
+</script>
+
+</main>
+</body>
+</html>

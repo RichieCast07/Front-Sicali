@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Grupo</title>
+  <link rel="stylesheet" href="../../css/editardocente.css">
+  <link rel="stylesheet" href="../../css/navbar.css">
+  <link rel="stylesheet" href="../../css/estudiantesdegrupo.css">
+</head>
+
+<body>
+  <header class="header">
+    <div class="left-section">
+      <h1 class="logo">SICALI</h1>
+    </div>
+    <div class="user-info">
+      <div class="text-info">
+        <div class="role">Director</div>
+        <div class="name">Jorge Luis Omalley Pinacho</div>
+      </div>
+      <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+    </div>
+  </header>
+
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+            <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+            <li class="active"><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+  <main class="content">
+    <button type="button" class="back-link">
+      <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /></span>
+      <span class="text">Atrás</span>
+    </button>
+
+    <section class="editar-docente">
+      <h2>Grupo</h2>
+
+
+      <form class="form-docente">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre del Grupo:</label>
+            <input type="text" value="A" disabled>
+          </div>
+          <div class="form-group">
+            <label>Grado:</label>
+            <select disabled>
+              <option>Seleccionar</option>
+              <option selected>Primero</option>
+              <option>Segundo</option>
+              <option>Tercero</option>
+              <option>Cuarto</option>
+              <option>Quinto</option>
+              <option>Sexto</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Docente Asignado:</label>
+            <select id="docenteSelect" disabled>
+              <option value="">Cargando docentes...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Capacidad:</label>
+            <input type="number" value="25" disabled>
+          </div>
+        </div>
+
+        <div class="container">
+        <h2>Estudiantes</h2>
+
+        
+
+        <table class="students-table">
+            <thead>
+                <tr>
+                    <th>Acciones</th>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Apellido Paterno</th>
+                    <th>Apellido Materno</th>
+                </tr>
+            </thead>
+            <tbody id="estudiantesTableBody">
+                <tr>
+                    <td colspan="5" style="text-align: center;">Cargando estudiantes...</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+        <div class="boton-editar">
+          <button type="button" id="saveBtn" class="btn-editar">
+            <img src="../../icons/editar.svg" alt="Editar" class="btn-icon">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <script>
+    // Proteger esta página solo para directores
+    RouteGuard.protect(['director']);
+
+    // Editar grupo: habilita formulario, carga datos por id y guarda cambios
+    (function(){
+      function isReady(name){ try{ return typeof eval(name) !== 'undefined'; }catch(e){ return false; } }
+      function waitFor(names, timeout=3000){
+        return new Promise((resolve,reject)=>{ const start=Date.now(); (function poll(){ if(names.every(isReady)) return resolve(); if(Date.now()-start>timeout) return reject(new Error('Servicios no disponibles')); setTimeout(poll,50); })(); });
+      }
+
+      function getIdFromQuery(){ const p = new URLSearchParams(location.search); return p.get('id'); }
+
+      function gradoToText(n){ const map = {1:'Primero',2:'Segundo',3:'Tercero',4:'Cuarto',5:'Quinto',6:'Sexto'}; return map[n] || n; }
+
+      let originalPeriodo = null;
+      let currentGrupoId = null;
+
+      async function loadEstudiantes(idGrupo){
+        try{
+          const tbody = document.getElementById('estudiantesTableBody');
+          if(!tbody) return;
+          
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Cargando estudiantes...</td></tr>';
+          
+          // Backend no tiene endpoint /grupo/{id}, usar getAll y filtrar
+          console.log('🔍 Obteniendo todas las inscripciones...');
+          const todasInscripciones = await estudianteGrupoService.getAll();
+          console.log('📊 Total inscripciones:', todasInscripciones.length);
+          
+          // Filtrar por idGrupo
+          const inscripciones = todasInscripciones.filter(insc => {
+            const grupoId = insc.idGrupo || insc.grupo?.idGrupo;
+            return Number(grupoId) === Number(idGrupo);
+          });
+          
+          console.log(`📊 Inscripciones del grupo ${idGrupo}:`, inscripciones.length);
+          
+          if(!inscripciones || inscripciones.length === 0){
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No hay estudiantes inscritos en este grupo</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = '';
+          console.log('📊 Inscripciones cargadas:', inscripciones);
+          inscripciones.forEach((insc, index) => {
+            // insc.estudiante es el objeto completo del estudiante
+            const estudiante = insc.estudiante || {};
+            const idEstudiante = insc.idEstudiante || estudiante.id_usuario || '';
+            const nombre = estudiante.nombre || '-';
+            const ape_p = estudiante.ape_p || '-';
+            const ape_m = estudiante.ape_m || '-';
+            
+            console.log(`📌 Estudiante ${index + 1}:`, {
+              idEstudiante,
+              nombre,
+              ape_p,
+              ape_m
+            });
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><button type="button" class="btn-eliminar" data-estudiante-id="${idEstudiante}"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button></td>
+              <td>${index + 1}</td>
+              <td>${nombre}</td>
+              <td>${ape_p}</td>
+              <td>${ape_m}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          // Agregar event listeners a botones eliminar
+          tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
+            btn.addEventListener('click', async function(){
+              const idEstudiante = this.getAttribute('data-estudiante-id');
+              if(confirm('¿Está seguro de eliminar este estudiante del grupo?')){
+                try{
+                  await estudianteGrupoService.delete(idEstudiante, currentGrupoId);
+                  alert('Estudiante eliminado del grupo');
+                  loadEstudiantes(currentGrupoId);
+                }catch(err){
+                  console.error('Error eliminando estudiante:', err);
+                  alert('Error al eliminar: ' + (err.message || err));
+                }
+              }
+            });
+          });
+
+        }catch(err){ 
+          console.error('Error cargando estudiantes', err); 
+          const tbody = document.getElementById('estudiantesTableBody');
+          if(tbody) {
+            // Verificar si es error de endpoint no encontrado
+            if(err.message && err.message.includes('not found')) {
+              tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666;">⚠️ Funcionalidad pendiente: El backend aún no implementa el endpoint de estudiantes por grupo</td></tr>';
+            } else {
+              tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Error al cargar estudiantes</td></tr>';
+            }
+          }
+        }
+      }
+
+      async function loadAndPopulate(id){
+        try{
+          currentGrupoId = id;
+          const grupo = await gruposService.getById(Number(id));
+          if(!grupo) return;
+          const form = document.querySelector('.form-docente');
+          // enable inputs
+          form.querySelectorAll('input, select').forEach(el=> el.disabled = false);
+          // populate
+          form.querySelector('input[type="text"]').value = grupo.nombre || '';
+          const gradoSelect = form.querySelector('select');
+          if(gradoSelect) {
+            const text = gradoToText(grupo.grado);
+            Array.from(gradoSelect.options).forEach(opt=>{ if(opt.text === text || opt.value==grupo.grado) opt.selected = true; });
+          }
+          const docenteSelect = document.getElementById('docenteSelect');
+          if(docenteSelect){
+            // populate docentes then set selected
+            const docentes = await usuariosService.getByRol('docente');
+            docenteSelect.innerHTML='';
+            const placeholder = document.createElement('option'); placeholder.value=''; placeholder.textContent='Seleccionar'; docenteSelect.appendChild(placeholder);
+            (Array.isArray(docentes)?docentes:[docentes||[]]).forEach(d=>{
+              const o = document.createElement('option'); o.value = d.id || d.id_usuario || ''; o.textContent = `${d.nombre||''} ${d.ape_p||''} ${d.ape_m||''}`.trim(); docenteSelect.appendChild(o);
+            });
+            if(grupo.idDocente) docenteSelect.value = (grupo.idDocente.id || grupo.idDocente || grupo.idDocente.id_usuario) || '';
+          }
+
+          // preserve periodo for update payload
+          if (grupo.idPeriodo) {
+            // idPeriodo may be object { idPeriodo: N } or number
+            originalPeriodo = (typeof grupo.idPeriodo === 'object') ? (grupo.idPeriodo.idPeriodo || grupo.idPeriodo.id || null) : grupo.idPeriodo;
+          }
+
+          // Cargar estudiantes del grupo
+          await loadEstudiantes(id);
+
+        }catch(err){ console.error('Error cargando grupo',err); }
+      }
+
+      async function saveHandler(){
+        try{
+          const id = getIdFromQuery(); if(!id) return alert('ID no proporcionado');
+          const form = document.querySelector('.form-docente');
+          const nombre = form.querySelector('input[type="text"]').value.trim();
+          const gradoText = form.querySelector('select').selectedOptions[0].text;
+          const gradoMap = {'Primero':1,'Segundo':2,'Tercero':3,'Cuarto':4,'Quinto':5,'Sexto':6};
+          const grado = gradoMap[gradoText] || Number(form.querySelector('select').value) || null;
+          const docenteSelect = document.getElementById('docenteSelect');
+          const idDocente = Number(docenteSelect.value) || null;
+                const payload = { nombre, grado, idDocente };
+                // include periodo (backend validation requires it)
+                if (originalPeriodo) payload.idPeriodo = Number(originalPeriodo);
+          await gruposService.update(Number(id), payload);
+          // show confirmation and redirect
+          alert('Grupo actualizado');
+          window.location.href = 'grupos.html';
+        }catch(err){ console.error('Error guardando grupo', err); alert('Error: '+(err.message||err)); }
+      }
+
+      document.querySelector('.back-link').addEventListener('click', function () { window.history.back(); });
+
+      waitFor(['gruposService','usuariosService','estudianteGrupoService']).then(()=>{
+        const id = getIdFromQuery();
+        if(id) loadAndPopulate(id);
+        document.getElementById('saveBtn').addEventListener('click', saveHandler);
+      }).catch(err=>console.error(err));
+    })();
+    </script>
+  </main>
+    <script src="../../scripts/loadDependencies.js"></script>
+  </body>
+  </html>

@@ -1,0 +1,127 @@
+.docentes-section {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.titulo {
+  font-size: 40px;
+  font-weight: 600;
+  margin-bottom: 50px;
+  color: #1e1e1e;
+}
+
+.acciones-superiores {
+  display: flex;
+  justify-content: center;
+  gap: 450px;
+  align-items: center;
+  margin-bottom: 25px;
+  padding: 30px 30px;
+}
+
+.buscador-con-icono {
+  position: relative;
+  display: inline-block;
+}
+
+.buscador-con-icono input {
+  padding-left: 35px;
+  height: 35px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  width: 300px;
+}
+
+.icono-input {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  pointer-events: none; 
+}
+
+.agregar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-agregar {
+  background-color: #7ba23f;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-agregar:hover {
+  background-color: #6b9235;
+}
+
+.icono-agregar {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.tabla-docentes {
+  width: 90%;
+  margin: 0 auto;
+  border-collapse: collapse;
+  background-color: #fff;
+  border-radius: 15px;
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.tabla-docentes th, .tabla-docentes td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+.tabla-docentes th {
+  background-color: #f7f7f7;
+  color: #333;
+}
+
+.tabla-docentes tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla-docentes td + td,
+.tabla-docentes th + th {
+  border-left: 1px solid #ddd;
+}
+
+.btn-editar, .btn-eliminar {
+  border: none;
+  border-radius: 35px;
+  width: 50px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 20px;
+  margin: 5px 10px;
+}
+
+.btn-editar {
+  background-color: #b193c0;
+  color: white;
+}
+
+.btn-eliminar {
+  background-color: #e14c4c;
+  color: white;
+}
+
+.btn-editar:hover {
+  background-color: #9d7ab1;
+}
+
+.btn-eliminar:hover {
+  background-color: #c93b3b;
+}

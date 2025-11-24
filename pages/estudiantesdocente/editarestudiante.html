@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar estudiantes</title>
+    <link rel="stylesheet" href="../../css/Editar estudiante.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role">Director</div>
+                <div class="name">Jorge Luis Omalley Pinacho</div>
+            </div>
+            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+        </div>
+    </header>
+    
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+            <li class="active"><a href="estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+            <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="content" id="content">
+    <button type="button" class="back-link" aria-label="Volver atrás">
+        <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /> </span>
+        <span class="text">Atrás</span>
+    </button>
+
+    <section class="editar-estudiante">
+  <h2>Estudiante</h2>
+
+  <div class="form-contenedor">
+    <div class="form-columna">
+      <h3>Estudiante</h3>
+
+      <div class="form-group">
+        <label>Nombre:</label>
+        <input disabled type="text" value="Antonio">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Paterno:</label>
+        <input disabled type="text" value="Giron">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Materno:</label>
+        <input disabled type="text" value="Lopez">
+      </div>
+
+      <div class="form-group">
+        <label>Grupo:</label>
+        <select disabled>
+          <option>Primero A</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Curp:</label>
+        <input disabled type="text" value="GILA040702MSCLDRA9">
+      </div>
+
+      <div class="form-group">
+        <label>Sexo</label>
+        <select disabled>
+          <option>Seleccionar</option>
+          <option>Femenino</option>
+          <option>Masculino</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha de Nacimiento</label>
+        <input disabled type="date">
+      </div>
+    </div>
+
+    <div class="form-columna">
+      <h3>Tutor</h3>
+
+      <div class="form-group">
+        <label>Nombre:</label>
+        <input disabled type="text" value="Antonio">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Paterno:</label>
+        <input disabled type="text" value="Giron">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Materno:</label>
+        <input disabled type="text" value="Garcia">
+      </div>
+
+      <div class="form-group">
+        <label>Parentesco:</label>
+        <input disabled type="text" value="PADRE">
+      </div>
+
+      <div class="form-group">
+        <label>Sexo</label>
+        <select disabled>
+          <option>Seleccionar</option>
+          <option>Femenino</option>
+          <option>Masculino</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha de Nacimiento</label>
+        <input disabled type="date">
+      </div>
+    </div>
+  </div>
+
+  <div class="boton-agregar">
+    <button type="button" onclick="navigateToSave()">
+      <img src="../../icons/editar.svg" class="btn-icon" alt="Editar">
+      Editar
+    </button>
+  </div>
+</section>
+<script>
+  // Proteger esta página para docentes y directores
+  RouteGuard.protect(['docente', 'director']);
+
+  function getIdFromQuery(){ const p = new URLSearchParams(location.search); return p.get('id'); }
+  function navigateToSave(){ const id = getIdFromQuery(); window.location.href = 'guardarestudiante.html' + (id? '?id='+encodeURIComponent(id): ''); }
+  
+  document.querySelector(".back-link").addEventListener("click", function () {
+    window.history.back();
+  });
+</script>
+</main>
+  <script src="../../scripts/loadDependencies.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+

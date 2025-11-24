@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenida Director</title>
+    <link rel="stylesheet" href="../../css/bienvenidaDirector.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+</head>
+<body>
+    
+     <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role">Director</div>
+                <div class="name" id="userName">Cargando...</div>
+            </div>
+            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+            <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+            <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="content" id="content">
+
+        <div class="welcome-container">
+            <h1 class="welcome-title">Bienvenido al Sistema de<br>Calificaciones Infantil</h1>
+            <p class="welcome-description">
+                Cada acción aquí contribuye al crecimiento y la organización de nuestra comunidad.<br>
+                Elige una sección del menú para iniciar.
+            </p>
+            <div class="welcome-image">
+                <img src="../../img/imagenbienvenidas2.png" alt="Niños celebrando">
+            </div>
+        </div>
+        
+    </main>
+    <script src="../../scripts/loadDependencies.js"></script>
+    <script>
+        // Proteger esta página solo para directores
+        RouteGuard.protect(['director']);
+
+        // Cargar información del usuario logueado
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+            } catch (error) {
+                console.error('Error al cargar datos del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+            }
+        })();
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

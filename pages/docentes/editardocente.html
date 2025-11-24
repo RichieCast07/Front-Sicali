@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Docente</title>
+  <link rel="stylesheet" href="../../css/editardocente.css">
+  <link rel="stylesheet" href="../../css/navbar.css">
+</head>
+
+<body>
+  <header class="header">
+    <div class="left-section">
+      <h1 class="logo">SICALI</h1>
+    </div>
+    <div class="user-info">
+      <div class="text-info">
+        <div class="role">Director</div>
+        <div class="name">Jorge Luis Omalley Pinacho</div>
+      </div>
+      <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+    </div>
+  </header>
+
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li class="active"><a href="./docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+            <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+            <li ><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+  <main class="content">
+    <button type="button" class="back-link">
+      <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /></span>
+      <span class="text">Atrás</span>
+    </button>
+
+    <section class="editar-docente">
+      <h2>Docente</h2>
+
+      <form class="form-docente">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre:</label>
+            <input type="text" value="alejandra" disabled>
+          </div>
+          <div class="form-group">
+            <label>RFC:</label>
+            <input type="text" value="VETA850621det" disabled>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Apellido Paterno:</label>
+            <input type="text" value="vela" disabled>
+          </div>
+          <div class="form-group">
+            <label>CURP:</label>
+            <input type="text" value="VETA850621MDFLLRA9" disabled>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Apellido Materno:</label>
+            <input type="text" value="torrez" disabled>
+          </div>
+          <div class="form-group">
+            <label>Sexo:</label>
+            <select disabled>
+              <option>Seleccionar</option>
+              <option>Masculino</option>
+              <option selected>Femenino</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha de Nacimiento:</label>
+            <input type="date" value="1985-06-21" disabled>
+          </div>
+          <div class="form-group">
+            <label>Usuario:</label>
+            <input type="text" value="alejandra.vela" disabled>
+          </div>
+          <div class="form-group" style="position: relative;">
+          <label>Contraseña:</label>
+          <input type="password" id="password" value="1sicali" disabled>
+          <button type="button" onclick="togglePassword()" style="position: absolute; right: 10px; top: 32px;">
+            <span class="iconpasswor"><img src="../../icons/visualizar password.svg" alt="Flecha atrás" /></span>
+          </button>
+         </div>
+        </div>
+
+
+
+        <div class="boton-editar">
+          <button type="button" onclick="navigateToSave()" class="btn-editar">
+            <img src="../../icons/editar.svg" alt="Editar" class="btn-icon">
+            Editar
+          </button>
+        </div>
+      </form>
+    </section>
+ 
+ <script>
+    // Proteger esta página solo para directores
+    RouteGuard.protect(['director']);
+
+    document.querySelector(".back-link").addEventListener("click", function () {
+    window.history.back();
+    });
+
+  function getIdFromQuery(){ const p = new URLSearchParams(location.search); return p.get('id'); }
+  function navigateToSave(){ const id = getIdFromQuery(); window.location.href = 'guardardocente.html' + (id? '?id='+encodeURIComponent(id): ''); }
+
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+  } else {
+    passwordInput.type = 'password';
+  }}
+
+  // Load docente data on page load
+  (function(){
+    function isReady(name){ try{ return typeof eval(name) !== 'undefined'; }catch(e){ return false; } }
+    function waitFor(names, timeout=5000){ return new Promise((resolve,reject)=>{ const start=Date.now(); (function poll(){ if(names.every(isReady)) return resolve(); if(Date.now()-start>timeout) return reject(new Error('Servicios no disponibles')); setTimeout(poll,50); })(); }); }
+    
+    waitFor(['usuariosService']).then(async ()=>{
+      const id = getIdFromQuery();
+      if(!id) return;
+      try{
+        const docente = await usuariosService.getById(Number(id));
+        if(!docente) return;
+        
+        const form = document.querySelector('.form-docente');
+        const inputs = form.querySelectorAll('input');
+        const selects = form.querySelectorAll('select');
+        
+        // Populate fields (order: nombre, rfc, ape_p, curp, ape_m, fecha, usuario, password)
+        if(inputs[0]) inputs[0].value = docente.nombre || '';
+        if(inputs[1]) inputs[1].value = docente.rfc || '';
+        if(inputs[2]) inputs[2].value = docente.ape_p || '';
+        if(inputs[3]) inputs[3].value = docente.curp || '';
+        if(inputs[4]) inputs[4].value = docente.ape_m || '';
+        if(inputs[5]) inputs[5].value = docente.fechaNacimiento || '';
+        if(inputs[6]) inputs[6].value = docente.usuario || '';
+        if(inputs[7]) inputs[7].value = ''; // Don't show password
+        
+        // Set sexo dropdown
+        if(selects[0]){ 
+          for(const opt of selects[0].options){ 
+            const optText = String(opt.text||'').toLowerCase();
+            const sexo = String(docente.sexo||'').toLowerCase();
+            if((sexo === 'm' && optText.includes('mas')) || (sexo === 'f' && optText.includes('fem'))) {
+              opt.selected = true;
+            }
+          }
+        }
+      }catch(e){ console.error('Error cargando docente', e); }
+    }).catch(err=>console.warn('Servicios no disponibles:', err));
+  })();
+    </script>
+  </main>
+    <script src="../../scripts/loadDependencies.js"></script>
+  </body>
+  </html>
+
+
+
+
+
+
+
+
+
+
+
+
+

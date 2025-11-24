@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>guardar edicion Docente</title>
+  <link rel="stylesheet" href="../../css/guardar edicion.css">
+  <link rel="stylesheet" href="../../css/navbar.css">
+</head>
+
+<body>
+  <header class="header">
+    <div class="left-section">
+      <h1 class="logo">SICALI</h1>
+    </div>
+    <div class="user-info">
+      <div class="text-info">
+        <div class="role">Director</div>
+        <div class="name">Jorge Luis Omalley Pinacho</div>
+      </div>
+      <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <ul class="menu-list">
+      <li class="active"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></li>
+      <li><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></li>
+      <li><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></li>
+      <li><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></li>
+      <li><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <button type="button" class="back-link">
+      <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /></span>
+      <span class="text">Atrás</span>
+    </button>
+
+    <section class="agregar-docente">
+      <h2>Docente</h2>
+
+      <form class="form-docente">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" placeholder="Input">
+          </div>
+          <div class="form-group">
+            <label>RFC</label>
+            <input type="text" placeholder="Input">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Apellido Paterno</label>
+            <input type="text" placeholder="Input">
+          </div>
+          <div class="form-group">
+            <label>CURP</label>
+            <input type="text" placeholder="Input">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Apellido Materno</label>
+            <input type="text" placeholder="Input">
+          </div>
+          <div class="form-group">
+            <label>Sexo:</label>
+            <select>
+              <option>Seleccionar</option>
+              <option>Masculino</option>
+              <option>Femenino</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha de Nacimiento</label>
+            <input type="date">
+          </div>
+          <div class="form-group">
+            <label>Usuario</label>
+            <input type="text" placeholder="Input">
+          </div>
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" placeholder="Input">
+          </div>
+        </div>
+
+
+        <div class="boton-editar">
+          <button type="submit" class="btn-editar">
+            <img src="../../icons/guardar.svg" alt="guardar" class="btn-icon">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+    <script src="../../scripts/loadDependencies.js"></script>
+  </body>
+  </html>
+
+
+
+
+
+
+
+
+
+
+

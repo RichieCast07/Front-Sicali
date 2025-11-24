@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencias</title>
+    <link rel="stylesheet" href="../../css/navbar.css">
+    <link rel="stylesheet" href="../../css/asistencias.css">
+    <link rel="stylesheet" href="../../css/modalactualizar.css">
+    <style>
+        /* Estilos adicionales para checkboxes */
+        .asistencia-cell {
+            text-align: center;
+            padding: 5px;
+        }
+        
+        .check-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: nowrap;
+        }
+        
+        .check {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        
+        .check.green:checked {
+            accent-color: #10b981;
+        }
+        
+        .check.red:checked {
+            accent-color: #ef4444;
+        }
+        
+        .check.blue:checked {
+            accent-color: #3b82f6;
+        }
+        
+        .estudiante-row:hover {
+            background: #f9fafb;
+        }
+        
+        .loading-row {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        
+        /* Leyenda de estados */
+        .leyenda-estados {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .leyenda-estados strong {
+            color: #495057;
+            font-size: 14px;
+        }
+        
+        .leyenda-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #495057;
+        }
+        
+        .leyenda-checkbox {
+            width: 16px;
+            height: 16px;
+            pointer-events: none;
+        }
+        
+        .leyenda-checkbox.green {
+            accent-color: #10b981;
+        }
+        
+        .leyenda-checkbox.red {
+            accent-color: #ef4444;
+        }
+        
+        .leyenda-checkbox.blue {
+            accent-color: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role">Docente</div>
+                <div class="name" id="nombre-docente">Cargando...</div>
+            </div>
+            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li><a href="../estudiantesdocente/estudiante.html"><span class="icon"><img class="icon" src="../../icons/estudiante.svg" alt=""></span><span class="text">Estudiantes</span></a></li>
+            <li class="active"><span class="icon"><img class="icon" src="../../icons/asistencia.svg" alt=""></span><span class="text">Asistencias</span></li>
+            <li><a href="../calificaciones/calificaciones.html"><span class="icon"><img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></a></li>
+            <li><a href="../estadisticas/estadisticasdocente.html"><span class="icon"><img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="content" id="content">
+        <section class="asistencias-section">
+            <h1 class="titulo">Asistencia</h1>
+            <h2 class="grupo" id="nombre-grupo">Cargando grupo...</h2>
+            
+            <div class="container">
+                <div class="acciones-superiores">
+                    <div class="select-section">
+                        <div class="buscador-con-icono">
+                            <img src="../../icons/buscador.svg" alt="Icono de buscador" class="icono-input" />
+                            <input type="text" placeholder="Buscar estudiante" id="buscarEstudiante" onkeyup="filtrarEstudiantes()" />
+                        </div>
+
+                        <label class="fecha">Semana del:</label>
+                        <input type="date" id="fecha" class="fecha-input">
+                        <button class="btn-editar" onclick="cargarSemana()" style="padding: 8px 16px; margin-left: 10px;">
+                            🔄 Cargar
+                        </button>
+                    </div>
+                    <div class="agregar">
+                        <button class="btn-editar" onclick="validarYGuardar()">
+                            <img src="../../icons/guardar.svg" alt="Guardar" class="icono-agregar"/>
+                            Guardar Asistencias
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container">
+                <!-- Leyenda de estados -->
+                <div class="leyenda-estados">
+                    <strong>Leyenda:</strong>
+                    <div class="leyenda-item">
+                        <input type="checkbox" class="leyenda-checkbox green" checked disabled>
+                        <span>Asistencia</span>
+                    </div>
+                    <div class="leyenda-item">
+                        <input type="checkbox" class="leyenda-checkbox red" checked disabled>
+                        <span>Falta</span>
+                    </div>
+                    <div class="leyenda-item">
+                        <input type="checkbox" class="leyenda-checkbox blue" checked disabled>
+                        <span>Permiso</span>
+                    </div>
+                </div>
+                
+                <table class="tabla-asistencias">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 35%;">Nombre</th>
+                            <th id="dia-1">Lun<br><small>--/--</small></th>
+                            <th id="dia-2">Mar<br><small>--/--</small></th>
+                            <th id="dia-3">Mié<br><small>--/--</small></th>
+                            <th id="dia-4">Jue<br><small>--/--</small></th>
+                            <th id="dia-5">Vie<br><small>--/--</small></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-asistencias">
+                        <tr>
+                            <td colspan="7" class="loading-row">
+                                Cargando estudiantes...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Modal de confirmación -->
+        <div id="modal-overlay" class="modal-overlay">
+            <div class="modal">
+                <img src="../../icons/info.svg" alt="info" class="modal-icon">
+                <h3>¿Guardar Asistencias?</h3>
+                <p id="modal-mensaje">Se guardarán las asistencias de esta semana</p>
+                <div class="modal-buttons">
+                    <button class="confirm" onclick="guardarAsistencias()">Guardar</button>
+                    <button class="cancel" onclick="closeModal()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de éxito -->
+        <div id="success-modal-overlay" class="modal-overlay">
+            <div class="modal">
+                <img src="../../icons/success.svg" alt="success" class="modal-icon">
+                <h3>Guardado Correctamente</h3>
+                <p>Las asistencias se guardaron exitosamente</p>
+                <div class="modal-buttons">
+                    <button class="confirm" onclick="closeSuccessModal()">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ============================================ -->
+    <!-- SCRIPTS DEL SISTEMA                          -->
+    <!-- ============================================ -->
+    <script src="../../scripts/loadDependencies.js"></script>
+
+    <!-- ============================================ -->
+    <!-- CÓDIGO DE LA PÁGINA                          -->
+    <!-- ============================================ -->
+    <script>
+        // Proteger esta página para docentes y directores
+        RouteGuard.protect(['docente', 'director']);
+
+        // Variables globales
+        let idGrupo = null;
+        let estudiantes = [];
+        let fechasSemanales = [];
+        let asistenciasActuales = {};
+        let todosLosEstudiantes = [];
+
+        // ==========================================
+        // INICIALIZACIÓN
+        // ==========================================
+        function inicializar() {
+            // Cargar nombre del docente
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    document.getElementById('nombre-docente').textContent = fullName;
+                } else {
+                    document.getElementById('nombre-docente').textContent = 'Usuario';
+                }
+            } catch (error) {
+                console.error('Error al cargar datos del usuario:', error);
+                document.getElementById('nombre-docente').textContent = 'Usuario';
+            }
+
+            // Obtener ID del grupo desde URL o localStorage (opcional)
+            const urlParams = new URLSearchParams(window.location.search);
+            idGrupo = urlParams.get('grupo') || localStorage.getItem('grupoActual') || null;
+
+            // Establecer fecha actual
+            const fechaInput = document.getElementById('fecha');
+            if (fechaInput && typeof DateUtils !== 'undefined') {
+                fechaInput.value = DateUtils.getCurrentDate();
+            } else if (fechaInput) {
+                // Fallback manual si DateUtils no está disponible
+                const hoy = new Date();
+                const year = hoy.getFullYear();
+                const month = String(hoy.getMonth() + 1).padStart(2, '0');
+                const day = String(hoy.getDate()).padStart(2, '0');
+                fechaInput.value = `${year}-${month}-${day}`;
+            }
+
+            // Cargar datos iniciales (cargará el grupo del docente)
+            cargarDatosIniciales();
+        }
+
+        // Esperar a que las dependencias se carguen
+        window.addEventListener('dependenciesLoaded', inicializar);
+        
+        // Fallback por si el evento ya se disparó
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof DateUtils !== 'undefined') {
+                inicializar();
+            }
+        });
+
+        // ==========================================
+        // CARGAR DATOS INICIALES
+        // ==========================================
+        async function cargarDatosIniciales() {
+            try {
+                console.log('📚 Cargando datos iniciales...');
+                
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                
+                if (!currentUser.id_usuario) {
+                    throw new Error('No se encontró información del docente');
+                }
+
+                console.log('👤 Docente ID:', currentUser.id_usuario);
+
+                // Obtener grupos del docente
+                const todosGrupos = await gruposService.getAll();
+                const gruposDocente = todosGrupos.filter(g => {
+                    const docenteId = g.idDocente?.id_usuario || g.idDocente;
+                    return Number(docenteId) === Number(currentUser.id_usuario);
+                });
+
+                console.log('📖 Grupos del docente:', gruposDocente.length);
+
+                if (gruposDocente.length === 0) {
+                    throw new Error('No tienes grupos asignados');
+                }
+
+                // Usar el primer grupo (o el especificado en URL)
+                const grupo = idGrupo 
+                    ? gruposDocente.find(g => Number(g.idGrupo) === Number(idGrupo)) || gruposDocente[0]
+                    : gruposDocente[0];
+                
+                idGrupo = grupo.idGrupo;
+                localStorage.setItem('grupoActual', idGrupo);
+
+                document.getElementById('nombre-grupo').textContent = 
+                    `Grupo: ${grupo.nombre} - Grado ${grupo.grado}`;
+
+                console.log('✅ Grupo cargado:', grupo.nombre);
+
+                // Cargar estudiantes del grupo
+                const todasInscripciones = await estudianteGrupoService.getAll();
+                const inscripcionesGrupo = todasInscripciones.filter(insc => {
+                    const grupoId = insc.idGrupo || insc.grupo?.idGrupo;
+                    return Number(grupoId) === Number(idGrupo);
+                });
+
+                console.log('✅ Inscripciones encontradas:', inscripcionesGrupo.length);
+
+                // Filtrar inscripciones con estudiante válido y ordenar
+                todosLosEstudiantes = inscripcionesGrupo
+                    .filter(insc => insc.estudiante !== null && insc.estudiante !== undefined)
+                    .sort((a, b) => {
+                        const est1 = a.estudiante;
+                        const est2 = b.estudiante;
+                        const nombreA = `${est1.ape_p} ${est1.ape_m} ${est1.nombre}`.toLowerCase();
+                        const nombreB = `${est2.ape_p} ${est2.ape_m} ${est2.nombre}`.toLowerCase();
+                        return nombreA.localeCompare(nombreB);
+                    });
+
+                console.log('✅ Estudiantes del grupo:', todosLosEstudiantes.length);
+
+                // Cargar semana actual
+                await cargarSemana();
+                
+                // Actualizar badge de pendientes
+                actualizarBadgePendientes();
+
+            } catch (error) {
+                console.error('❌ Error al cargar datos:', error);
+                if (typeof UIUtils !== 'undefined') {
+                    UIUtils.showError('Error: ' + error.message);
+                } else {
+                    alert('Error: ' + error.message);
+                }
+                
+                // Mostrar mensaje en la tabla
+                const tbody = document.getElementById('tbody-asistencias');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="loading-row">
+                                ❌ ${error.message}
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+
+        // ==========================================
+        // CARGAR SEMANA DE ASISTENCIAS
+        // ==========================================
+        async function cargarSemana() {
+            try {
+                if (typeof UIUtils !== 'undefined') {
+                    UIUtils.showLoader('Cargando semana...');
+                }
+
+                const fechaBase = document.getElementById('fecha').value;
+                
+                // Calcular fechas de la semana (Lunes a Viernes)
+                fechasSemanales = calcularFechasSemana(fechaBase);
+
+                // Actualizar encabezados de la tabla
+                actualizarEncabezadosFechas();
+
+                // Cargar asistencias existentes de esta semana
+                await cargarAsistenciasExistentes();
+
+                // Mostrar estudiantes en la tabla
+                mostrarEstudiantes(todosLosEstudiantes);
+
+                if (typeof UIUtils !== 'undefined') {
+                    UIUtils.hideLoader();
+                }
+
+            } catch (error) {
+                if (typeof UIUtils !== 'undefined') {
+                    UIUtils.hideLoader();
+                    UIUtils.showError('Error al cargar semana: ' + error.message);
+                } else {
+                    alert('Error al cargar semana: ' + error.message);
+                }
+                console.error(error);
+            }
+        }
+
+        // ==========================================
+        // CALCULAR FECHAS DE LA SEMANA
+        // ==========================================
+        function calcularFechasSemana(fechaStr) {
+            const fecha = new Date(fechaStr + 'T00:00:00');
+            const dia = fecha.getDay();
+            
+            // Ajustar al lunes de esa semana
+            const diff = dia === 0 ? -6 : 1 - dia;
+            const lunes = new Date(fecha);
+            lunes.setDate(fecha.getDate() + diff);
+
+            // Generar array de 5 días (Lunes a Viernes)
+            const fechas = [];
+            for (let i = 0; i < 5; i++) {
+                const dia = new Date(lunes);
+                dia.setDate(lunes.getDate() + i);
+                fechas.push(dia.toISOString().split('T')[0]);
+            }
+
+            return fechas;
+        }
+
+        // ==========================================
+        // ACTUALIZAR ENCABEZADOS CON FECHAS
+        // ==========================================
+        function actualizarEncabezadosFechas() {
+            const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'];
+            
+            fechasSemanales.forEach((fecha, index) => {
+                const [año, mes, dia] = fecha.split('-');
+                const th = document.getElementById(`dia-${index + 1}`);
+                th.innerHTML = `${dias[index]}<br><small>${dia}/${mes}</small>`;
+            });
+        }
+
+        // ==========================================
+        // CARGAR ASISTENCIAS EXISTENTES
+        // ==========================================
+        async function cargarAsistenciasExistentes() {
+            asistenciasActuales = {};
+
+            try {
+                // Intentar obtener asistencias del backend
+                const todasAsistencias = await asistenciaService.getByGrupo(idGrupo);
+
+                // Filtrar solo las de esta semana
+                todasAsistencias.forEach(asist => {
+                    const idEst = asist.idEstudiante?.id_usuario || asist.idEstudiante;
+                    if (fechasSemanales.includes(asist.fecha)) {
+                        const key = `${idEst}_${asist.fecha}`;
+                        asistenciasActuales[key] = asist.estado;
+                    }
+                });
+
+                console.log('✅ Asistencias cargadas del backend:', Object.keys(asistenciasActuales).length);
+
+            } catch (error) {
+                console.warn('⚠️ No se pudieron cargar asistencias del backend:', error.message);
+            }
+
+            // Cargar también asistencias guardadas localmente
+            try {
+                const asistenciasLocales = JSON.parse(localStorage.getItem('asistencias_pendientes') || '[]');
+                
+                asistenciasLocales.forEach(asist => {
+                    if (Number(asist.idGrupo) === Number(idGrupo) && fechasSemanales.includes(asist.fecha)) {
+                        const key = `${asist.idEstudiante}_${asist.fecha}`;
+                        // Solo usar local si no hay una del backend
+                        if (!asistenciasActuales[key]) {
+                            asistenciasActuales[key] = asist.estado;
+                        }
+                    }
+                });
+
+                if (asistenciasLocales.length > 0) {
+                    console.log('📦 Asistencias locales cargadas:', asistenciasLocales.length);
+                }
+
+            } catch (error) {
+                console.warn('Error al cargar asistencias locales:', error);
+            }
+        }
+
+        // ==========================================
+        // MOSTRAR ESTUDIANTES EN LA TABLA
+        // ==========================================
+        function mostrarEstudiantes(estudiantesGrupo) {
+            const tbody = document.getElementById('tbody-asistencias');
+
+            if (estudiantesGrupo.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="loading-row">
+                            No hay estudiantes en este grupo
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = estudiantesGrupo.map((eg, index) => {
+                const est = eg.estudiante;
+                const nombreCompleto = `${est.nombre} ${est.ape_p} ${est.ape_m}`;
+
+                return `
+                    <tr class="estudiante-row" data-estudiante="${est.id_usuario}">
+                        <td>${index + 1}</td>
+                        <td>${nombreCompleto}</td>
+                        ${generarCeldasAsistencia(est.id_usuario)}
+                    </tr>
+                `;
+            }).join('');
+
+            // Agregar eventos a los checkboxes
+            configurarCheckboxes();
+        }
+
+        // ==========================================
+        // GENERAR CELDAS DE ASISTENCIA (5 DÍAS)
+        // ==========================================
+        function generarCeldasAsistencia(idEstudiante) {
+            return fechasSemanales.map((fecha, diaIndex) => {
+                const key = `${idEstudiante}_${fecha}`;
+                const estadoActual = asistenciasActuales[key] || '';
+                
+                const asistioChecked = estadoActual === 'Asistencia' ? 'checked' : '';
+                const faltoChecked = estadoActual === 'Falta' ? 'checked' : '';
+                const permisoChecked = estadoActual === 'Permiso' ? 'checked' : '';
+
+                return `
+                    <td class="asistencia-cell">
+                        <div class="check-container">
+                            <input type="checkbox" 
+                                   class="check green" 
+                                   data-estudiante="${idEstudiante}"
+                                   data-fecha="${fecha}"
+                                   data-tipo="asistio"
+                                   title="Asistencia"
+                                   ${asistioChecked}>
+                            <input type="checkbox" 
+                                   class="check red"
+                                   data-estudiante="${idEstudiante}"
+                                   data-fecha="${fecha}"
+                                   data-tipo="falto"
+                                   title="Falta"
+                                   ${faltoChecked}>
+                            <input type="checkbox" 
+                                   class="check blue"
+                                   data-estudiante="${idEstudiante}"
+                                   data-fecha="${fecha}"
+                                   data-tipo="permiso"
+                                   title="Permiso"
+                                   ${permisoChecked}>
+                        </div>
+                    </td>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // CONFIGURAR CHECKBOXES (EXCLUSIVOS)
+        // ==========================================
+        function configurarCheckboxes() {
+            const checkboxes = document.querySelectorAll('.check');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        const estudiante = this.dataset.estudiante;
+                        const fecha = this.dataset.fecha;
+                        const tipo = this.dataset.tipo;
+
+                        // Desmarcar los otros checkboxes del mismo día/estudiante
+                        const todosCheckboxes = document.querySelectorAll(
+                            `.check[data-estudiante="${estudiante}"][data-fecha="${fecha}"]`
+                        );
+                        
+                        todosCheckboxes.forEach(cb => {
+                            if (cb !== this) {
+                                cb.checked = false;
+                            }
+                        });
+                    }
+                });
+            });
+        }
+
+        // ==========================================
+        // FILTRAR ESTUDIANTES (BÚSQUEDA)
+        // ==========================================
+        function filtrarEstudiantes() {
+            const busqueda = document.getElementById('buscarEstudiante').value.toLowerCase();
+            
+            if (!busqueda) {
+                mostrarEstudiantes(todosLosEstudiantes);
+                return;
+            }
+
+            const filtrados = todosLosEstudiantes.filter(eg => {
+                const est = eg.estudiante;
+                const nombreCompleto = `${est.nombre} ${est.ape_p} ${est.ape_m}`.toLowerCase();
+                return nombreCompleto.includes(busqueda);
+            });
+
+            mostrarEstudiantes(filtrados);
+        }
+
+        // ==========================================
+        // VALIDAR Y MOSTRAR MODAL
+        // ==========================================
+        function validarYGuardar() {
+            // Contar cuántas asistencias se marcaron
+            const checkboxesMarcados = document.querySelectorAll('.check:checked');
+            const totalCeldas = todosLosEstudiantes.length * 5; // 5 días
+            const porcentaje = ((checkboxesMarcados.length / totalCeldas) * 100).toFixed(0);
+
+            document.getElementById('modal-mensaje').textContent = 
+                `Se guardarán ${checkboxesMarcados.length} registros de asistencia (${porcentaje}% de la semana)`;
+
+            showModal();
+        }
+
+        // ==========================================
+        // GUARDAR ASISTENCIAS
+        // ==========================================
+        async function guardarAsistencias() {
+            closeModal();
+
+            try {
+                if (typeof UIUtils !== 'undefined') {
+                    UIUtils.showLoader('Guardando asistencias...');
+                }
+
+                const checkboxes = document.querySelectorAll('.check:checked');
+                let guardadas = 0;
+                let errores = 0;
+                const asistenciasLocales = [];
+
+                console.log('💾 Guardando asistencias...', {
+                    totalCheckboxes: checkboxes.length,
+                    idGrupo: idGrupo,
+                    fechasSemanales: fechasSemanales
+                });
+
+                for (const checkbox of checkboxes) {
+                    const idEstudiante = parseInt(checkbox.dataset.estudiante);
+                    const fecha = checkbox.dataset.fecha;
+                    const tipo = checkbox.dataset.tipo;
+                    
+                    // Mapear tipo a estado
+                    let estado;
+                    if (tipo === 'asistio') estado = 'Asistencia';
+                    else if (tipo === 'falto') estado = 'Falta';
+                    else if (tipo === 'permiso') estado = 'Permiso';
+                    else estado = 'Asistencia'; // Fallback
+
+                    // Estructura de datos para enviar
+                    const datos = {
+                        idEstudiante: idEstudiante,
+                        idGrupo: parseInt(idGrupo),
+                        fecha: fecha,
+                        estado: estado
+                    };
+
+                    console.log('📝 Enviando asistencia:', datos);
+
+                    try {
+                        const resultado = await asistenciaService.create(datos);
+                        console.log('✅ Asistencia guardada en backend:', resultado);
+                        guardadas++;
+                    } catch (error) {
+                        console.warn('⚠️ Backend no disponible, guardando localmente:', error.message);
+                        
+                        // Guardar en localStorage como fallback
+                        asistenciasLocales.push({
+                            ...datos,
+                            idAsistencia: `local_${Date.now()}_${idEstudiante}_${fecha}`,
+                            timestamp: new Date().toISOString()
+                        });
+                        errores++;
+                    }
+                }
+
+                // Guardar asistencias locales si hubo errores
+                if (asistenciasLocales.length > 0) {
+                    const asistenciasExistentes = JSON.parse(localStorage.getItem('asistencias_pendientes') || '[]');
+                    const todasAsistencias = [...asistenciasExistentes, ...asistenciasLocales];
+                    localStorage.setItem('asistencias_pendientes', JSON.stringify(todasAsistencias));
+                    console.log('💾 Asistencias guardadas localmente:', asistenciasLocales.length);
+                }
+
+                if (typeof UIUtils !== 'undefined') {
+                    UIUtils.hideLoader();
+                }
+
+                if (guardadas > 0 && errores === 0) {
+                    showSuccessModal();
+                    if (typeof UIUtils !== 'undefined') {
+                        UIUtils.showSuccess(`✅ Se guardaron ${guardadas} asistencias en el servidor`);
+                    }
+                } else if (asistenciasLocales.length > 0 && guardadas === 0) {
+                    showSuccessModal();
+                    if (typeof UIUtils !== 'undefined') {
+                        UIUtils.showWarning(`⚠️ Se guardaron ${asistenciasLocales.length} asistencias localmente (backend no disponible)`);
+                    } else {
+                        alert(`Se guardaron ${asistenciasLocales.length} asistencias localmente`);
+                    }
+                } else if (guardadas > 0 && errores > 0) {
+                    showSuccessModal();
+                    if (typeof UIUtils !== 'undefined') {
+                        UIUtils.showWarning(`✅ ${guardadas} en servidor, ⚠️ ${asistenciasLocales.length} guardadas localmente`);
+                    }
+                } else {
+                    if (typeof UIUtils !== 'undefined') {
+                        UIUtils.showWarning('No se guardaron asistencias nuevas');
+                    } else {
+                        alert('No se guardaron asistencias nuevas');
+                    }
+                }
+
+                // Recargar para mostrar datos actualizados
+                await cargarSemana();
+                
+                // Actualizar badge de pendientes
+                actualizarBadgePendientes();
+
+            } catch (error) {
+                if (typeof UIUtils !== 'undefined') {
+                    UIUtils.hideLoader();
+                    UIUtils.showError('Error al guardar: ' + error.message);
+                } else {
+                    alert('Error al guardar: ' + error.message);
+                }
+                console.error(error);
+            }
+        }
+
+        // ==========================================
+        // ACTUALIZAR BADGE DE ASISTENCIAS PENDIENTES
+        // ==========================================
+        function actualizarBadgePendientes() {
+            try {
+                const asistenciasLocales = JSON.parse(localStorage.getItem('asistencias_pendientes') || '[]');
+                const badge = document.getElementById('badgePendientes');
+                
+                if (asistenciasLocales.length > 0) {
+                    badge.textContent = asistenciasLocales.length;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.warn('Error al actualizar badge:', error);
+            }
+        }
+
+        // ==========================================
+        // SINCRONIZAR ASISTENCIAS LOCALES AL BACKEND
+        // ==========================================
+        async function sincronizarAsistenciasLocales() {
+            try {
+                const asistenciasLocales = JSON.parse(localStorage.getItem('asistencias_pendientes') || '[]');
+                
+                if (asistenciasLocales.length === 0) {
+                    if (typeof UIUtils !== 'undefined') {
+                        UIUtils.showInfo('No hay asistencias pendientes de sincronizar');
+                    } else {
+                        alert('No hay asistencias pendientes de sincronizar');
+                    }
+                    return;
+                }
+
+                if (!confirm(`¿Sincronizar ${asistenciasLocales.length} asistencias locales al servidor?`)) {
+                    return;
+                }
+
+                if (typeof UIUtils !== 'undefined') {
+                    UIUtils.showLoader('Sincronizando asistencias...');
+                }
+
+                let sincronizadas = 0;
+                let errores = 0;
+                const asistenciasRestantes = [];
+
+                for (const asistencia of asistenciasLocales) {
+                    // Remover campos temporales locales
+                    const { idAsistencia, timestamp, ...datos } = asistencia;
+
+                    try {
+                        await asistenciaService.create(datos);
+                        sincronizadas++;
+                        console.log('✅ Asistencia sincronizada:', datos);
+                    } catch (error) {
+                        console.warn('⚠️ No se pudo sincronizar:', error.message);
+                        asistenciasRestantes.push(asistencia);
+                        errores++;
+                    }
+                }
+
+                // Actualizar localStorage solo con las que no se pudieron sincronizar
+                localStorage.setItem('asistencias_pendientes', JSON.stringify(asistenciasRestantes));
+
+                if (typeof UIUtils !== 'undefined') {
+                    UIUtils.hideLoader();
+                }
+
+                if (sincronizadas > 0 && errores === 0) {
+                    if (typeof UIUtils !== 'undefined') {
+                        UIUtils.showSuccess(`✅ Se sincronizaron ${sincronizadas} asistencias al servidor`);
+                    } else {
+                        alert(`Se sincronizaron ${sincronizadas} asistencias`);
+                    }
+                } else if (sincronizadas > 0 && errores > 0) {
+                    if (typeof UIUtils !== 'undefined') {
+                        UIUtils.showWarning(`✅ ${sincronizadas} sincronizadas, ⚠️ ${errores} pendientes`);
+                    } else {
+                        alert(`${sincronizadas} sincronizadas, ${errores} pendientes`);
+                    }
+                } else {
+                    if (typeof UIUtils !== 'undefined') {
+                        UIUtils.showError('❌ No se pudo sincronizar ninguna asistencia. Verifica que el backend esté funcionando.');
+                    } else {
+                        alert('No se pudo sincronizar. Backend no disponible.');
+                    }
+                }
+
+                // Recargar para mostrar datos actualizados
+                await cargarSemana();
+                
+                // Actualizar badge de pendientes
+                actualizarBadgePendientes();
+
+            } catch (error) {
+                if (typeof UIUtils !== 'undefined') {
+                    UIUtils.hideLoader();
+                    UIUtils.showError('Error al sincronizar: ' + error.message);
+                } else {
+                    alert('Error al sincronizar: ' + error.message);
+                }
+                console.error(error);
+            }
+        }
+
+        // ==========================================
+        // FUNCIONES DE MODALES
+        // ==========================================
+        function showModal() {
+            document.getElementById('modal-overlay').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+        }
+
+        function showSuccessModal() {
+            document.getElementById('success-modal-overlay').style.display = 'flex';
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('success-modal-overlay').style.display = 'none';
+        }
+    </script>
+
+</body>
+</html>

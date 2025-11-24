@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agregar Docente</title>
+  <link rel="stylesheet" href="../../css/agregardocentes.css">
+  <link rel="stylesheet" href="../../css/navbar.css">
+  <link rel="stylesheet" href="../../css/modalactualizar.css">
+</head>
+
+<body>
+  <header class="header">
+    <div class="left-section">
+      <h1 class="logo">SICALI</h1>
+    </div>
+    <div class="user-info">
+      <div class="text-info">
+        <div class="role">Director</div>
+        <div class="name">Jorge Luis Omalley Pinacho</div>
+      </div>
+      <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+    </div>
+  </header>
+
+  <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li class="active"><a href="./docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+            <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+            <li ><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+  <main class="content">
+    <button type="button" class="back-link">
+      <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /></span>
+      <span class="text">Atrás</span>
+    </button>
+
+    <section class="agregar-docente">
+      <h2>Agregar Docente</h2>
+
+      <form class="form-docente">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre:</label>
+            <input type="text" placeholder="">
+          </div>
+          <div class="form-group">
+            <label>RFC:</label>
+            <input type="text" placeholder="">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Apellido Paterno:</label>
+            <input type="text" placeholder="">
+          </div>
+          <div class="form-group">
+            <label>CURP:</label>
+            <input type="text" placeholder="">
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Apellido Materno:</label>
+            <input type="text" placeholder="">
+          </div>
+          
+          <div class="form-group select-group">
+            <label>Sexo:</label>
+            <div class="select-wrapper">
+              <select>
+                <option>Seleccionar</option>
+                <option>Masculino</option>
+                <option>Femenino</option>
+              </select>
+              <img src="../../icons/seleccionar.svg" alt="Desplegar" class="icono-select">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-rows single">
+          <div class="form-group">
+            <label>Fecha de Nacimiento:</label>
+            <input type="date" placeholder="DD/MM/AAAA">
+          </div>
+        </div>
+        <div class="boton-agregar">
+          <button type="button" class="btn-agregar">
+            <img src="../../icons/agregar.svg" alt="Agregar icono" class="btn-icon">
+            Agregar
+          </button>
+        </div>
+       
+      </form>
+    </section>
+
+
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <img src="../../icons/successverde.svg" alt="success" class="modal-icon success-icon">
+            <h3>Agregado Correctamente</h3>
+            <p>Este registro se guardo en el sistema</p>
+            <div class="modal-buttons">
+                <button class="guardar" onclick="closeModal()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Proteger esta página solo para directores
+    RouteGuard.protect(['director']);
+
+    (function(){
+      function isReady(name){ try{ return typeof eval(name) !== 'undefined'; }catch(e){ return false; } }
+      function waitFor(names, timeout=5000){ return new Promise((resolve,reject)=>{ const start=Date.now(); (function poll(){ if(names.every(isReady)) return resolve(); if(Date.now()-start>timeout) return reject(new Error('Servicios no disponibles')); setTimeout(poll,50); })(); }); }
+
+      function sexoToCode(text){ if(!text) return ''; const t = text.toLowerCase(); if(t.includes('mas')) return 'M'; if(t.includes('fem')) return 'F'; return text; }
+
+      async function createHandler(){
+        try{
+          const form = document.querySelector('.form-docente');
+          const nombre = form.querySelector('input[type="text"]').value.trim();
+          const rfc = form.querySelector('input[placeholder=""]').value.trim();
+          // safer selectors
+          const inputs = form.querySelectorAll('input');
+          const nombreVal = inputs[0] ? inputs[0].value.trim() : '';
+          const rfcVal = inputs[1] ? inputs[1].value.trim() : '';
+          const ape_pVal = inputs[2] ? inputs[2].value.trim() : '';
+          const curpVal = inputs[3] ? inputs[3].value.trim() : '';
+          const ape_mVal = inputs[4] ? inputs[4].value.trim() : '';
+          const sexoSelect = form.querySelector('select');
+          const sexoVal = sexoToCode(sexoSelect ? sexoSelect.selectedOptions[0].text : '');
+
+          const username = (nombreVal && ape_pVal) ? `${nombreVal.split(' ')[0].toLowerCase()}.${ape_pVal.toLowerCase()}` : `user${Date.now()}`;
+          const password = 'ChangeMe123';
+
+          const payload = {
+            nombre: nombreVal,
+            ape_p: ape_pVal,
+            ape_m: ape_mVal,
+            curp: curpVal,
+            rfc: rfcVal,
+            sexo: sexoVal,
+            usuario: username,
+            password,
+            rol: 'docente',
+            estado: 'Activo'
+          };
+
+          console.log('Payload a enviar:', payload);
+          const result = await usuariosService.create(payload);
+          console.log('Resultado:', result);
+          document.getElementById('modal-overlay').style.display = 'flex';
+        }catch(err){ 
+          console.error('Error completo:', err); 
+          console.error('Stack trace:', err.stack);
+          alert('Error al crear docente: '+(err.message||err)); 
+        }
+      }
+
+      document.querySelector('.back-link').addEventListener('click', function(){ window.history.back(); });
+
+      waitFor(['usuariosService']).then(()=>{
+        document.querySelector('.btn-agregar').addEventListener('click', createHandler);
+        const accept = document.querySelector('#modal-overlay .guardar');
+        if(accept){ accept.addEventListener('click', ()=>{ document.getElementById('modal-overlay').style.display='none'; window.location.href='docente.html'; }); }
+      }).catch(err=>console.error(err));
+    })();
+    </script>
+
+
+
+  </main>
+    <script src="../../scripts/loadDependencies.js"></script>
+  </body>
+  </html>
+
+
+
+
+
+
+
+
+
+
+

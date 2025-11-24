@@ -1,0 +1,147 @@
+.acciones-superiores {
+  display: flex;
+  justify-content: center;
+  gap: 450px;
+  align-items: center;
+  margin-bottom: 25px;
+  padding: 0 30px;
+}
+
+.calificaciones-section {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.titulo {
+  font-size: 40px;
+  font-weight: 600;
+  margin-bottom: 25px;
+  color: #222;
+}
+
+.student-info {
+    display: flex;
+    margin-bottom: 40px;
+    gap: 120px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.info-label {
+    font-size: 16px;
+    color: #1e1e1e;
+    font-weight: 400;
+}
+
+.info-value {
+    font-size: 16px;
+    color: #000000;
+    font-weight: 600;
+}
+
+
+
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 20px auto;
+    text-align: center;
+}
+
+.btn-back {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.title {
+    font-size: 32px;
+    margin: 10px 0 0;
+    font-weight: bold;
+}
+
+.subtitle {
+    margin: 5px 0 20px;
+    color: #444;
+}
+
+.select-section {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.container {
+    width: 900px;
+}
+
+.header-div {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+}
+
+.header-div h3 {
+    font-size: 16px;
+    margin: 0;
+    text-align: center;
+}
+
+.header-div p {
+    margin: 4px 0 0;
+    font-size: 14px;
+    text-align: center;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+.card {
+    width: 100%;
+}
+
+.title {
+    width: 100%;
+    font-size: 20px;
+    text-align: center;
+    color: #1e1e1e;
+    border-radius: 20px;
+}
+
+.azul { background: #C8EAF8; }
+.rosa { background: #F4C0E5; }
+.naranja { background: #FFD6AC; }
+.verde { background: #DCE9A2; }
+
+.box {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 20px;
+    margin-top: 10px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.15);
+}
+
+.box p {
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    margin: 12px 0;
+}
+
+.box span {
+    background: #efefef;
+    width: 70px;
+    text-align: center;
+    border-radius: 20px;
+    padding: 5px 0;
+    display: inline-block;
+}

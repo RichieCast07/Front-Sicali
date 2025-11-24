@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agregar Grupo</title>
+  <link rel="stylesheet" href="../../css/agregardocentes.css">
+  <link rel="stylesheet" href="../../css/navbar.css">
+   <link rel="stylesheet" href="../../css/modalactualizar.css">
+
+</head>
+
+<body>
+  <header class="header">
+    <div class="left-section">
+      <h1 class="logo">SICALI</h1>
+    </div>
+    <div class="user-info">
+      <div class="text-info">
+        <div class="role">Director</div>
+        <div class="name">Jorge Luis Omalley Pinacho</div>
+      </div>
+      <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+    </div>
+  </header>
+
+  <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+            <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+            <li class="active"><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+  <main class="content">
+    <button type="button" class="back-link">
+      <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /></span>
+      <span class="text">Atrás</span>
+    </button>
+
+    <section class="agregar-docente">
+      <h2>Agregar Grupo</h2>
+
+      <form class="form-docente">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre del Grupo:</label>
+            <input type="text" placeholder="">
+          </div>
+          <div class="form-group select-group">
+            <label>Grado:</label>
+            <div class="select-wrapper">
+              <select>
+                <option>Seleccionar</option>
+                <option>Primero</option>
+                <option>Segundo</option>
+                <option>Tercero</option>
+                <option>Cuarto</option>
+                <option>Quinto</option>
+                <option>Sexto</option>
+              </select>
+              <img src="../../icons/seleccionar.svg" alt="Desplegar" class="icono-select">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group select-group">
+            <label>Docente Asignado:</label>
+            <div class="select-wrapper">
+              <select id="docenteSelect">
+                <option value="">Cargando docentes...</option>
+              </select>
+              <img src="../../icons/seleccionar.svg" alt="Desplegar" class="icono-select">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Capacidad:</label>
+            <input type="number" placeholder="">
+          </div>
+        </div>
+
+         
+
+        <div class="boton-agregar">
+          <button type="button" id="btnAgregar" class="btn-agregar">
+            <img src="../../icons/agregar.svg" alt="Agregar icono" class="btn-icon">
+            Agregar
+          </button>
+        </div>
+
+      </form>
+    </section>
+
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <img src="../../icons/successverde.svg" alt="success" class="modal-icon success-icon">
+            <h3>Agregado Correctamente</h3>
+            <p>Este registro se guardo en el sistema</p>
+            <div class="modal-buttons">
+                <button class="guardar" id="btnAceptar">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Proteger esta página solo para directores
+    RouteGuard.protect(['director']);
+
+    // Agregar Grupo: poblar select de docentes, crear grupo y redirigir
+    (function(){
+      function isReady(name){ try{ return typeof eval(name) !== 'undefined'; }catch(e){ return false; } }
+      function waitFor(names, timeout=3000){
+        return new Promise((resolve,reject)=>{ const start=Date.now(); (function poll(){ if(names.every(isReady)) return resolve(); if(Date.now()-start>timeout) return reject(new Error('Servicios no disponibles')); setTimeout(poll,50); })(); });
+      }
+
+      function gradoToNumber(text){
+        const map = { 'Primero':1,'Segundo':2,'Tercero':3,'Cuarto':4,'Quinto':5,'Sexto':6 };
+        return map[text] || Number(text) || null;
+      }
+
+      async function populateDocentes(){
+        try{
+          const select = document.getElementById('docenteSelect');
+          if(!select) return;
+          // Clear existing options
+          select.innerHTML = '';
+          const docentes = await usuariosService.getByRol('docente');
+          const opts = Array.isArray(docentes) ? docentes : (docentes? [docentes]:[]);
+          const placeholder = document.createElement('option'); placeholder.value=''; placeholder.textContent='Seleccionar'; select.appendChild(placeholder);
+          opts.forEach(d=>{
+            const o = document.createElement('option');
+            o.value = d.id || d.id_usuario || '';
+            o.textContent = `${d.nombre || ''} ${d.ape_p || ''} ${d.ape_m || ''}`.trim();
+            select.appendChild(o);
+          });
+        }catch(err){ console.error('Error poblando docentes',err); }
+      }
+
+      async function createHandler(){
+        try{
+          console.log('=== Iniciando creación de grupo ===');
+          const form = document.querySelector('.form-docente');
+          const nombre = form.querySelector('input[type="text"]').value.trim();
+          const gradoSelect = form.querySelector('select');
+          const gradoText = gradoSelect.value || gradoSelect.selectedOptions[0].text;
+          const grado = gradoToNumber(gradoText);
+          const docenteSelect = document.getElementById('docenteSelect');
+          const idDocente = Number(docenteSelect.value) || null;
+          const capacidad = Number(form.querySelector('input[type="number"]').value) || null;
+          
+          // Obtener periodo de localStorage o usar 5 por defecto (periodo actual)
+          let idPeriodo = Number(localStorage.getItem('currentPeriodo'));
+          if (!idPeriodo || isNaN(idPeriodo)) {
+            idPeriodo = 5; // Periodo por defecto
+            console.log('Usando periodo por defecto:', idPeriodo);
+          }
+
+          console.log('Datos del formulario:', { nombre, gradoText, grado, idDocente, capacidad, idPeriodo });
+
+          if (!nombre) {
+            alert('El nombre del grupo es requerido');
+            return;
+          }
+
+          if (!grado || grado < 1 || grado > 6) {
+            alert('Debe seleccionar un grado válido');
+            return;
+          }
+
+          if (!idDocente) {
+            alert('Debe seleccionar un docente');
+            return;
+          }
+
+          const payload = { nombre, grado, idPeriodo, idDocente };
+          if (capacidad) payload.capacidad = capacidad;
+
+          console.log('Payload a enviar:', payload);
+
+          await gruposService.create(payload);
+          document.getElementById('modal-overlay').style.display='flex';
+        }catch(err){ 
+          console.error('Error creando grupo:', err);
+          console.error('Stack trace:', err.stack);
+          
+          // Mostrar el mensaje de error directamente del servicio
+          alert(err.message || 'Error desconocido al crear grupo');
+        }
+      }
+
+      document.querySelector('.back-link').addEventListener('click', function () { window.history.back(); });
+
+      // Bind add button
+      waitFor(['gruposService','usuariosService']).then(()=>{
+        populateDocentes();
+        // Usar ID para el botón
+        const btnAgregar = document.getElementById('btnAgregar');
+        if(btnAgregar) btnAgregar.addEventListener('click', createHandler);
+        
+        // modal accept closes and redirects to grupos list
+        const btnAceptar = document.getElementById('btnAceptar');
+        if(btnAceptar) btnAceptar.addEventListener('click', ()=>{ 
+          document.getElementById('modal-overlay').style.display='none'; 
+          window.location.href='grupos.html'; 
+        });
+      }).catch(err=>console.error(err));
+    })();
+    </script>
+  </main>
+    <script src="../../scripts/loadDependencies.js"></script>
+  </body>
+  </html>

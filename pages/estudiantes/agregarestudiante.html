@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar estudiantes</title>
+    <link rel="stylesheet" href="../../css/agregarestudiante.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+    <link rel="stylesheet" href="../../css/modalactualizar.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role">Director</div>
+                <div class="name">Jorge Luis Omalley Pinacho</div>
+            </div>
+            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+        </div>
+    </header>
+    
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+      <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+      <li class="active"><a href="estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+      <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+      <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+      <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+    </ul>
+    </nav>
+    
+
+    <main class="content" id="content">
+    <button type="button" class="back-link" aria-label="Volver atrás">
+        <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /> </span>
+        <span class="text">Atrás</span>
+    </button>
+
+    <section class="agregar-estudiante">
+  <h2>Agregar Estudiante</h2>
+  
+  <div class="form-contenedor">
+    <div class="form-columna">
+      <h3>Estudiante</h3>
+
+      <div class="form-group">
+        <label>Nombre:</label>
+        <input type="text" placeholder="">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Paterno:</label>
+        <input type="text" placeholder="">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Materno:</label>
+        <input type="text" placeholder="">
+      </div>
+
+      <div class="form-group">
+        <label>Grupo:</label>
+        <select id="grupoSelect">
+          <option value="">Cargando grupos...</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Curp:</label>
+        <input type="text"  placeholder="">
+      </div>
+
+      <div class="form-group">
+        <label>Sexo:</label>
+        <select>
+          <option>Seleccionar</option>
+          <option>Femenino</option>
+          <option>Masculino</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha de Nacimiento:</label>
+        <input type="date"  placeholder="DD/MM/AAAA">
+      </div>
+    </div>
+
+    <div class="form-columna">
+      <h3>Tutor</h3>
+
+      <div class="form-group">
+        <label>Seleccionar Tutor:</label>
+        <select id="tutorSelect">
+          <option value="">Cargando tutores...</option>
+        </select>
+      </div>
+
+      <div id="tutorInfo" style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 5px; display: none;">
+        <p style="margin: 5px 0;"><strong>Nombre:</strong> <span id="tutorNombre">-</span></p>
+        <p style="margin: 5px 0;"><strong>Usuario:</strong> <span id="tutorUsuario">-</span></p>
+        <p style="margin: 5px 0;"><strong>Sexo:</strong> <span id="tutorSexo">-</span></p>
+      </div>
+
+      <div style="margin-top: 20px; padding: 10px; background: #e3f2fd; border-radius: 5px;">
+        <p style="font-size: 14px; color: #1976d2; margin: 0;">
+          ℹ️ <strong>Nota:</strong> Selecciona un tutor existente de la lista. Si necesitas registrar un nuevo tutor, ve al módulo de Usuarios.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="boton-agregar">
+    <button type="button" class="btn-agregar">
+      <img src="../../icons/agregar.svg" class="btn-icon" alt="Agregar">
+      Agregar
+    </button>
+  </div>
+</section>
+
+<div id="modal-overlay" class="modal-overlay">
+    <div class="modal">
+        <img src="../../icons/successverde.svg" alt="success" class="modal-icon success-icon">
+        <h3>Agregado Correctamente</h3>
+        <p>Este registro se guardo en el sistema</p>
+        <div class="modal-buttons">
+            <button class="guardar" onclick="closeModal()">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Proteger esta página solo para directores
+    RouteGuard.protect(['director']);
+
+    (function(){
+      function isReady(name){ try{ return typeof eval(name) !== 'undefined'; }catch(e){ return false; } }
+      function waitFor(names, timeout=5000){ return new Promise((resolve,reject)=>{ const start=Date.now(); (function poll(){ if(names.every(isReady)) return resolve(); if(Date.now()-start>timeout) return reject(new Error('Servicios no disponibles')); setTimeout(poll,50); })(); }); }
+
+      function sexoToCode(text){ if(!text) return ''; const t = text.toLowerCase(); if(t.includes('mas')) return 'M'; if(t.includes('fem')) return 'F'; return text; }
+
+      // Cargar tutores disponibles
+      async function loadTutores() {
+        try {
+          console.log('🔍 Cargando tutores...');
+          const usuarios = await usuariosService.getAll();
+          console.log('📊 Total usuarios:', usuarios.length);
+          const tutores = usuarios.filter(u => u.rol === 'tutor' && u.estado === 'Activo');
+          console.log('✅ Tutores encontrados:', tutores.length, tutores);
+          
+          const select = document.getElementById('tutorSelect');
+          select.innerHTML = '<option value="">Seleccionar tutor (opcional)</option>';
+          
+          tutores.forEach(tutor => {
+            const option = document.createElement('option');
+            option.value = tutor.id_usuario;
+            option.textContent = `${tutor.nombre} ${tutor.ape_p} ${tutor.ape_m || ''}`.trim();
+            option.dataset.usuario = tutor.usuario;
+            option.dataset.sexo = tutor.sexo === 'M' ? 'Masculino' : tutor.sexo === 'F' ? 'Femenino' : tutor.sexo;
+            select.appendChild(option);
+          });
+
+          // Mostrar info del tutor al seleccionar
+          select.addEventListener('change', function() {
+            const selected = this.selectedOptions[0];
+            const infoDiv = document.getElementById('tutorInfo');
+            
+            if (this.value) {
+              document.getElementById('tutorNombre').textContent = selected.textContent;
+              document.getElementById('tutorUsuario').textContent = selected.dataset.usuario;
+              document.getElementById('tutorSexo').textContent = selected.dataset.sexo;
+              infoDiv.style.display = 'block';
+            } else {
+              infoDiv.style.display = 'none';
+            }
+          });
+        } catch (error) {
+          console.error('Error cargando tutores:', error);
+          document.getElementById('tutorSelect').innerHTML = '<option value="">Error al cargar tutores</option>';
+        }
+      }
+
+      // Cargar grupos disponibles
+      async function loadGrupos() {
+        try {
+          console.log('🔍 Cargando grupos...');
+          const grupos = await gruposService.getAll();
+          console.log('✅ Grupos encontrados:', grupos.length, grupos);
+          
+          const select = document.getElementById('grupoSelect');
+          select.innerHTML = '<option value="">Seleccionar grupo (opcional)</option>';
+          
+          grupos.forEach(grupo => {
+            const option = document.createElement('option');
+            option.value = grupo.idGrupo;
+            option.textContent = `${grupo.nombre} - Grado ${grupo.grado}`;
+            select.appendChild(option);
+          });
+        } catch (error) {
+          console.error('Error cargando grupos:', error);
+          document.getElementById('grupoSelect').innerHTML = '<option value="">Error al cargar grupos</option>';
+        }
+      }
+
+      async function createHandler(){
+        try{
+          const form = document.querySelector('.form-contenedor');
+          const inputs = form.querySelectorAll('input');
+          const selects = form.querySelectorAll('select');
+          
+          const nombre = inputs[0] ? inputs[0].value.trim() : '';
+          const ape_p = inputs[1] ? inputs[1].value.trim() : '';
+          const ape_m = inputs[2] ? inputs[2].value.trim() : '';
+          const curp = inputs[3] ? inputs[3].value.trim() : '';
+          const sexo = sexoToCode(selects[1] ? selects[1].selectedOptions[0].text : '');
+          const fecha = inputs[4] ? inputs[4].value : null;
+
+          // Obtener tutor y grupo seleccionados
+          const idTutor = document.getElementById('tutorSelect').value || null;
+          const idGrupo = document.getElementById('grupoSelect').value || null;
+
+          // Generate basic user credentials
+          const usuario = (nombre && ape_p) ? `${nombre.split(' ')[0].toLowerCase()}.${ape_p.toLowerCase()}` : `user${Date.now()}`;
+          const password = 'ChangeMe123';
+
+          // Derive RFC from CURP if not provided
+          const rfc = curp ? String(curp).toUpperCase().substr(0,13) : '';
+
+          const payload = {
+            nombre,
+            ape_p,
+            ape_m,
+            curp,
+            rfc,
+            sexo,
+            usuario,
+            password,
+            rol: 'estudiante',
+            estado: 'Activo'
+          };
+
+          // Agregar idTutor si se seleccionó
+          if (idTutor) {
+            payload.idTutor = parseInt(idTutor);
+          }
+
+          console.log('Creando estudiante:', payload);
+          const estudianteCreado = await usuariosService.create(payload);
+          console.log('Estudiante creado:', estudianteCreado);
+
+          // Guardar tutor en LocalStorage (temporal hasta que backend implemente relación)
+          if (idTutor && estudianteCreado && estudianteCreado.id_usuario) {
+            const estudianteTutorKey = `estudiante_tutor_${estudianteCreado.id_usuario}`;
+            localStorage.setItem(estudianteTutorKey, idTutor);
+            console.log(`✅ Tutor ${idTutor} asignado a estudiante ${estudianteCreado.id_usuario} (LocalStorage)`);
+          }
+
+          // Si se seleccionó un grupo, asignar al estudiante
+          if (idGrupo && estudianteCreado && estudianteCreado.id_usuario) {
+            try {
+              console.log('📝 Asignando estudiante al grupo...');
+              const inscripcion = {
+                idEstudiante: estudianteCreado.id_usuario,
+                idGrupo: parseInt(idGrupo),
+                fechaInscripcion: new Date().toISOString().split('T')[0], // Fecha actual
+                estado: 'Activo'
+              };
+              await estudianteGrupoService.create(inscripcion);
+              console.log('✅ Estudiante asignado al grupo correctamente');
+            } catch (grupoError) {
+              // Distinguir entre endpoint no disponible y otros errores
+              if (grupoError.message && grupoError.message.includes('404')) {
+                console.warn('⚠️ Endpoint estudiante-grupo no disponible aún (404)');
+                console.log('ℹ️ La asignación de grupo se realizará cuando el backend esté disponible');
+              } else {
+                console.error('❌ Error al asignar al grupo:', grupoError);
+                alert('Estudiante creado, pero hubo un error al asignarlo al grupo: ' + grupoError.message);
+              }
+            }
+          }
+
+          document.getElementById('modal-overlay').style.display = 'flex';
+        }catch(err){ 
+          console.error('Error creando estudiante',err); 
+          alert('Error: '+(err.message||err)); 
+        }
+      }
+
+      waitFor(['usuariosService', 'gruposService', 'estudianteGrupoService']).then(()=>{
+        console.log('✅ Servicios cargados correctamente');
+        // Cargar datos iniciales
+        loadTutores();
+        loadGrupos();
+
+        document.querySelector('.btn-agregar').addEventListener('click', createHandler);
+        document.querySelector('.back-link').addEventListener('click', function(){ window.history.back(); });
+        const accept = document.querySelector('#modal-overlay .guardar');
+        if(accept){ accept.addEventListener('click', ()=>{ document.getElementById('modal-overlay').style.display='none'; window.location.href='estudiante.html'; }); }
+      }).catch(err=>console.error(err));
+    })();
+</script>
+</main>
+  <script src="../../scripts/loadDependencies.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

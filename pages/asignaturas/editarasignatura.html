@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Asignatura</title>
+  <link rel="stylesheet" href="../../css/editardocente.css">
+  <link rel="stylesheet" href="../../css/navbar.css">
+</head>
+
+<body>
+  <header class="header">
+    <div class="left-section">
+      <h1 class="logo">SICALI</h1>
+    </div>
+    <div class="user-info">
+      <div class="text-info">
+        <div class="role">Director</div>
+        <div class="name">Jorge Luis Omalley Pinacho</div>
+      </div>
+      <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+    </div>
+  </header>
+
+  <nav class="sidebar" id="sidebar">
+    <ul class="menu-list">
+      <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+      <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+      <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+      <li class="active"><a href="asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+      <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <button type="button" class="back-link" onclick="volverAtras()">
+      <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /></span>
+      <span class="text">Atrás</span>
+    </button>
+
+    <section class="editar-docente">
+      <h2>Asignatura</h2>
+
+      <form class="form-docente" id="form-asignatura">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre:</label>
+            <input type="text" id="nombre" disabled>
+          </div>
+          <div class="form-group">
+            <label>Código:</label>
+            <input type="text" id="codigo" disabled>
+          </div>
+        </div>
+
+        <div class="form-rows single">
+          <div class="form-group">
+            <label>Descripción:</label>
+            <input type="text" id="descripcion" disabled>
+          </div>
+        </div>
+
+        <div class="boton-editar">
+          <button type="button" id="btn-toggle-editar" onclick="toggleEdicion()" class="btn-editar">
+            <img src="../../icons/editar.svg" alt="Editar" class="btn-icon">
+            <span id="btn-text">Editar</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Modal de éxito al guardar -->
+    <div id="modal-success" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 9999;">
+      <div style="background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 400px;">
+        <div style="font-size: 4em; color: #10b981; margin-bottom: 15px;">✓</div>
+        <h3 style="color: #374151; margin-bottom: 10px;">Guardado Correctamente</h3>
+        <p style="color: #6b7280; margin-bottom: 20px;">Los cambios se han guardado exitosamente</p>
+        <button onclick="cerrarModalSuccess()" style="background: #10b981; color: white; padding: 10px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          Aceptar
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================ -->
+  <!-- SCRIPTS DEL SISTEMA                          -->
+  <!-- ============================================ -->
+  <script src="../../scripts/loadDependencies.js"></script>
+
+  <!-- Servicio de Asignaturas (inline) -->
+  <script>
+    // Proteger esta página solo para directores
+    RouteGuard.protect(['director']);
+
+    class AsignaturasService {
+      async getById(id) {
+        try {
+          const response = await httpClient.get(`/asignaturas/${id}`);
+          if (response.success) {
+            return response.data;
+          }
+          throw new Error(response.message);
+        } catch (error) {
+          console.error('Error al obtener asignatura:', error);
+          throw error;
+        }
+      }
+
+      async update(id, asignatura) {
+        try {
+          const response = await httpClient.put(`/asignaturas/${id}`, asignatura);
+          if (response.success) {
+            return response.data;
+          }
+          throw new Error(response.message);
+        } catch (error) {
+          console.error('Error al actualizar asignatura:', error);
+          throw error;
+        }
+      }
+    }
+
+    const asignaturasService = new AsignaturasService();
+  </script>
+
+  <!-- ============================================ -->
+  <!-- CÓDIGO DE LA PÁGINA                          -->
+  <!-- ============================================ -->
+  <script>
+    // Variables globales
+    let idAsignatura = null;
+    let modoEdicion = false;
+    let datosOriginales = {};
+
+    // ==========================================
+    // CARGAR ASIGNATURA AL INICIAR
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', function() {
+      // Obtener ID de la asignatura desde la URL
+      const urlParams = new URLSearchParams(window.location.search);
+      idAsignatura = urlParams.get('id');
+
+      if (!idAsignatura) {
+        UIUtils.showError('No se especificó el ID de la asignatura');
+        setTimeout(() => {
+          window.location.href = 'asignatura.html';
+        }, 2000);
+        return;
+      }
+
+      cargarAsignatura();
+    });
+
+    // ==========================================
+    // CARGAR DATOS DE LA ASIGNATURA
+    // ==========================================
+    async function cargarAsignatura() {
+      try {
+        UIUtils.showLoader('Cargando datos de la asignatura...');
+
+        // Obtener asignatura de la API
+        const asignatura = await asignaturasService.getById(idAsignatura);
+
+        // Guardar datos originales
+        datosOriginales = { ...asignatura };
+
+        // Llenar formulario
+        document.getElementById('nombre').value = asignatura.nombre || '';
+        document.getElementById('codigo').value = asignatura.codigo || '';
+        document.getElementById('descripcion').value = asignatura.descripcion || '';
+
+        UIUtils.hideLoader();
+
+      } catch (error) {
+        UIUtils.hideLoader();
+        UIUtils.showError('Error al cargar la asignatura: ' + error.message);
+        
+        // Redirigir a la lista después de 2 segundos
+        setTimeout(() => {
+          window.location.href = 'asignatura.html';
+        }, 2000);
+      }
+    }
+
+    // ==========================================
+    // TOGGLE MODO EDICIÓN
+    // ==========================================
+    function toggleEdicion() {
+      if (!modoEdicion) {
+        // Activar modo edición
+        activarEdicion();
+      } else {
+        // Guardar cambios
+        guardarCambios();
+      }
+    }
+
+    // ==========================================
+    // ACTIVAR MODO EDICIÓN
+    // ==========================================
+    function activarEdicion() {
+      modoEdicion = true;
+
+      // Habilitar campos
+      document.getElementById('nombre').disabled = false;
+      document.getElementById('codigo').disabled = false;
+      document.getElementById('descripcion').disabled = false;
+
+      // Cambiar botón a "Guardar"
+      document.getElementById('btn-text').textContent = 'Guardar';
+      document.querySelector('.btn-icon').src = '../../icons/guardar.svg';
+
+      // Cambiar estilo del botón
+      const btn = document.getElementById('btn-toggle-editar');
+      btn.style.background = '#10b981';
+
+      // Agregar botón cancelar si no existe
+      if (!document.getElementById('btn-cancelar')) {
+        const btnCancelar = document.createElement('button');
+        btnCancelar.type = 'button';
+        btnCancelar.id = 'btn-cancelar';
+        btnCancelar.className = 'btn-editar';
+        btnCancelar.style.background = '#ef4444';
+        btnCancelar.style.marginLeft = '10px';
+        btnCancelar.onclick = cancelarEdicion;
+        btnCancelar.innerHTML = `
+          <img src="../../icons/cancelar.svg" alt="Cancelar" class="btn-icon">
+          <span>Cancelar</span>
+        `;
+        document.querySelector('.boton-editar').appendChild(btnCancelar);
+      }
+
+      UIUtils.showInfo('Modo edición activado. Modifica los campos y haz clic en Guardar.');
+    }
+
+    // ==========================================
+    // CANCELAR EDICIÓN
+    // ==========================================
+    function cancelarEdicion() {
+      // Restaurar valores originales
+      document.getElementById('nombre').value = datosOriginales.nombre || '';
+      document.getElementById('codigo').value = datosOriginales.codigo || '';
+      document.getElementById('descripcion').value = datosOriginales.descripcion || '';
+
+      // Desactivar modo edición
+      desactivarEdicion();
+
+      UIUtils.showInfo('Cambios cancelados');
+    }
+
+    // ==========================================
+    // DESACTIVAR MODO EDICIÓN
+    // ==========================================
+    function desactivarEdicion() {
+      modoEdicion = false;
+
+      // Deshabilitar campos
+      document.getElementById('nombre').disabled = true;
+      document.getElementById('codigo').disabled = true;
+      document.getElementById('descripcion').disabled = true;
+
+      // Restaurar botón a "Editar"
+      document.getElementById('btn-text').textContent = 'Editar';
+      document.querySelector('.btn-icon').src = '../../icons/editar.svg';
+
+      // Restaurar estilo del botón
+      const btn = document.getElementById('btn-toggle-editar');
+      btn.style.background = '';
+
+      // Eliminar botón cancelar
+      const btnCancelar = document.getElementById('btn-cancelar');
+      if (btnCancelar) {
+        btnCancelar.remove();
+      }
+    }
+
+    // ==========================================
+    // GUARDAR CAMBIOS
+    // ==========================================
+    async function guardarCambios() {
+      const nombre = document.getElementById('nombre').value.trim();
+      const codigo = document.getElementById('codigo').value.trim();
+      const descripcion = document.getElementById('descripcion').value.trim();
+
+      // Validar
+      if (!nombre || !codigo) {
+        UIUtils.showWarning('El nombre y el código son obligatorios');
+        return;
+      }
+
+      try {
+        UIUtils.showLoader('Guardando cambios...');
+
+        const datos = {
+          nombre: nombre,
+          codigo: codigo,
+          descripcion: descripcion
+        };
+
+        // Actualizar en la API
+        await asignaturasService.update(idAsignatura, datos);
+
+        UIUtils.hideLoader();
+
+        // Actualizar datos originales
+        datosOriginales = { ...datos, idAsignatura: idAsignatura };
+
+        // Desactivar modo edición
+        desactivarEdicion();
+
+        // Mostrar modal de éxito
+        mostrarModalSuccess();
+
+      } catch (error) {
+        UIUtils.hideLoader();
+        UIUtils.showError('Error al guardar: ' + error.message);
+        console.error(error);
+      }
+    }
+
+    // ==========================================
+    // MODAL DE ÉXITO
+    // ==========================================
+    function mostrarModalSuccess() {
+      const modal = document.getElementById('modal-success');
+      modal.style.display = 'flex';
+
+      // Cerrar automáticamente después de 2 segundos
+      setTimeout(() => {
+        cerrarModalSuccess();
+      }, 2000);
+    }
+
+    function cerrarModalSuccess() {
+      document.getElementById('modal-success').style.display = 'none';
+    }
+
+    // ==========================================
+    // VOLVER ATRÁS
+    // ==========================================
+    function volverAtras() {
+      if (modoEdicion) {
+        UIUtils.showConfirm(
+          '¿Deseas salir sin guardar los cambios?',
+          () => {
+            window.location.href = 'asignatura.html';
+          }
+        );
+      } else {
+        window.location.href = 'asignatura.html';
+      }
+    }
+  </script>
+
+</body>
+</html>

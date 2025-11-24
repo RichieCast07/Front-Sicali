@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calificaciones Docente</title>
+    <link rel="stylesheet" href="../../css/calificaciones.css" />
+    <link rel="stylesheet" href="../../css/navbar.css" />
+    <link rel="stylesheet" href="../../css/modalactualizar.css" />
+  </head>
+
+  <body>
+    <header class="header">
+      <div class="left-section">
+        <h1 class="logo">SICALI</h1>
+      </div>
+      <div class="user-info">
+        <div class="text-info">
+          <div class="role">Docente</div>
+          <div class="name" id="userName">Cargando...</div>
+        </div>
+        <div class="avatar"><img src="../../img/nino.png" alt="" /></div>
+      </div>
+    </header>
+
+    <nav class="sidebar" id="sidebar">
+      <ul class="menu-list">
+        <li>
+          <a href="../estudiantesdocente/estudiante.html"
+            ><span class="icon">
+              <img class="icon" src="../../icons/estudiante.svg" alt="" /></span
+            ><span class="text">Estudiantes</span></a
+          >
+        </li>
+        <li>
+          <a href="../asistencia/asistencia.html"
+            ><span class="icon">
+              <img class="icon" src="../../icons/asistencia.svg" alt="" /></span
+            ><span class="text">Asistencias</span></a
+          >
+        </li>
+        <li>
+          <span class="icon">
+            <img
+              class="icon"
+              src="../../icons/calificaciones.svg"
+              alt="" /></span
+          ><span class="text">Calificaciones</span>
+        </li>
+        <li>
+          <a href="../estadisticas/estadisticasdocente.html"
+            ><span class="icon">
+              <img
+                class="icon"
+                src="../../icons/estadisticas.svg"
+                alt="" /></span
+            ><span class="text">Estadísticas</span></a
+          >
+        </li>
+      </ul>
+    </nav>
+
+    <main class="content" id="content">
+      <section class="calificaciones-section">
+        <h1 class="titulo">Calificaciones</h1>
+        <h2 class="grupo" id="grupoNombre">Cargando grupo...</h2>
+
+        <div class="container">
+          <div class="acciones-superiores">
+            <div class="select-section">
+              <label>Asignatura</label>
+
+              <div class="select-asignatura">
+                <select id="asignaturaSelect">
+                  <option value="">Cargando asignaturas...</option>
+                </select>
+                <img
+                  src="../../icons/seleccionar.svg"
+                  alt="Desplegar"
+                  class="icono-select"
+                />
+              </div>
+            </div>
+            <div class="agregar">
+              <button class="btn-editar" onclick="showModal()">
+                <img
+                  src="../../icons/guardar.svg"
+                  alt="Icono agregar"
+                  class="icono-agregar"
+                />
+                Guardar
+              </button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Nombre</th>
+                  <th>Periodo 1</th>
+                  <th>Periodo 2</th>
+                  <th>Periodo 3</th>
+                  <th>Final</th>
+                </tr>
+              </thead>
+
+              <tbody id="estudiantesTableBody">
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 40px; color: #999;">
+                    Cargando estudiantes...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <div id="modal-overlay" class="modal-overlay">
+        <div class="modal">
+          <img src="../../icons/info.svg" alt="info" class="modal-icon" />
+          <h3>¿Desea Actualizarlo?</h3>
+          <p>Los datos actuales serán reemplazados por la nueva información</p>
+          <div class="modal-buttons">
+            <button class="confirm" onclick="confirmSave()">Guardar</button>
+            <button class="cancel" onclick="closeModal()">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="success-modal-overlay" class="modal-overlay">
+        <div class="modal">
+          <img src="../../icons/success.svg" alt="info" class="modal-icon" />
+          <h3>Actualizado Correctamente</h3>
+          <p>Se actualizo la información existente</p>
+          <div class="modal-buttons">
+            <button class="confirm" onclick="closeSuccessModal()">
+              Aceptar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        // Proteger esta página para docentes y directores
+        RouteGuard.protect(['docente', 'director']);
+
+        let currentGrupo = null;
+        let currentEstudiantes = [];
+
+        // Cargar información del docente logueado
+        (function() {
+          try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            const userName = document.getElementById('userName');
+            
+            if (currentUser.nombre && currentUser.ape_p) {
+              const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+              userName.textContent = fullName;
+            } else {
+              userName.textContent = 'Usuario';
+            }
+          } catch (error) {
+            console.error('Error al cargar datos del usuario:', error);
+            document.getElementById('userName').textContent = 'Usuario';
+          }
+        })();
+
+        // Cargar grupo del docente
+        async function loadGrupoDocente() {
+          try {
+            console.log('📚 Cargando grupo del docente...');
+            
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            
+            if (!currentUser.id_usuario) {
+              throw new Error('No se encontró información del docente');
+            }
+
+            console.log('👤 Docente ID:', currentUser.id_usuario);
+
+            // Obtener todos los grupos y filtrar por docente
+            const todosGrupos = await gruposService.getAll();
+            const grupos = todosGrupos.filter(g => {
+              const docenteId = g.idDocente?.id_usuario || g.idDocente;
+              return Number(docenteId) === Number(currentUser.id_usuario);
+            });
+            
+            console.log('✅ Grupos encontrados:', grupos.length);
+            
+            if (!grupos || grupos.length === 0) {
+              document.getElementById('grupoNombre').textContent = 'No tienes grupos asignados';
+              document.getElementById('estudiantesTableBody').innerHTML = `
+                <tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;">
+                  No tienes grupos asignados. Contacta al director.
+                </td></tr>`;
+              return;
+            }
+
+            // Usar el primer grupo (puedes agregar selector si hay múltiples)
+            currentGrupo = grupos[0];
+            document.getElementById('grupoNombre').textContent = `Grupo: ${currentGrupo.nombre} - Grado ${currentGrupo.grado}`;
+            
+            console.log('📖 Grupo cargado:', currentGrupo.nombre);
+            
+            await loadAsignaturas();
+            await loadEstudiantes();
+            
+          } catch (error) {
+            console.error('❌ Error cargando grupo:', error);
+            document.getElementById('grupoNombre').textContent = 'Error al cargar grupo';
+            alert('Error: ' + error.message);
+          }
+        }
+
+        // Cargar asignaturas del grupo
+        async function loadAsignaturas() {
+          try {
+            const select = document.getElementById('asignaturaSelect');
+            
+            if (!currentGrupo) {
+              select.innerHTML = '<option value="">Seleccionar grupo primero</option>';
+              return;
+            }
+
+            console.log('📚 Cargando asignaturas disponibles...');
+
+            // Cargar todas las asignaturas del sistema
+            const response = await httpClient.get(API_CONFIG.ENDPOINTS.ASIGNATURAS.LIST);
+            
+            if (!response.success || !response.data) {
+              throw new Error('No se pudieron cargar las asignaturas');
+            }
+
+            const asignaturas = Array.isArray(response.data) ? response.data : [response.data];
+            
+            console.log('✅ Asignaturas disponibles:', asignaturas.length);
+
+            if (asignaturas.length === 0) {
+              select.innerHTML = '<option value="">No hay asignaturas disponibles</option>';
+              return;
+            }
+
+            // Renderizar opciones de asignaturas
+            select.innerHTML = '<option value="">Seleccionar asignatura</option>';
+            asignaturas.forEach(asignatura => {
+              const option = document.createElement('option');
+              option.value = asignatura.idAsignatura;
+              option.textContent = asignatura.nombre;
+              option.dataset.asignaturaId = asignatura.idAsignatura;
+              select.appendChild(option);
+            });
+
+            console.log('✅ Selector de asignaturas actualizado con', asignaturas.length, 'asignaturas');
+
+          } catch (error) {
+            console.error('❌ Error cargando asignaturas:', error);
+            const select = document.getElementById('asignaturaSelect');
+            select.innerHTML = '<option value="">Error al cargar asignaturas</option>';
+          }
+        }
+
+        // Cargar estudiantes del grupo
+        async function loadEstudiantes() {
+          try {
+            if (!currentGrupo) return;
+
+            console.log('👥 Cargando estudiantes del grupo:', currentGrupo.idGrupo);
+
+            // Obtener todas las inscripciones y filtrar por grupo
+            const todasInscripciones = await estudianteGrupoService.getAll();
+            const inscripciones = todasInscripciones.filter(insc => {
+              const grupoId = insc.idGrupo || insc.grupo?.idGrupo;
+              return Number(grupoId) === Number(currentGrupo.idGrupo);
+            });
+            
+            console.log('✅ Inscripciones encontradas:', inscripciones.length);
+            
+            if (!inscripciones || inscripciones.length === 0) {
+              document.getElementById('estudiantesTableBody').innerHTML = `
+                <tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;">
+                  No hay estudiantes inscritos en este grupo.
+                </td></tr>`;
+              currentEstudiantes = [];
+              return;
+            }
+
+            // Extraer estudiantes de las inscripciones
+            currentEstudiantes = inscripciones
+              .map(insc => insc.estudiante)
+              .filter(est => est !== null && est !== undefined);
+            
+            console.log('✅ Estudiantes en el grupo:', currentEstudiantes.length);
+
+            renderEstudiantes();
+
+          } catch (error) {
+            console.error('❌ Error cargando estudiantes:', error);
+            document.getElementById('estudiantesTableBody').innerHTML = `
+              <tr><td colspan="6" style="text-align: center; padding: 40px; color: #ff5555;">
+                Error al cargar estudiantes: ${error.message}
+              </td></tr>`;
+          }
+        }
+
+        // Renderizar tabla de estudiantes
+        async function renderEstudiantes() {
+          const tbody = document.getElementById('estudiantesTableBody');
+          
+          if (currentEstudiantes.length === 0) {
+            tbody.innerHTML = `
+              <tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;">
+                No hay estudiantes en este grupo.
+              </td></tr>`;
+            return;
+          }
+
+          console.log('📝 Renderizando', currentEstudiantes.length, 'estudiantes');
+
+          tbody.innerHTML = currentEstudiantes.map((est, idx) => {
+            const nombreCompleto = `${est.nombre} ${est.ape_p} ${est.ape_m || ''}`.trim();
+            
+            return `
+              <tr data-estudiante-id="${est.id_usuario}">
+                <td>${idx + 1}</td>
+                <td>${nombreCompleto}</td>
+                <td><input type="number" class="calificacion-input" data-trimestre="1" min="0" max="10" step="0.1" value="0" placeholder="0.0" /></td>
+                <td><input type="number" class="calificacion-input" data-trimestre="2" min="0" max="10" step="0.1" value="0" placeholder="0.0" /></td>
+                <td><input type="number" class="calificacion-input" data-trimestre="3" min="0" max="10" step="0.1" value="0" placeholder="0.0" /></td>
+                <td><input type="number" class="calificacion-input" data-trimestre="4" min="0" max="10" step="0.1" value="0" placeholder="0.0" /></td>
+              </tr>
+            `;
+          }).join('');
+          
+          // Cargar calificaciones existentes
+          await loadCalificacionesExistentes();
+          
+          console.log('✅ Tabla renderizada');
+        }
+
+        // Cargar calificaciones existentes del backend
+        async function loadCalificacionesExistentes() {
+          try {
+            const asignaturaId = document.getElementById('asignaturaSelect').value;
+            if (!asignaturaId || !currentGrupo) return;
+
+            console.log('📊 Cargando calificaciones existentes...');
+
+            let calificacionesActuales = [];
+
+            // Intentar cargar del backend
+            try {
+              const response = await httpClient.get(API_CONFIG.ENDPOINTS.CALIFICACIONES.LIST);
+              
+              if (response.success && response.data) {
+                const calificaciones = Array.isArray(response.data) ? response.data : [response.data];
+                
+                // Filtrar calificaciones del grupo y asignatura actual
+                calificacionesActuales = calificaciones.filter(cal => {
+                  const grupoId = cal.idGrupo || cal.grupo?.idGrupo;
+                  const asigId = cal.idAsignatura || cal.asignatura?.idAsignatura;
+                  return Number(grupoId) === Number(currentGrupo.idGrupo) && 
+                         Number(asigId) === Number(asignaturaId);
+                });
+
+                console.log('✅ Calificaciones del backend:', calificacionesActuales.length);
+              }
+            } catch (error) {
+              console.warn('⚠️ Backend no disponible, usando localStorage');
+            }
+
+            // Cargar calificaciones de localStorage
+            try {
+              const calificacionesLocales = JSON.parse(localStorage.getItem('calificaciones_pendientes') || '[]');
+              
+              const calificacionesLocalesActuales = calificacionesLocales.filter(cal => 
+                Number(cal.idGrupo) === Number(currentGrupo.idGrupo) && 
+                Number(cal.idAsignatura) === Number(asignaturaId)
+              );
+
+              if (calificacionesLocalesActuales.length > 0) {
+                console.log('📦 Calificaciones locales cargadas:', calificacionesLocalesActuales.length);
+                // Combinar con las del backend (localStorage tiene prioridad para evitar sobrescribir cambios recientes)
+                calificacionesLocalesActuales.forEach(calLocal => {
+                  const existe = calificacionesActuales.find(cal => 
+                    cal.idEstudiante === calLocal.idEstudiante
+                  );
+                  if (!existe) {
+                    calificacionesActuales.push(calLocal);
+                  } else {
+                    // Reemplazar con la versión local (más reciente)
+                    Object.assign(existe, calLocal);
+                  }
+                });
+              }
+            } catch (error) {
+              console.warn('Error al cargar calificaciones locales:', error);
+            }
+
+            if (calificacionesActuales.length === 0) {
+              console.log('ℹ️ No hay calificaciones previas');
+              return;
+            }
+
+            console.log('✅ Total calificaciones encontradas:', calificacionesActuales.length);
+
+            // Rellenar inputs con calificaciones existentes
+            calificacionesActuales.forEach(cal => {
+              const estudianteId = cal.idEstudiante || cal.estudiante?.id_usuario;
+              const row = document.querySelector(`tr[data-estudiante-id="${estudianteId}"]`);
+              
+              if (row) {
+                const inputs = row.querySelectorAll('.calificacion-input');
+                if (cal.calificacion1 !== undefined && inputs[0]) inputs[0].value = cal.calificacion1;
+                if (cal.calificacion2 !== undefined && inputs[1]) inputs[1].value = cal.calificacion2;
+                if (cal.calificacion3 !== undefined && inputs[2]) inputs[2].value = cal.calificacion3;
+                if (cal.calificacion4 !== undefined && inputs[3]) inputs[3].value = cal.calificacion4;
+              }
+            });
+
+          } catch (error) {
+            console.error('❌ Error cargando calificaciones:', error);
+          }
+        }
+
+        function showModal() {
+          const asignatura = document.getElementById('asignaturaSelect').value;
+          
+          if (!asignatura) {
+            alert('Por favor selecciona una asignatura');
+            return;
+          }
+
+          document.getElementById("modal-overlay").style.display = "flex";
+        }
+
+        function closeModal() {
+          document.getElementById("modal-overlay").style.display = "none";
+        }
+
+        function closeSuccessModal() {
+          document.getElementById("success-modal-overlay").style.display = "none";
+        }
+
+        async function confirmSave() {
+          try {
+            closeModal();
+            
+            const asignaturaId = document.getElementById('asignaturaSelect').value;
+            
+            if (!asignaturaId || !currentGrupo) {
+              alert('Error: Falta información del grupo o asignatura');
+              return;
+            }
+
+            console.log('💾 Guardando calificaciones...');
+
+            // Recolectar calificaciones de todos los estudiantes
+            const tbody = document.getElementById('estudiantesTableBody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            const calificaciones = [];
+            let erroresValidacion = [];
+
+            rows.forEach((row, idx) => {
+              const estudianteId = row.dataset.estudianteId;
+              const inputs = row.querySelectorAll('.calificacion-input');
+              
+              // Validar que todos los campos tengan valores
+              const cal1 = parseFloat(inputs[0].value) || 0;
+              const cal2 = parseFloat(inputs[1].value) || 0;
+              const cal3 = parseFloat(inputs[2].value) || 0;
+              const cal4 = parseFloat(inputs[3].value) || 0;
+              
+              // Validar rango 0-10
+              if (cal1 < 0 || cal1 > 10 || cal2 < 0 || cal2 > 10 || 
+                  cal3 < 0 || cal3 > 10 || cal4 < 0 || cal4 > 10) {
+                erroresValidacion.push(`Estudiante ${idx + 1}: calificaciones fuera del rango 0-10`);
+              }
+              
+              calificaciones.push({
+                idEstudiante: parseInt(estudianteId),
+                idGrupo: currentGrupo.idGrupo,
+                idAsignatura: parseInt(asignaturaId),
+                calificacion1: cal1,
+                calificacion2: cal2,
+                calificacion3: cal3,
+                calificacion4: cal4
+              });
+            });
+
+            if (erroresValidacion.length > 0) {
+              alert('Errores de validación:\n' + erroresValidacion.join('\n'));
+              return;
+            }
+
+            console.log('📤 Enviando', calificaciones.length, 'calificaciones');
+
+            // Guardar cada calificación
+            let exitosas = 0;
+            let fallidas = 0;
+            const errores = [];
+            const calificacionesLocales = [];
+
+            for (const cal of calificaciones) {
+              try {
+                const response = await httpClient.post(
+                  API_CONFIG.ENDPOINTS.CALIFICACIONES.CREATE,
+                  cal
+                );
+                
+                if (response.success) {
+                  exitosas++;
+                  console.log('✅ Calificación guardada en backend:', cal);
+                } else {
+                  fallidas++;
+                  errores.push(`Estudiante ${cal.idEstudiante}: ${response.error || 'Error desconocido'}`);
+                }
+              } catch (error) {
+                console.warn('⚠️ Backend no disponible (404), guardando localmente:', error.message);
+                
+                // Guardar en localStorage como fallback
+                calificacionesLocales.push({
+                  ...cal,
+                  idCalificacion: `local_${Date.now()}_${cal.idEstudiante}_${cal.idAsignatura}`,
+                  timestamp: new Date().toISOString()
+                });
+                fallidas++;
+              }
+            }
+
+            // Guardar calificaciones locales si el backend falló
+            if (calificacionesLocales.length > 0) {
+              const calificacionesExistentes = JSON.parse(localStorage.getItem('calificaciones_pendientes') || '[]');
+              
+              // Filtrar duplicados (mismo estudiante, grupo y asignatura)
+              const calificacionesFiltradas = calificacionesExistentes.filter(calExistente => {
+                return !calificacionesLocales.some(calNueva => 
+                  calExistente.idEstudiante === calNueva.idEstudiante &&
+                  calExistente.idGrupo === calNueva.idGrupo &&
+                  calExistente.idAsignatura === calNueva.idAsignatura
+                );
+              });
+              
+              const todasCalificaciones = [...calificacionesFiltradas, ...calificacionesLocales];
+              localStorage.setItem('calificaciones_pendientes', JSON.stringify(todasCalificaciones));
+              console.log('💾 Calificaciones guardadas localmente:', calificacionesLocales.length);
+            }
+
+            console.log(`✅ Guardadas: ${exitosas}, ❌ Fallidas: ${fallidas}`);
+
+            if (fallidas > 0 && exitosas === 0 && calificacionesLocales.length > 0) {
+              // Todo se guardó localmente
+              console.log('💾 Todas las calificaciones guardadas en localStorage');
+              document.getElementById("success-modal-overlay").style.display = "flex";
+              alert(`✅ Se guardaron ${calificacionesLocales.length} calificaciones localmente.\n\n⚠️ El backend no está disponible (404).\nLas calificaciones se sincronizarán cuando el endpoint esté funcionando.`);
+            } else if (fallidas > 0) {
+              console.error('Errores:', errores);
+              alert(`Se guardaron ${exitosas} calificaciones en el servidor.\n${fallidas} fallaron y se guardaron localmente.\n\nRevisar consola para detalles.`);
+            } else {
+              document.getElementById("success-modal-overlay").style.display = "flex";
+            }
+
+          } catch (error) {
+            console.error('❌ Error guardando calificaciones:', error);
+            alert('Error al guardar calificaciones: ' + error.message);
+          }
+        }
+
+        // Inicializar página
+        window.addEventListener('DOMContentLoaded', () => {
+          const checkServices = setInterval(() => {
+            if (typeof gruposService !== 'undefined' && 
+                typeof estudianteGrupoService !== 'undefined' && 
+                typeof grupoAsignaturaService !== 'undefined' &&
+                typeof usuariosService !== 'undefined') {
+              clearInterval(checkServices);
+              loadGrupoDocente();
+            }
+          }, 100);
+        });
+      </script>
+    </main>
+    <script src="../../scripts/loadDependencies.js"></script>
+  </body>
+</html>

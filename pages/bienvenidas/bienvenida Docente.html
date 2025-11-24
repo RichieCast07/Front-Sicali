@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenida Docente</title>
+    <link rel="stylesheet" href="../../css/bienvenidaDocente.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+
+</head>
+<body>
+     <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role">Docente</div>
+                <div class="name" id="userName">Cargando...</div>
+            </div>
+            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li><a href="../estudiantesdocente/estudiante.html"><span class="icon"> <img class="icon" src="../../icons/estudiante.svg" alt=""></span><span class="text">Estudiantes</span></a></li>
+            <li><a href="../asistencia/asistencia.html"><span class="icon"> <img class="icon" src="../../icons/asistencia.svg" alt=""></span><span class="text">Asistencias</span></a></li>
+            <li><a href="../calificaciones/calificaciones.html"><span class="icon"> <img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></a></li>
+            <li><a href="../estadisticas/estadisticasdocente.html"><span class="icon"> <img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="content" id="content">
+        
+    </main>
+</body>
+</html>
+
+<body>
+
+    <main class="content" id="content">
+        <div class="welcome-container">
+            <h1 class="welcome-title">Bienvenido al Sistema de<br>Calificaciones Infantil</h1>
+            <p class="welcome-description">
+                Cada acción aquí contribuye al crecimiento y la organización de nuestra comunidad.<br>
+                Elige una sección del menú para iniciar.
+            </p>
+            <div class="welcome-image">
+                <img src="../../img/imagenbienvenidas2.png" alt="Niños celebrando">
+            </div>
+        </div>
+
+    </main>
+    <script src="../../scripts/loadDependencies.js"></script>
+    <script>
+        // Proteger esta página para docentes y directores
+        RouteGuard.protect(['docente', 'director']);
+
+        // Cargar información del usuario logueado
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+            } catch (error) {
+                console.error('Error al cargar datos del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+            }
+        })();
+    </script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

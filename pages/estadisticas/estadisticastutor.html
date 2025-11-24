@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadistica Tutor</title>
+    <link rel="stylesheet" href="../../css/estadisticaTutor.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role">Tutor</div>
+                <div class="name">Elisa Mendez Morales</div>
+            </div>
+            <div class="avatar"><img src="../../img/nina.png" alt=""></div>
+        </div>
+    </header>
+    
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            
+            <li ><a href="../calificaciones/calificacionestutor.html"><span class="icon"> <img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></a></li>
+            <li class="active"><span class="icon"> <img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></li>
+        </ul>
+    </nav>
+
+
+
+<main class="content" id="content">
+    <section class="statistics-container">
+        <h1 class="statistics-title">Estadísticas</h1>
+        <div class="filters">
+            <div class="estudiante-info">
+                <div class="info-block">
+                    <label>Estudiante</label>
+                    <p id="estudianteNombre">Cargando...</p>
+                </div>
+
+                <div class="info-block">
+                    <label>Grupo</label>
+                    <p id="estudianteGrupo">-</p>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Periodo</label>
+        <div class="periodo-select">
+            <select>
+                <option value="" selected>seleccionar</option>
+                <option>Primero</option>
+                <option>Segundo</option>
+                <option>Tercero</option>
+            </select>
+        </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="chart-container">
+        <div class="chart">
+            <div class="y-axis">
+                <span class="y-label">100</span>
+                <span class="y-label">80</span>
+                <span class="y-label">60</span>
+                <span class="y-label">40</span>
+                <span class="y-label">20</span>
+                <span class="y-label">0</span>
+            </div>
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+            
+            <div class="bars">
+                <div class="bar-group">
+                    <div class="bar color-1" style="height: 180px;"></div>
+                    <div class="bar-label">Periodo 1</div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar color-2" style="height: 150px;"></div>
+                    <div class="bar-label">Periodo 2</div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar color-3" style="height: 140px;"></div>
+                    <div class="bar-label">Periodo 3</div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar color-4" style="height: 200px;"></div>
+                    <div class="bar-label">Final</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </section>
+</main>
+    <script src="../../scripts/loadDependencies.js"></script>
+    <script>
+    // Proteger esta página para tutores y directores
+    RouteGuard.protect(['tutor', 'director']);
+
+    (function(){
+        function waitFor(names, timeout = 5000) {
+            return new Promise((resolve, reject) => {
+                const start = Date.now();
+                (function poll() {
+                    try {
+                        const ok = names.every(n => { try { return typeof eval(n) !== 'undefined'; } catch(e){ return false; } });
+                        if (ok) return resolve();
+                    } catch (e) {}
+                    if (Date.now() - start > timeout) return reject(new Error('Servicios no disponibles'));
+                    setTimeout(poll, 50);
+                })();
+            });
+        }
+
+        async function loadEstadisticasTutor() {
+            try {
+                console.log('📈 Cargando estadísticas...');
+                
+                // Verificar si se seleccionó un estudiante específico desde la bienvenida
+                const estudianteIdSeleccionado = localStorage.getItem('selectedEstudianteId');
+                const estudianteNombreSeleccionado = localStorage.getItem('selectedEstudianteNombre');
+                
+                if (estudianteIdSeleccionado) {
+                    // Mostrar estadísticas del estudiante seleccionado
+                    console.log('👤 Mostrando estadísticas para:', estudianteNombreSeleccionado);
+                    
+                    const estudiante = await usuariosService.getById(estudianteIdSeleccionado);
+                    const nombreCompleto = estudianteNombreSeleccionado || `${estudiante.nombre} ${estudiante.ape_p} ${estudiante.ape_m || ''}`.trim();
+                    
+                    document.getElementById('estudianteNombre').textContent = nombreCompleto;
+                    
+                    // Obtener grupos
+                    const todasInscripciones = await estudianteGrupoService.getAll();
+                    const inscripciones = todasInscripciones.filter(insc => {
+                        const idEst = insc.idEstudiante || insc.estudiante?.id_usuario;
+                        return Number(idEst) === Number(estudianteIdSeleccionado);
+                    });
+
+                    if (inscripciones.length > 0) {
+                        const grupo = inscripciones[0].grupo;
+                        document.getElementById('estudianteGrupo').textContent = 
+                            `${grupo.nombre} - Grado ${grupo.grado}`;
+                    } else {
+                        document.getElementById('estudianteGrupo').textContent = 'Sin grupo';
+                    }
+                    
+                    // Limpiar selección
+                    localStorage.removeItem('selectedEstudianteId');
+                    localStorage.removeItem('selectedEstudianteNombre');
+                    
+                    console.log('✅ Datos cargados');
+                    return;
+                }
+                
+                // Si no hay selección, mostrar primer estudiante tutorado
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                
+                if (!currentUser.id_usuario) {
+                    throw new Error('No se encontró información del tutor');
+                }
+
+                console.log('📊 Buscando estudiantes del tutor:', currentUser.id_usuario);
+
+                // Buscar en LocalStorage qué estudiantes tienen este tutor
+                const estudiantes = await usuariosService.getByRol('estudiante');
+                const estudiantesTutor = [];
+                
+                estudiantes.forEach(est => {
+                    const key = `estudiante_tutor_${est.id_usuario}`;
+                    const idTutor = localStorage.getItem(key);
+                    if (Number(idTutor) === Number(currentUser.id_usuario)) {
+                        estudiantesTutor.push(est);
+                    }
+                });
+
+                console.log('✅ Estudiantes encontrados:', estudiantesTutor.length);
+
+                if (estudiantesTutor.length === 0) {
+                    document.getElementById('estudianteNombre').textContent = 'Sin estudiantes asignados';
+                    document.getElementById('estudianteGrupo').textContent = '-';
+                    return;
+                }
+
+                // Mostrar primer estudiante
+                const estudiante = estudiantesTutor[0];
+                document.getElementById('estudianteNombre').textContent = 
+                    `${estudiante.nombre} ${estudiante.ape_p} ${estudiante.ape_m || ''}`.trim();
+
+                // Obtener grupos del estudiante
+                const todasInscripciones = await estudianteGrupoService.getAll();
+                const inscripciones = todasInscripciones.filter(insc => {
+                    const idEst = insc.idEstudiante || insc.estudiante?.id_usuario;
+                    return Number(idEst) === Number(estudiante.id_usuario);
+                });
+
+                if (inscripciones.length > 0) {
+                    const grupo = inscripciones[0].grupo;
+                    document.getElementById('estudianteGrupo').textContent = 
+                        `${grupo.nombre} - Grado ${grupo.grado}`;
+                } else {
+                    document.getElementById('estudianteGrupo').textContent = 'Sin grupo';
+                }
+
+            } catch (error) {
+                console.error('❌ Error cargando estadísticas:', error);
+                document.getElementById('estudianteNombre').textContent = 'Error al cargar';
+            }
+        }
+
+        waitFor(['usuariosService', 'estudianteGrupoService']).then(() => {
+            console.log('✅ Servicios cargados');
+            loadEstadisticasTutor();
+        }).catch(err => console.error('❌ Error:', err));
+    })();
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

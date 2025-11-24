@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calificaciones Tutor</title>
+    <link rel="stylesheet" href="../../css/calificaciontutor.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+    <link rel="stylesheet" href="../../css/modalactualizar.css">
+</head>
+<body>
+     <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role">Tutor</div>
+                <div class="name" id="userName">Cargando...</div>
+            </div>
+            <div class="avatar"><img src="../../img/nina.png" alt=""></div>
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li class="active"><span class="icon"> <img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></li>
+            <li><a href="../estadisticas/estadisticastutor.html"><span class="icon"> <img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="content" id="content">
+        <section class="calificaciones-section">
+            <h1 class="titulo">Calificaciones</h1>
+            <div class="container">
+
+                <div class="header-div">
+                    <div class="col">
+                        <h3>Estudiante</h3>
+                        <p id="estudianteNombre">Cargando...</p>
+                    </div>
+                    <div class="col">
+                        <h3>Grupo</h3>
+                        <p id="estudianteGrupo">Cargando...</p>
+                    </div>
+                </div>
+
+                <div class="grid" id="calificacionesGrid">
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                        <p>Cargando calificaciones...</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+    </main>
+        <script src="../../scripts/loadDependencies.js"></script>
+        <script>
+            // Proteger esta página para tutores y directores
+            RouteGuard.protect(['tutor', 'director']);
+
+            // Cargar información del tutor logueado
+            (function() {
+                try {
+                    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                    const userName = document.getElementById('userName');
+                    
+                    if (currentUser.nombre && currentUser.ape_p) {
+                        const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                        userName.textContent = fullName;
+                    } else {
+                        userName.textContent = 'Usuario';
+                    }
+                } catch (error) {
+                    console.error('Error al cargar datos del usuario:', error);
+                    document.getElementById('userName').textContent = 'Usuario';
+                }
+            })();
+
+            // Cargar datos del estudiante seleccionado
+            async function loadEstudianteData() {
+                try {
+                    console.log('📊 Cargando datos del estudiante...');
+                    
+                    const estudianteId = localStorage.getItem('selectedEstudianteId');
+                    const estudianteNombre = localStorage.getItem('selectedEstudianteNombre');
+                    
+                    if (!estudianteId) {
+                        alert('No se seleccionó ningún estudiante. Redirigiendo...');
+                        window.location.href = '../bienvenidas/bienvenida Tutor.html';
+                        return;
+                    }
+
+                    console.log('👤 Estudiante ID:', estudianteId);
+
+                    // Obtener datos del estudiante
+                    const estudiante = await usuariosService.getById(estudianteId);
+                    
+                    // Mostrar nombre del estudiante
+                    const nombreCompleto = estudianteNombre || `${estudiante.nombre} ${estudiante.ape_p} ${estudiante.ape_m || ''}`.trim();
+                    document.getElementById('estudianteNombre').textContent = nombreCompleto;
+                    
+                    console.log('✅ Estudiante cargado:', nombreCompleto);
+                    
+                    // Obtener grupo(s) del estudiante
+                    try {
+                        const todasInscripciones = await estudianteGrupoService.getAll();
+                        const gruposEstudiante = todasInscripciones.filter(insc => {
+                            const idEst = insc.idEstudiante || insc.estudiante?.id_usuario;
+                            return Number(idEst) === Number(estudianteId);
+                        });
+                        
+                        console.log('📚 Grupos encontrados:', gruposEstudiante.length);
+                        
+                        if (gruposEstudiante && gruposEstudiante.length > 0) {
+                            const grupoInfo = gruposEstudiante.map(eg => {
+                                const grupo = eg.grupo;
+                                if (grupo && grupo.nombre) {
+                                    return `${grupo.nombre} - Grado ${grupo.grado || ''}`;
+                                }
+                                return `Grupo ${eg.idGrupo}`;
+                            }).join(', ');
+                            document.getElementById('estudianteGrupo').textContent = grupoInfo;
+                        } else {
+                            document.getElementById('estudianteGrupo').textContent = 'Sin grupo asignado';
+                        }
+                    } catch (grupoError) {
+                        console.error('❌ Error cargando grupos:', grupoError);
+                        document.getElementById('estudianteGrupo').textContent = 'Error al cargar grupo';
+                    }
+                    
+                    // Cargar calificaciones reales del estudiante
+                    await loadCalificacionesReales(estudianteId, gruposEstudiante);
+
+                } catch (error) {
+                    console.error('❌ Error al cargar datos del estudiante:', error);
+                    alert('Error: ' + error.message);
+                    window.location.href = '../bienvenidas/bienvenida Tutor.html';
+                }
+            }
+
+            // Cargar calificaciones reales desde localStorage y backend
+            async function loadCalificacionesReales(estudianteId, gruposEstudiante) {
+                try {
+                    console.log('📚 Cargando calificaciones reales del estudiante...');
+
+                    let todasCalificaciones = [];
+
+                    // 1. Intentar cargar desde backend
+                    try {
+                        const response = await httpClient.get(API_CONFIG.ENDPOINTS.CALIFICACIONES.LIST);
+                        if (response.success && response.data) {
+                            const calificacionesBackend = Array.isArray(response.data) ? response.data : [response.data];
+                            todasCalificaciones = calificacionesBackend.filter(cal => {
+                                const idEst = cal.idEstudiante || cal.estudiante?.id_usuario;
+                                return Number(idEst) === Number(estudianteId);
+                            });
+                            console.log('✅ Calificaciones del backend:', todasCalificaciones.length);
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Backend no disponible, usando localStorage');
+                    }
+
+                    // 2. Cargar desde localStorage (calificaciones guardadas localmente)
+                    try {
+                        const calificacionesLocales = JSON.parse(localStorage.getItem('calificaciones_pendientes') || '[]');
+                        const calificacionesEstudiante = calificacionesLocales.filter(cal => 
+                            Number(cal.idEstudiante) === Number(estudianteId)
+                        );
+
+                        if (calificacionesEstudiante.length > 0) {
+                            console.log('📦 Calificaciones locales encontradas:', calificacionesEstudiante.length);
+                            
+                            // Combinar con backend (localStorage tiene prioridad)
+                            calificacionesEstudiante.forEach(calLocal => {
+                                const existe = todasCalificaciones.find(cal => 
+                                    cal.idAsignatura === calLocal.idAsignatura
+                                );
+                                if (!existe) {
+                                    todasCalificaciones.push(calLocal);
+                                } else {
+                                    Object.assign(existe, calLocal);
+                                }
+                            });
+                        }
+                    } catch (error) {
+                        console.warn('Error al cargar calificaciones locales:', error);
+                    }
+
+                    // 3. Si no hay calificaciones, cargar datos de ejemplo
+                    if (todasCalificaciones.length === 0) {
+                        console.log('ℹ️ No hay calificaciones reales, mostrando ejemplo');
+                        mostrarCalificacionesEjemplo();
+                        return;
+                    }
+
+                    // 4. Cargar asignaturas para obtener nombres
+                    let asignaturas = [];
+                    try {
+                        const respAsignaturas = await httpClient.get(API_CONFIG.ENDPOINTS.ASIGNATURAS.LIST);
+                        if (respAsignaturas.success && respAsignaturas.data) {
+                            asignaturas = Array.isArray(respAsignaturas.data) ? respAsignaturas.data : [respAsignaturas.data];
+                        }
+                    } catch (error) {
+                        console.warn('No se pudieron cargar asignaturas');
+                    }
+
+                    // 5. Organizar calificaciones por asignatura
+                    const calificacionesPorAsignatura = {};
+                    
+                    todasCalificaciones.forEach(cal => {
+                        const idAsig = cal.idAsignatura;
+                        if (!calificacionesPorAsignatura[idAsig]) {
+                            const asignatura = asignaturas.find(a => a.idAsignatura === idAsig);
+                            calificacionesPorAsignatura[idAsig] = {
+                                nombre: asignatura?.nombre || `Asignatura ${idAsig}`,
+                                calificacion1: cal.calificacion1 || 0,
+                                calificacion2: cal.calificacion2 || 0,
+                                calificacion3: cal.calificacion3 || 0,
+                                calificacion4: cal.calificacion4 || 0
+                            };
+                        }
+                    });
+
+                    // 6. Calcular promedio final y renderizar
+                    const colores = ['azul', 'rosa', 'naranja', 'verde', 'morado', 'amarillo'];
+                    let colorIndex = 0;
+
+                    const cardsHTML = Object.values(calificacionesPorAsignatura).map(cal => {
+                        const promedio = ((cal.calificacion1 + cal.calificacion2 + cal.calificacion3 + cal.calificacion4) / 4).toFixed(1);
+                        const color = colores[colorIndex % colores.length];
+                        colorIndex++;
+
+                        return `
+                            <div class="card">
+                                <div class="title ${color}">${cal.nombre.toUpperCase()}</div>
+                                <div class="box">
+                                    <p>PERIODO 1: <span>${cal.calificacion1}</span></p>
+                                    <p>PERIODO 2: <span>${cal.calificacion2}</span></p>
+                                    <p>PERIODO 3: <span>${cal.calificacion3}</span></p>
+                                    <p>PERIODO 4: <span>${cal.calificacion4}</span></p>
+                                    <p style="border-top: 2px solid #ddd; margin-top: 10px; padding-top: 10px; font-weight: bold;">
+                                        PROMEDIO: <span>${promedio}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    document.getElementById('calificacionesGrid').innerHTML = `
+                        <div style="grid-column: 1/-1; background: #e8f5e9; padding: 12px 20px; border-radius: 8px; margin-bottom: 15px;">
+                            <p style="margin: 0; color: #2e7d32; font-size: 14px;">
+                                ✅ Mostrando calificaciones reales del estudiante (${Object.keys(calificacionesPorAsignatura).length} asignaturas)
+                            </p>
+                        </div>
+                        ${cardsHTML}
+                    `;
+
+                    console.log('✅ Calificaciones renderizadas correctamente');
+
+                } catch (error) {
+                    console.error('❌ Error cargando calificaciones:', error);
+                    mostrarCalificacionesEjemplo();
+                }
+            }
+
+            // Mostrar calificaciones de ejemplo cuando no hay datos reales
+            function mostrarCalificacionesEjemplo() {
+                const calificaciones = [
+                    {
+                        asignatura: 'LENGUAJES',
+                        color: 'azul',
+                        periodo1: 7.7,
+                        periodo2: 8.9,
+                        periodo3: 9.1,
+                        periodo4: 9.2
+                    },
+                    {
+                        asignatura: 'DE LO HUMANO Y LO COMUNITARIO',
+                        color: 'rosa',
+                        periodo1: 8.9,
+                        periodo2: 9.2,
+                        periodo3: 7.7,
+                        periodo4: 9.1
+                    },
+                    {
+                        asignatura: 'SABERES Y PENSAMIENTO CIENTIFICO',
+                        color: 'naranja',
+                        periodo1: 7.7,
+                        periodo2: 8.1,
+                        periodo3: 9.1,
+                        periodo4: 8.9
+                    },
+                    {
+                        asignatura: 'ETICA, NATURALEZA Y SOCIEDADES',
+                        color: 'verde',
+                        periodo1: 9.1,
+                        periodo2: 8.9,
+                        periodo3: 9.2,
+                        periodo4: 9.2
+                    }
+                ];
+                
+                const cardsHTML = calificaciones.map(cal => {
+                    const promedio = ((cal.periodo1 + cal.periodo2 + cal.periodo3 + cal.periodo4) / 4).toFixed(1);
+                    return `
+                        <div class="card">
+                            <div class="title ${cal.color}">${cal.asignatura}</div>
+                            <div class="box">
+                                <p>PERIODO 1: <span>${cal.periodo1}</span></p>
+                                <p>PERIODO 2: <span>${cal.periodo2}</span></p>
+                                <p>PERIODO 3: <span>${cal.periodo3}</span></p>
+                                <p>PERIODO 4: <span>${cal.periodo4}</span></p>
+                                <p style="border-top: 2px solid #ddd; margin-top: 10px; padding-top: 10px; font-weight: bold;">
+                                    PROMEDIO: <span>${promedio}</span>
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('calificacionesGrid').innerHTML = `
+                    <div style="grid-column: 1/-1; background: #e3f2fd; padding: 12px 20px; border-radius: 8px; margin-bottom: 15px;">
+                        <p style="margin: 0; color: #1565c0; font-size: 14px;">
+                            💡 No hay calificaciones registradas aún. Mostrando datos de ejemplo.
+                        </p>
+                    </div>
+                    ${cardsHTML}
+                `;
+            }
+
+            // Cargar datos cuando la página esté lista
+            window.addEventListener('DOMContentLoaded', () => {
+                const checkServices = setInterval(() => {
+                    if (typeof usuariosService !== 'undefined' && typeof estudianteGrupoService !== 'undefined') {
+                        clearInterval(checkServices);
+                        loadEstudianteData();
+                    }
+                }, 100);
+            });
+        </script>
+    </body>
+    </html>

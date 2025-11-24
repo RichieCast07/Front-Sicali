@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar estudiantes</title>
+    <link rel="stylesheet" href="../../css/Editar estudiante.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role">Director</div>
+                <div class="name">Jorge Luis Omalley Pinacho</div>
+            </div>
+            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+        </div>
+    </header>
+    
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+            <li class="active"><a href="estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+            <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="content" id="content">
+    <button type="button" class="back-link" aria-label="Volver atrás">
+        <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /> </span>
+        <span class="text">Atrás</span>
+    </button>
+
+    <section class="editar-estudiante">
+  <h2>Estudiante</h2>
+
+  <div class="form-contenedor">
+    <div class="form-columna">
+      <h3>Estudiante</h3>
+
+      <div class="form-group">
+        <label>Nombre:</label>
+        <input disabled type="text" id="nombre">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Paterno:</label>
+        <input disabled type="text" id="ape_p">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Materno:</label>
+        <input disabled type="text" id="ape_m">
+      </div>
+
+      <div class="form-group">
+        <label>Grupo:</label>
+        <select disabled id="grupo">
+          <option value="">Cargando...</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Curp:</label>
+        <input disabled type="text" id="curp">
+      </div>
+
+      <div class="form-group">
+        <label>Sexo</label>
+        <select disabled id="sexo">
+          <option value="">Seleccionar</option>
+          <option value="F">Femenino</option>
+          <option value="M">Masculino</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha de Nacimiento</label>
+        <input disabled type="date" id="fecha">
+      </div>
+    </div>
+
+    <div class="form-columna">
+      <h3>Tutor</h3>
+
+      <div class="form-group">
+        <label>Nombre:</label>
+        <input disabled type="text" id="tutorNombre">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Paterno:</label>
+        <input disabled type="text" id="tutorApeP">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Materno:</label>
+        <input disabled type="text" id="tutorApeM">
+      </div>
+
+      <div class="form-group">
+        <label>Usuario:</label>
+        <input disabled type="text" id="tutorUsuario">
+      </div>
+
+      <div class="form-group">
+        <label>CURP:</label>
+        <input disabled type="text" id="tutorCurp">
+      </div>
+
+      <div class="form-group">
+        <label>Sexo</label>
+        <select disabled id="tutorSexo">
+          <option value="">Seleccionar</option>
+          <option value="F">Femenino</option>
+          <option value="M">Masculino</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña (Tutor):</label>
+        <input disabled type="text" id="tutorPassword">
+      </div>
+      <div class="form-group" style="position: relative;">
+        <label>Contraseña:</label>
+        <input type="password" id="password" value="123an" disabled>
+        <button type="button" onclick="togglePassword()" style="position: absolute; right: 10px; top: 32px;">
+          <span class="iconpasswor"><img src="../../icons/visualizar password.svg" alt="Flecha atrás" /></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="boton-agregar">
+    <button type="button" onclick="navigateToSave()">
+      <img src="../../icons/editar.svg" class="btn-icon" alt="Agregar">
+      Editar
+    </button>
+  </div>
+</section>
+
+<script>
+    // Proteger esta página solo para directores
+    RouteGuard.protect(['director']);
+
+    (function(){
+      document.querySelector(".back-link").addEventListener("click", function () {
+        window.history.back();
+      });
+
+      function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+        } else {
+          passwordInput.type = 'password';
+        }
+      }
+
+      function getIdFromQuery(){ 
+        const p = new URLSearchParams(location.search); 
+        return p.get('id'); 
+      }
+
+      function navigateToSave(){ 
+        const id = getIdFromQuery(); 
+        window.location.href = 'guardarestudiante.html' + (id? '?id='+encodeURIComponent(id): ''); 
+      }
+
+      async function loadEstudianteData() {
+        try {
+          const id = getIdFromQuery();
+          console.log('📋 ID desde query:', id);
+          
+          if (!id) {
+            alert('No se especificó ID de estudiante');
+            window.location.href = 'estudiante.html';
+            return;
+          }
+
+          console.log('🔍 Cargando datos del estudiante ID:', id);
+          console.log('🔍 usuariosService disponible:', typeof usuariosService);
+
+          // Cargar estudiante
+          const estudiante = await usuariosService.getById(id);
+          console.log('✅ Estudiante cargado:', estudiante);
+          console.log('📊 Datos:', {
+            nombre: estudiante.nombre,
+            ape_p: estudiante.ape_p,
+            ape_m: estudiante.ape_m
+          });
+
+          // Llenar datos del estudiante
+          const nombreInput = document.getElementById('nombre');
+          console.log('📍 Input nombre encontrado:', !!nombreInput);
+          if (nombreInput) nombreInput.value = estudiante.nombre || '';
+          
+          const apePInput = document.getElementById('ape_p');
+          console.log('📍 Input ape_p encontrado:', !!apePInput);
+          if (apePInput) apePInput.value = estudiante.ape_p || '';
+          
+          const apeMInput = document.getElementById('ape_m');
+          if (apeMInput) apeMInput.value = estudiante.ape_m || '';
+          
+          const curpInput = document.getElementById('curp');
+          if (curpInput) curpInput.value = estudiante.curp || '';
+          
+          const sexoSelect = document.getElementById('sexo');
+          if (sexoSelect) sexoSelect.value = estudiante.sexo || '';
+          
+          const passwordInput = document.getElementById('password');
+          if (passwordInput) passwordInput.value = estudiante.password || '';
+
+          // Cargar grupos del estudiante
+          try {
+            const inscripciones = await estudianteGrupoService.getByEstudiante(id);
+            const grupoSelect = document.getElementById('grupo');
+            
+            if (inscripciones && inscripciones.length > 0) {
+              grupoSelect.innerHTML = '';
+              inscripciones.forEach(insc => {
+                const option = document.createElement('option');
+                const grupo = insc.grupo;
+                option.value = grupo.idGrupo;
+                option.textContent = `${grupo.nombre} - Grado ${grupo.grado || ''}`;
+                grupoSelect.appendChild(option);
+              });
+            } else {
+              grupoSelect.innerHTML = '<option value="">Sin grupo asignado</option>';
+            }
+          } catch (error) {
+            console.warn('⚠️ No se pudieron cargar los grupos:', error);
+            document.getElementById('grupo').innerHTML = '<option value="">Sin grupo</option>';
+          }
+
+          // Cargar tutor desde LocalStorage
+          const estudianteTutorKey = `estudiante_tutor_${id}`;
+          const idTutor = localStorage.getItem(estudianteTutorKey);
+          
+          if (idTutor) {
+            try {
+              const tutor = await usuariosService.getById(idTutor);
+              console.log('✅ Tutor cargado:', tutor);
+              
+              document.getElementById('tutorNombre').value = tutor.nombre || '';
+              document.getElementById('tutorApeP').value = tutor.ape_p || '';
+              document.getElementById('tutorApeM').value = tutor.ape_m || '';
+              document.getElementById('tutorUsuario').value = tutor.usuario || '';
+              document.getElementById('tutorCurp').value = tutor.curp || '';
+              document.getElementById('tutorSexo').value = tutor.sexo || '';
+              document.getElementById('tutorPassword').value = tutor.password || '';
+            } catch (error) {
+              console.warn('⚠️ No se pudo cargar el tutor:', error);
+            }
+          } else {
+            console.log('ℹ️ No hay tutor asignado');
+            document.getElementById('tutorNombre').value = 'Sin tutor asignado';
+          }
+
+        } catch (error) {
+          console.error('❌ Error cargando datos:', error);
+          alert('Error al cargar datos del estudiante: ' + error.message);
+        }
+      }
+
+      // Exponer funciones necesarias globalmente
+      window.togglePassword = togglePassword;
+      window.navigateToSave = navigateToSave;
+
+      // Cargar datos cuando los servicios estén listos
+      function checkServicesAndLoad() {
+        if (typeof usuariosService !== 'undefined' && 
+            typeof gruposService !== 'undefined' && 
+            typeof estudianteGrupoService !== 'undefined') {
+          console.log('✅ Servicios cargados');
+          loadEstudianteData();
+        } else {
+          console.log('⏳ Esperando servicios...');
+          setTimeout(checkServicesAndLoad, 100);
+        }
+      }
+      
+      checkServicesAndLoad();
+    })();
+</script>
+</main>
+  <script src="../../scripts/loadDependencies.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+

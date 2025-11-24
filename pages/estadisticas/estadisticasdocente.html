@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadistica Docente</title>
+    <link rel="stylesheet" href="../../css/estadisticadocente.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role">Docente</div>
+                <div class="name" id="userName">Cargando...</div>
+            </div>
+            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+        </div>
+    </header>
+    
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li><a href="../estudiantes/estudiante.html"><span class="icon"> <img class="icon" src="../../icons/estudiante.svg" alt=""></span><span class="text">Estudiantes</span></a></li>
+            <li><a href="../asistencia/asistencia.html"><span class="icon"> <img class="icon" src="../../icons/asistencia.svg" alt=""></span><span class="text">Asistencias</span></a></li>
+            <li><a href="../calificaciones/calificaciones.html"><span class="icon"> <img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></a></li>
+            <li><span class="icon"> <img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></li>
+        </ul>
+    </nav>
+
+    <main class="content" id="content">
+    <section class="statistics-container">
+        <h1 class="statistics-title">Estadísticas</h1>
+        <div class="filters">
+            <div class="estudiante-info">
+                <div class="info-block">
+                    <label>Grupo:</label>
+                    <p id="grupoNombre">Cargando...</p>
+                </div>
+
+                <div class="info-block">
+                    <label>Total De Estudiante</label>
+                    <p id="totalEstudiantes">0</p>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Periodo</label>
+                <div class="periodo-select">
+                    <select>
+                        <option value="" selected>seleccionar</option>
+                        <option>Primero</option>
+                        <option>Segundo</option>
+                        <option>Tercero</option>
+                    </select>
+                    <img src="../../icons/seleccionar.svg" alt="Desplegar" class="icono-select">
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    
+  
+    
+    <div class="chart-container">
+        <div class="chart">
+            <div class="y-axis">
+                <span class="y-label">100</span>
+                <span class="y-label">80</span>
+                <span class="y-label">60</span>
+                <span class="y-label">40</span>
+                <span class="y-label">20</span>
+                <span class="y-label">0</span>
+            </div>
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+            
+            <div class="bars">
+
+                <div class="bar-group">
+                    <div class="bar color-1" style="height: 180px;"></div>
+                    <div class="bar-label">  Multiples <br> Lenguajes</div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar color-2" style="height: 150px;"></div>
+                    <div class="bar-label">Saberes y pensamiento científico</div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar color-3" style="height: 140px;"></div>
+                    <div class="bar-label">Ética, naturaleza y sociedades</div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar color-4" style="height: 200px;"></div>
+                    <div class="bar-label">De lo humano y lo comunitario</div>
+                </div>
+            </div>
+        </div>
+    </div>
+ </section>
+</main>
+    <script src="../../scripts/loadDependencies.js"></script>
+    
+    <script>
+        // Proteger esta página para docentes y directores
+        RouteGuard.protect(['docente', 'director']);
+
+        // Cargar información del docente logueado
+        (function() {
+          try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            const userName = document.getElementById('userName');
+            
+            if (currentUser.nombre && currentUser.ape_p) {
+              const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+              userName.textContent = fullName;
+            } else {
+              userName.textContent = 'Usuario';
+            }
+          } catch (error) {
+            console.error('Error al cargar datos del usuario:', error);
+            document.getElementById('userName').textContent = 'Usuario';
+          }
+        })();
+
+        // Cargar estadísticas del grupo
+        async function loadEstadisticas() {
+          try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            
+            if (!currentUser.id_usuario) {
+              throw new Error('No se encontró información del docente');
+            }
+
+            console.log('📊 Cargando estadísticas para docente:', currentUser.id_usuario);
+
+            // Obtener todos los grupos y filtrar por docente
+            const todosGrupos = await gruposService.getAll();
+            const grupos = todosGrupos.filter(g => {
+              const docenteId = g.idDocente?.id_usuario || g.idDocente;
+              return Number(docenteId) === Number(currentUser.id_usuario);
+            });
+            
+            console.log('✅ Grupos del docente:', grupos.length);
+            
+            if (!grupos || grupos.length === 0) {
+              document.getElementById('grupoNombre').textContent = 'Sin grupos asignados';
+              document.getElementById('totalEstudiantes').textContent = '0';
+              return;
+            }
+
+            // Usar el primer grupo
+            const grupo = grupos[0];
+            document.getElementById('grupoNombre').textContent = `${grupo.nombre} - Grado ${grupo.grado}`;
+            
+            // Obtener estudiantes del grupo filtrando todas las inscripciones
+            const todasInscripciones = await estudianteGrupoService.getAll();
+            const inscripciones = todasInscripciones.filter(insc => {
+              const grupoId = insc.idGrupo || insc.grupo?.idGrupo;
+              return Number(grupoId) === Number(grupo.idGrupo);
+            });
+            
+            const totalEstudiantes = inscripciones.length;
+            document.getElementById('totalEstudiantes').textContent = totalEstudiantes;
+            
+            console.log('✅ Total estudiantes:', totalEstudiantes);
+            
+          } catch (error) {
+            console.error('❌ Error cargando estadísticas:', error);
+            document.getElementById('grupoNombre').textContent = 'Error al cargar';
+            alert('Error: ' + error.message);
+          }
+        }
+
+        // Inicializar página
+        window.addEventListener('DOMContentLoaded', () => {
+          const checkServices = setInterval(() => {
+            if (typeof gruposService !== 'undefined' && 
+                typeof estudianteGrupoService !== 'undefined') {
+              clearInterval(checkServices);
+              loadEstadisticas();
+            }
+          }, 100);
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
