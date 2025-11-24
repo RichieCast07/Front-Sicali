@@ -225,7 +225,7 @@
     <!-- ============================================ -->
     <script>
         // Proteger esta página para docentes y directores
-        RouteGuard.protect(['docente', 'director']);
+        waitForRouteGuard(['docente', 'director']);
 
         // Variables globales
         let idGrupo = null;
@@ -267,6 +267,13 @@
                 const month = String(hoy.getMonth() + 1).padStart(2, '0');
                 const day = String(hoy.getDate()).padStart(2, '0');
                 fechaInput.value = `${year}-${month}-${day}`;
+            }
+
+            // Verificar que los servicios estén cargados antes de continuar
+            if (typeof gruposService === 'undefined' || typeof estudianteGrupoService === 'undefined') {
+                console.warn('⏳ Esperando a que los servicios se carguen...');
+                setTimeout(inicializar, 100); // Reintentar en 100ms
+                return;
             }
 
             // Cargar datos iniciales (cargará el grupo del docente)

@@ -5,9 +5,27 @@
  * antes de permitir el acceso a páginas protegidas.
  * 
  * Uso:
- * 1. Incluir este script en las páginas que necesitan protección
- * 2. Llamar a RouteGuard.protect(['docente', 'director']) con los roles permitidos
+ * Opción 1 (Auto-espera):
+ *   <script>
+ *     waitForRouteGuard(['docente', 'director']);
+ *   </script>
+ * 
+ * Opción 2 (Manual - si RouteGuard ya está cargado):
+ *   RouteGuard.protect(['docente']);
  */
+
+/**
+ * Función helper que espera a que RouteGuard esté disponible antes de proteger
+ * @param {string[]} allowedRoles - Roles permitidos
+ * @param {string} redirectTo - URL de redirección si no autorizado
+ */
+function waitForRouteGuard(allowedRoles, redirectTo = '/index.html') {
+    if (typeof RouteGuard !== 'undefined') {
+        RouteGuard.protect(allowedRoles, redirectTo);
+    } else {
+        setTimeout(() => waitForRouteGuard(allowedRoles, redirectTo), 50);
+    }
+}
 
 class RouteGuard {
     /**
@@ -61,6 +79,16 @@ class RouteGuard {
      * @param {string} redirectTo - URL a la que redirigir si no autorizado (default: index.html)
      */
     static protect(allowedRoles = [], redirectTo = '/index.html') {
+        // Ejecutar la protección de forma síncrona (inmediata)
+        // Esto previene que el usuario vea contenido antes de la redirección
+        this._executeProtection(allowedRoles, redirectTo);
+    }
+
+    /**
+     * Ejecuta la verificación de protección
+     * @private
+     */
+    static _executeProtection(allowedRoles, redirectTo) {
         // Verificar que haya un usuario logueado
         const user = this.getCurrentUser();
         
