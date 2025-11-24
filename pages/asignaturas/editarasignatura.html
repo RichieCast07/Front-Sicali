@@ -90,7 +90,7 @@
   <!-- Servicio de Asignaturas (inline) -->
   <script>
     // Proteger esta página solo para directores
-    RouteGuard.protect(['director']);
+    waitForRouteGuard(['director']);
 
     class AsignaturasService {
       async getById(id) {

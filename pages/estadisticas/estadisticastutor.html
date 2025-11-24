@@ -105,7 +105,7 @@
     <script src="../../scripts/loadDependencies.js"></script>
     <script>
     // Proteger esta página para tutores y directores
-    RouteGuard.protect(['tutor', 'director']);
+    waitForRouteGuard(['tutor', 'director']);
 
     (function(){
         function waitFor(names, timeout = 5000) {

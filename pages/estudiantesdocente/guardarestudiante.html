@@ -160,7 +160,7 @@
 
 <script>
 // Proteger esta página para docentes y directores
-RouteGuard.protect(['docente', 'director']);
+waitForRouteGuard(['docente', 'director']);
 
 function showModal() {
     document.getElementById('modal-overlay').style.display = 'flex';

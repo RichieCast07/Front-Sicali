@@ -55,7 +55,7 @@
     <script src="../../scripts/loadDependencies.js"></script>
     <script>
         // Proteger esta página para docentes y directores
-        RouteGuard.protect(['docente', 'director']);
+        waitForRouteGuard(['docente', 'director']);
 
         // Cargar información del usuario logueado
         (function() {

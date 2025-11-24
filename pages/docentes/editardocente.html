@@ -110,7 +110,7 @@
  
  <script>
     // Proteger esta página solo para directores
-    RouteGuard.protect(['director']);
+    waitForRouteGuard(['director']);
 
     document.querySelector(".back-link").addEventListener("click", function () {
     window.history.back();

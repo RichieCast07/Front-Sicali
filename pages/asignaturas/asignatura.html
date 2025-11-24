@@ -211,7 +211,7 @@ const asignaturasService = new AsignaturasService();
 <!-- ============================================ -->
 <script>
 // Proteger esta página solo para directores
-RouteGuard.protect(['director']);
+waitForRouteGuard(['director']);
 
 // Variables globales
 let asignaturaEditando = null;

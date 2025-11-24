@@ -61,7 +61,7 @@
         <script src="../../scripts/loadDependencies.js"></script>
         <script>
             // Proteger esta página para tutores y directores
-            RouteGuard.protect(['tutor', 'director']);
+            waitForRouteGuard(['tutor', 'director']);
 
             // Cargar información del tutor logueado
             (function() {

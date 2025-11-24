@@ -148,7 +148,7 @@
 
 <script>
     // Proteger esta página para docentes y directores
-    RouteGuard.protect(['docente', 'director']);
+    waitForRouteGuard(['docente', 'director']);
 
     (function(){
       function isReady(name){ try{ return typeof eval(name) !== 'undefined'; }catch(e){ return false; } }

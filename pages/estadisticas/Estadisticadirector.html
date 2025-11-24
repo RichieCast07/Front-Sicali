@@ -115,7 +115,7 @@
     <script src="../../scripts/loadDependencies.js"></script>
     <script>
     // Proteger esta página solo para directores
-    RouteGuard.protect(['director']);
+    waitForRouteGuard(['director']);
 
     (function(){
         function waitFor(names, timeout = 5000) {

@@ -261,7 +261,7 @@
 
 <script>
     // Proteger esta página solo para directores
-    RouteGuard.protect(['director']);
+    waitForRouteGuard(['director']);
 
     function showDeleteModal() {
    document.getElementById('delete-modal-overlay').style.display = 'flex';
