@@ -134,7 +134,7 @@ class RouteGuard {
             docente: '/pages/bienvenidas/bienvenida Docente.html',
             admin: '/pages/bienvenidas/bienvenida Director.html',
             tutor: '/pages/bienvenidas/bienvenida Tutor.html',
-            estudiante: '/pages/estudiantes/estudiante.html'
+            estudiante: '/pages/bienvenidas/bienvenida Estudiante.html'
         };
 
         const targetPage = rolePages[String(role).toLowerCase()] || '/index.html';
