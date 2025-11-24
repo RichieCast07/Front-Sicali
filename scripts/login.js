@@ -3,9 +3,14 @@
     function $(sel) { return document.querySelector(sel); }
 
     async function onSubmit(evt) {
+        console.log('=== onSubmit llamado ===');
         evt.preventDefault();
+        console.log('preventDefault ejecutado');
+        
         const user = $('#user').value;
         const password = $('#password').value;
+
+        console.log('Datos del formulario:', { usuario: user, password: '***' });
 
         if (!user || !password) {
             alert('Completa usuario y contraseña');
@@ -55,11 +60,15 @@
             console.log('Usuario guardado:', localStorage.getItem('currentUser'));
             console.log('Rol del usuario:', role);
 
+            // Obtener la URL base del sitio
+            const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+            console.log('Base URL:', baseUrl);
+
             const redirectMap = {
-                'docente': './pages/bienvenidas/bienvenida Docente.html',
-                'admin': './pages/bienvenidas/bienvenida Director.html',
-                'tutor': './pages/bienvenidas/bienvenida Tutor.html',
-                'estudiante': './pages/bienvenidas/bienvenida Estudiante.html'
+                'docente': baseUrl + '/pages/bienvenidas/bienvenida Docente.html',
+                'admin': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
+                'tutor': baseUrl + '/pages/bienvenidas/bienvenida Tutor.html',
+                'estudiante': baseUrl + '/pages/bienvenidas/bienvenida Estudiante.html'
             };
 
             const target = redirectMap[role];
@@ -85,13 +94,25 @@
 
     // esperar a que loadDependencies cargue httpClient & authService
     function init() {
+        console.log('=== Inicializando login.js ===');
+        console.log('document.readyState:', document.readyState);
+        
         // Esperar hasta que authService y httpClient estén disponibles
-        const ready = () => (typeof authService !== 'undefined' && typeof httpClient !== 'undefined');
+        const ready = () => {
+            const isReady = (typeof authService !== 'undefined' && typeof httpClient !== 'undefined');
+            console.log('Dependencias listas?', isReady);
+            return isReady;
+        };
 
         const attach = () => {
             const form = document.querySelector('form');
-            if (!form) return;
+            console.log('Form encontrado:', !!form);
+            if (!form) {
+                console.error('No se encontró el formulario');
+                return;
+            }
             form.addEventListener('submit', onSubmit);
+            console.log('✅ Event listener agregado al formulario');
         };
 
         if (ready()) {
@@ -99,25 +120,32 @@
             return;
         }
 
-        const maxRetries = 50; // ~5s
+        console.log('Esperando dependencias...');
+        const maxRetries = 100; // ~10s
         let tries = 0;
         const iv = setInterval(() => {
             if (ready()) {
                 clearInterval(iv);
+                console.log('✅ Dependencias cargadas, adjuntando evento');
                 attach();
                 return;
             }
             tries += 1;
             if (tries > maxRetries) {
                 clearInterval(iv);
-                console.error('Dependencias de login no cargadas (authService/httpClient)');
+                console.error('❌ Timeout: Dependencias de login no cargadas (authService/httpClient)');
+                alert('Error al cargar el sistema de login. Por favor, recarga la página.');
             }
         }, 100);
     }
 
+    // Asegurar que init se ejecute
+    console.log('=== login.js cargado ===');
     if (document.readyState === 'loading') {
+        console.log('Esperando DOMContentLoaded...');
         document.addEventListener('DOMContentLoaded', init);
     } else {
+        console.log('DOM ya cargado, ejecutando init()...');
         init();
     }
 })();

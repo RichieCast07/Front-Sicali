@@ -124,12 +124,20 @@ class RouteGuard {
      * Redirige al login
      * @param {string} redirectTo - URL del login
      */
-    static redirectToLogin(redirectTo = '../../index.html') {
+    static redirectToLogin(redirectTo = null) {
         // Guardar la URL actual para redirigir después del login
         try {
             sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
         } catch (e) {}
         
+        // Calcular ruta al index.html desde la ubicación actual
+        if (!redirectTo) {
+            const pathParts = window.location.pathname.split('/');
+            const depth = pathParts.filter(p => p && p !== 'index.html').length - 1;
+            redirectTo = '../'.repeat(depth) + 'index.html';
+        }
+        
+        console.log('Redirigiendo al login:', redirectTo);
         window.location.href = redirectTo;
     }
 
@@ -138,15 +146,21 @@ class RouteGuard {
      * @param {string} role - Rol del usuario
      */
     static redirectToHomePage(role) {
+        // Calcular la ruta base del sitio
+        const pathParts = window.location.pathname.split('/');
+        const depth = pathParts.filter(p => p && p !== 'index.html').length - 1;
+        const basePath = '../'.repeat(depth);
+        
         const rolePages = {
-            docente: '../../pages/bienvenidas/bienvenida Docente.html',
-            admin: '../../pages/bienvenidas/bienvenida Director.html',
-            tutor: '../../pages/bienvenidas/bienvenida Tutor.html',
-            estudiante: '../../pages/bienvenidas/bienvenida Estudiante.html'
+            docente: basePath + 'pages/bienvenidas/bienvenida Docente.html',
+            admin: basePath + 'pages/bienvenidas/bienvenida Director.html',
+            tutor: basePath + 'pages/bienvenidas/bienvenida Tutor.html',
+            estudiante: basePath + 'pages/bienvenidas/bienvenida Estudiante.html'
         };
 
-        const targetPage = rolePages[String(role).toLowerCase()] || '../../index.html';
+        const targetPage = rolePages[String(role).toLowerCase()] || basePath + 'index.html';
         
+        console.log('Redirigiendo a home page para rol:', role, '→', targetPage);
         alert(`No tienes permiso para acceder a esta página.\nSerás redirigido a tu página principal.`);
         window.location.href = targetPage;
     }
