@@ -19,7 +19,7 @@
  * @param {string[]} allowedRoles - Roles permitidos
  * @param {string} redirectTo - URL de redirección si no autorizado
  */
-function waitForRouteGuard(allowedRoles, redirectTo = '/index.html') {
+function waitForRouteGuard(allowedRoles, redirectTo = '../../index.html') {
     if (typeof RouteGuard !== 'undefined') {
         RouteGuard.protect(allowedRoles, redirectTo);
     } else {
@@ -116,7 +116,7 @@ class RouteGuard {
      * Redirige al login
      * @param {string} redirectTo - URL del login
      */
-    static redirectToLogin(redirectTo = 'index.html') {
+    static redirectToLogin(redirectTo = '../../index.html') {
         // Guardar la URL actual para redirigir después del login
         try {
             sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
@@ -131,13 +131,13 @@ class RouteGuard {
      */
     static redirectToHomePage(role) {
         const rolePages = {
-            docente: '/pages/bienvenidas/bienvenida Docente.html',
-            admin: '/pages/bienvenidas/bienvenida Director.html',
-            tutor: '/pages/bienvenidas/bienvenida Tutor.html',
-            estudiante: '/pages/bienvenidas/bienvenida Estudiante.html'
+            docente: '../../pages/bienvenidas/bienvenida Docente.html',
+            admin: '../../pages/bienvenidas/bienvenida Director.html',
+            tutor: '../../pages/bienvenidas/bienvenida Tutor.html',
+            estudiante: '../../pages/bienvenidas/bienvenida Estudiante.html'
         };
 
-        const targetPage = rolePages[String(role).toLowerCase()] || 'index.html';
+        const targetPage = rolePages[String(role).toLowerCase()] || '../../index.html';
         
         alert(`No tienes permiso para acceder a esta página.\nSerás redirigido a tu página principal.`);
         window.location.href = targetPage;

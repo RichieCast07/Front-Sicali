@@ -27,19 +27,34 @@
 
             // Guardar token y usuario
             httpClient.setAuthToken(res.token);
-            try { localStorage.setItem('currentUser', JSON.stringify(res.user || res.raw || {})); } catch(e){}
-
+            
             // Redirección según rol
             const role = (res.user && res.user.rol) ? String(res.user.rol).toLowerCase() : null;
+            
+            try { 
+                localStorage.setItem('currentUser', JSON.stringify(res.user || res.raw || {}));
+                localStorage.setItem('authToken', res.token);
+            } catch(e){
+                console.error('Error guardando en localStorage:', e);
+            }
+
+            console.log('Usuario guardado:', localStorage.getItem('currentUser'));
+            console.log('Rol del usuario:', role);
+
             const redirectMap = {
-                docente: 'pages/bienvenidas/bienvenida Docente.html',
-                admin: 'pages/bienvenidas/bienvenida Director.html',
-                tutor: 'pages/bienvenidas/bienvenida Tutor.html',
-                estudiante: 'pages/bienvenidas/bienvenida Estudiante.html'
+                docente: './pages/bienvenidas/bienvenida Docente.html',
+                admin: './pages/bienvenidas/bienvenida Director.html',
+                tutor: './pages/bienvenidas/bienvenida Tutor.html',
+                estudiante: './pages/bienvenidas/bienvenida Estudiante.html'
             };
 
-            const target = (role && redirectMap[role]) ? redirectMap[role] : 'index.html';
-            window.location.href = target;
+            const target = (role && redirectMap[role]) ? redirectMap[role] : './index.html';
+            console.log('Redirigiendo a:', target);
+            
+            // Pequeña pausa para asegurar que localStorage se guarde
+            setTimeout(() => {
+                window.location.href = target;
+            }, 100);
         } catch (err) {
             console.error('Error en login:', err);
             const msg = err && err.message ? err.message : 'Error en login';
