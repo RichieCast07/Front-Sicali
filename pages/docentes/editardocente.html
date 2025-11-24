@@ -130,11 +130,20 @@
 
     function togglePassword() {
       const passwordInput = document.getElementById('password');
+      const currentValue = passwordInput.value; // Guardar el valor actual
+      
+      console.log('🔐 Toggle password - Valor actual:', currentValue);
+      
       if (passwordInput.type === 'password') {
-    passwordInput.type = 'text';
-  } else {
-    passwordInput.type = 'password';
-  }}
+        passwordInput.type = 'text';
+      } else {
+        passwordInput.type = 'password';
+      }
+      
+      // Restaurar el valor después de cambiar el tipo
+      passwordInput.value = currentValue;
+      console.log('✅ Valor restaurado:', passwordInput.value);
+    }
 
   // Load docente data on page load
   (function(){

@@ -78,22 +78,38 @@
             color: #495057;
         }
         
-        .leyenda-checkbox {
+        .leyenda-box {
             width: 16px;
             height: 16px;
-            pointer-events: none;
+            border-radius: 3px;
+            border: 1px solid #d1d5db;
+            position: relative;
         }
         
-        .leyenda-checkbox.green {
-            accent-color: #10b981;
+        .leyenda-box.green {
+            background-color: #10b981;
+            border-color: #10b981;
         }
         
-        .leyenda-checkbox.red {
-            accent-color: #ef4444;
+        .leyenda-box.red {
+            background-color: #ef4444;
+            border-color: #ef4444;
         }
         
-        .leyenda-checkbox.blue {
-            accent-color: #3b82f6;
+        .leyenda-box.blue {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+        
+        .leyenda-box::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
     </style>
 </head>
@@ -153,15 +169,15 @@
                 <div class="leyenda-estados">
                     <strong>Leyenda:</strong>
                     <div class="leyenda-item">
-                        <input type="checkbox" class="leyenda-checkbox green" checked disabled>
+                        <div class="leyenda-box green"></div>
                         <span>Asistencia</span>
                     </div>
                     <div class="leyenda-item">
-                        <input type="checkbox" class="leyenda-checkbox red" checked disabled>
+                        <div class="leyenda-box red"></div>
                         <span>Falta</span>
                     </div>
                     <div class="leyenda-item">
-                        <input type="checkbox" class="leyenda-checkbox blue" checked disabled>
+                        <div class="leyenda-box blue"></div>
                         <span>Permiso</span>
                     </div>
                 </div>
