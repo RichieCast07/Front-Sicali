@@ -152,15 +152,46 @@
         const inputs = form.querySelectorAll('input');
         const selects = form.querySelectorAll('select');
         
-        // Populate fields (order: nombre, rfc, ape_p, curp, ape_m, fecha, usuario, password)
-        if(inputs[0]) inputs[0].value = docente.nombre || '';
-        if(inputs[1]) inputs[1].value = docente.rfc || '';
-        if(inputs[2]) inputs[2].value = docente.ape_p || '';
-        if(inputs[3]) inputs[3].value = docente.curp || '';
-        if(inputs[4]) inputs[4].value = docente.ape_m || '';
-        if(inputs[5]) inputs[5].value = docente.fechaNacimiento || '';
-        if(inputs[6]) inputs[6].value = docente.usuario || '';
-        if(inputs[7]) inputs[7].value = ''; // Don't show password
+        console.log('Docente recibido:', docente);
+        console.log('Inputs encontrados:', inputs.length);
+        console.log('Selects encontrados:', selects.length);
+        
+        // Populate fields (order: nombre, ape_p, ape_m, RFC, CURP, fecha, usuario, password)
+        if(inputs[0]) {
+            inputs[0].value = docente.nombre || '';
+            console.log('Nombre:', inputs[0].value);
+        }
+        if(inputs[1]) {
+            inputs[1].value = docente.ape_p || '';
+            console.log('Apellido P:', inputs[1].value);
+        }
+        if(inputs[2]) {
+            inputs[2].value = docente.ape_m || '';
+            console.log('Apellido M:', inputs[2].value);
+        }
+        if(inputs[3]) {
+            inputs[3].value = docente.rfc || '';
+            console.log('RFC:', inputs[3].value);
+        }
+        if(inputs[4]) {
+            inputs[4].value = docente.curp || '';
+            console.log('CURP:', inputs[4].value);
+        }
+        if(inputs[5]) {
+            // La fecha de nacimiento no existe en el backend, dejar vacío o usar created_at
+            inputs[5].value = '';
+            inputs[5].placeholder = 'No disponible';
+            console.log('Fecha nacimiento: No disponible en backend');
+        }
+        if(inputs[6]) {
+            inputs[6].value = docente.usuario || '';
+            console.log('Usuario:', inputs[6].value);
+        }
+        if(inputs[7]) {
+            // Mostrar la contraseña real del backend
+            inputs[7].value = docente.password || '';
+            console.log('Password cargado desde backend');
+        }
         
         // Set sexo dropdown
         if(selects[0]){ 
