@@ -1,7 +1,7 @@
 const API_CONFIG = {
     // URL base de la API (ajustar según ambiente)
     // En desarrollo local podemos apuntar a un proxy para evitar CORS
-    BASE_URL: 'http://34.229.189.99:7001/api',
+    BASE_URL: 'http://34.229.189.99:8000/api',
     
     // Timeout para peticiones (ms)
     TIMEOUT: 30000,
