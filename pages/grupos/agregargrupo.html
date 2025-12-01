@@ -160,10 +160,10 @@
           const idDocente = Number(docenteSelect.value) || null;
           const capacidad = Number(form.querySelector('input[type="number"]').value) || null;
           
-          // Obtener periodo de localStorage o usar 5 por defecto (periodo actual)
+          // Obtener periodo de localStorage o usar 1 por defecto (periodo actual)
           let idPeriodo = Number(localStorage.getItem('currentPeriodo'));
           if (!idPeriodo || isNaN(idPeriodo)) {
-            idPeriodo = 5; // Periodo por defecto
+            idPeriodo = 1; // Periodo por defecto
             console.log('Usando periodo por defecto:', idPeriodo);
           }
 

@@ -123,16 +123,42 @@
                 <div class="role">Docente</div>
                 <div class="name" id="nombre-docente">Cargando...</div>
             </div>
-            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+            <div class="avatar" id="userAvatar">
+                <img src="../../img/nino.png" alt="">
+            </div>
         </div>
     </header>
 
     <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
-            <li><a href="../estudiantesdocente/estudiante.html"><span class="icon"><img class="icon" src="../../icons/estudiante.svg" alt=""></span><span class="text">Estudiantes</span></a></li>
-            <li class="active"><span class="icon"><img class="icon" src="../../icons/asistencia.svg" alt=""></span><span class="text">Asistencias</span></li>
-            <li><a href="../calificaciones/calificaciones.html"><span class="icon"><img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></a></li>
-            <li><a href="../estadisticas/estadisticasdocente.html"><span class="icon"><img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></a></li>
+            <li>
+                <a href="../estudiantesdocente/estudiante.html">
+                    <span class="icon"><img class="icon" src="../../icons/estudiante.svg" alt=""></span>
+                    <span class="text">Estudiantes</span>
+                </a>
+            </li>
+            <li>
+                <a href="../tutordocente/tutor.html">
+                    <span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span>
+                    <span class="text">Tutor</span>
+                </a>
+            </li>
+            <li class="active">
+                <span class="icon"><img class="icon" src="../../icons/asistencia.svg" alt=""></span>
+                <span class="text">Asistencias</span>
+            </li>
+            <li>
+                <a href="../calificaciones/calificaciones.html">
+                    <span class="icon"><img class="icon" src="../../icons/calificaciones.svg" alt=""></span>
+                    <span class="text">Calificaciones</span>
+                </a>
+            </li>
+            <li>
+                <a href="../estadisticas/estadisticasdocente.html">
+                    <span class="icon"><img class="icon" src="../../icons/estadisticas.svg" alt=""></span>
+                    <span class="text">Estadísticas</span>
+                </a>
+            </li>
         </ul>
     </nav>
 
@@ -185,8 +211,8 @@
                 <table class="tabla-asistencias">
                     <thead>
                         <tr>
-                            <th style="width: 5%;">#</th>
-                            <th style="width: 35%;">Nombre</th>
+                            <th rowspan="2">#</th>
+                            <th rowspan="2">Nombre Completo</th>
                             <th id="dia-1">Lun<br><small>--/--</small></th>
                             <th id="dia-2">Mar<br><small>--/--</small></th>
                             <th id="dia-3">Mié<br><small>--/--</small></th>
@@ -476,7 +502,9 @@
             fechasSemanales.forEach((fecha, index) => {
                 const [año, mes, dia] = fecha.split('-');
                 const th = document.getElementById(`dia-${index + 1}`);
-                th.innerHTML = `${dias[index]}<br><small>${dia}/${mes}</small>`;
+                if (th) {
+                    th.innerHTML = `${dias[index]}<br><small>${dia}/${mes}</small>`;
+                }
             });
         }
 
@@ -487,40 +515,54 @@
             asistenciasActuales = {};
 
             try {
-                // Intentar obtener asistencias del backend
+                if (typeof asistenciaService === 'undefined') {
+                    console.warn('⚠️ asistenciaService no disponible aún');
+                    return;
+                }
+
                 const todasAsistencias = await asistenciaService.getByGrupo(idGrupo);
 
-                // Filtrar solo las de esta semana
-                todasAsistencias.forEach(asist => {
-                    const idEst = asist.idEstudiante?.id_usuario || asist.idEstudiante;
-                    if (fechasSemanales.includes(asist.fecha)) {
-                        const key = `${idEst}_${asist.fecha}`;
-                        asistenciasActuales[key] = asist.estado;
-                    }
-                });
+                if (todasAsistencias && todasAsistencias.length > 0) {
+                    console.log('📋 Asistencias del backend:', todasAsistencias.length);
 
-                console.log('✅ Asistencias cargadas del backend:', Object.keys(asistenciasActuales).length);
+                    todasAsistencias.forEach(asist => {
+                        const idEst = asist.estudiante?.id_usuario || asist.idEstudiante;
+                        if (fechasSemanales.includes(asist.fecha)) {
+                            const key = `${idEst}_${asist.fecha}`;
+                            asistenciasActuales[key] = {
+                                idAsistencia: asist.idAsistencia,
+                                estado: asist.estado
+                            };
+                        }
+                    });
+
+                    console.log('✅ Asistencias cargadas del backend:', Object.keys(asistenciasActuales).length);
+                } else {
+                    console.log('📋 No hay asistencias en el backend para este grupo');
+                }
 
             } catch (error) {
                 console.warn('⚠️ No se pudieron cargar asistencias del backend:', error.message);
             }
 
-            // Cargar también asistencias guardadas localmente
+            // Cargar asistencias locales como respaldo
             try {
                 const asistenciasLocales = JSON.parse(localStorage.getItem('asistencias_pendientes') || '[]');
                 
-                asistenciasLocales.forEach(asist => {
-                    if (Number(asist.idGrupo) === Number(idGrupo) && fechasSemanales.includes(asist.fecha)) {
-                        const key = `${asist.idEstudiante}_${asist.fecha}`;
-                        // Solo usar local si no hay una del backend
-                        if (!asistenciasActuales[key]) {
-                            asistenciasActuales[key] = asist.estado;
-                        }
-                    }
-                });
-
                 if (asistenciasLocales.length > 0) {
-                    console.log('📦 Asistencias locales cargadas:', asistenciasLocales.length);
+                    asistenciasLocales.forEach(asist => {
+                        if (Number(asist.idGrupo) === Number(idGrupo) && fechasSemanales.includes(asist.fecha)) {
+                            const key = `${asist.idEstudiante}_${asist.fecha}`;
+                            if (!asistenciasActuales[key]) {
+                                asistenciasActuales[key] = {
+                                    idAsistencia: null,
+                                    estado: asist.estado
+                                };
+                            }
+                        }
+                    });
+
+                    console.log('📦 Asistencias locales cargadas');
                 }
 
             } catch (error) {
@@ -558,7 +600,6 @@
                 `;
             }).join('');
 
-            // Agregar eventos a los checkboxes
             configurarCheckboxes();
         }
 
@@ -568,7 +609,8 @@
         function generarCeldasAsistencia(idEstudiante) {
             return fechasSemanales.map((fecha, diaIndex) => {
                 const key = `${idEstudiante}_${fecha}`;
-                const estadoActual = asistenciasActuales[key] || '';
+                const estadoData = asistenciasActuales[key];
+                const estadoActual = estadoData?.estado || '';
                 
                 const asistioChecked = estadoActual === 'Asistencia' ? 'checked' : '';
                 const faltoChecked = estadoActual === 'Falta' ? 'checked' : '';
@@ -615,9 +657,7 @@
                     if (this.checked) {
                         const estudiante = this.dataset.estudiante;
                         const fecha = this.dataset.fecha;
-                        const tipo = this.dataset.tipo;
 
-                        // Desmarcar los otros checkboxes del mismo día/estudiante
                         const todosCheckboxes = document.querySelectorAll(
                             `.check[data-estudiante="${estudiante}"][data-fecha="${fecha}"]`
                         );
@@ -656,9 +696,8 @@
         // VALIDAR Y MOSTRAR MODAL
         // ==========================================
         function validarYGuardar() {
-            // Contar cuántas asistencias se marcaron
             const checkboxesMarcados = document.querySelectorAll('.check:checked');
-            const totalCeldas = todosLosEstudiantes.length * 5; // 5 días
+            const totalCeldas = todosLosEstudiantes.length * 5;
             const porcentaje = ((checkboxesMarcados.length / totalCeldas) * 100).toFixed(0);
 
             document.getElementById('modal-mensaje').textContent = 
@@ -680,6 +719,7 @@
 
                 const checkboxes = document.querySelectorAll('.check:checked');
                 let guardadas = 0;
+                let actualizadas = 0;
                 let errores = 0;
                 const asistenciasLocales = [];
 
@@ -694,14 +734,15 @@
                     const fecha = checkbox.dataset.fecha;
                     const tipo = checkbox.dataset.tipo;
                     
-                    // Mapear tipo a estado
                     let estado;
                     if (tipo === 'asistio') estado = 'Asistencia';
                     else if (tipo === 'falto') estado = 'Falta';
                     else if (tipo === 'permiso') estado = 'Permiso';
-                    else estado = 'Asistencia'; // Fallback
+                    else estado = 'Asistencia';
 
-                    // Estructura de datos para enviar
+                    const key = `${idEstudiante}_${fecha}`;
+                    const asistenciaExistente = asistenciasActuales[key];
+
                     const datos = {
                         idEstudiante: idEstudiante,
                         idGrupo: parseInt(idGrupo),
@@ -709,16 +750,39 @@
                         estado: estado
                     };
 
-                    console.log('📝 Enviando asistencia:', datos);
-
                     try {
-                        const resultado = await asistenciaService.create(datos);
-                        console.log('✅ Asistencia guardada en backend:', resultado);
-                        guardadas++;
+                        if (asistenciaExistente?.idAsistencia) {
+                            const resultado = await asistenciaService.update(asistenciaExistente.idAsistencia, datos);
+                            console.log('✅ Asistencia actualizada:', resultado);
+                            actualizadas++;
+                        } else {
+                            try {
+                                const resultado = await asistenciaService.create(datos);
+                                console.log('✅ Asistencia creada:', resultado);
+                                
+                                if (resultado && resultado.idAsistencia) {
+                                    asistenciasActuales[key] = {
+                                        idAsistencia: resultado.idAsistencia,
+                                        estado: estado
+                                    };
+                                }
+                                
+                                guardadas++;
+                            } catch (createError) {
+                                if (createError.message && (
+                                    createError.message.includes('Duplicate entry') || 
+                                    createError.message.includes('unique_asistencia')
+                                )) {
+                                    console.log('⚠️ Asistencia duplicada detectada');
+                                    actualizadas++;
+                                } else {
+                                    throw createError;
+                                }
+                            }
+                        }
                     } catch (error) {
-                        console.warn('⚠️ Backend no disponible, guardando localmente:', error.message);
+                        console.warn('⚠️ Error al guardar asistencia:', error.message);
                         
-                        // Guardar en localStorage como fallback
                         asistenciasLocales.push({
                             ...datos,
                             idAsistencia: `local_${Date.now()}_${idEstudiante}_${fecha}`,
@@ -728,7 +792,6 @@
                     }
                 }
 
-                // Guardar asistencias locales si hubo errores
                 if (asistenciasLocales.length > 0) {
                     const asistenciasExistentes = JSON.parse(localStorage.getItem('asistencias_pendientes') || '[]');
                     const todasAsistencias = [...asistenciasExistentes, ...asistenciasLocales];
@@ -740,22 +803,35 @@
                     UIUtils.hideLoader();
                 }
 
-                if (guardadas > 0 && errores === 0) {
-                    showSuccessModal();
-                    if (typeof UIUtils !== 'undefined') {
-                        UIUtils.showSuccess(`✅ Se guardaron ${guardadas} asistencias en el servidor`);
+                const totalOperaciones = guardadas + actualizadas;
+                
+                if (totalOperaciones > 0) {
+                    try {
+                        const asistenciasExistentes = JSON.parse(localStorage.getItem('asistencias_pendientes') || '[]');
+                        const asistenciasRestantes = asistenciasExistentes.filter(a => Number(a.idGrupo) !== Number(idGrupo));
+                        localStorage.setItem('asistencias_pendientes', JSON.stringify(asistenciasRestantes));
+                        console.log('🧹 Limpiadas asistencias locales del grupo', idGrupo);
+                    } catch (e) {
+                        console.warn('Error al limpiar localStorage:', e);
                     }
-                } else if (asistenciasLocales.length > 0 && guardadas === 0) {
+                }
+                
+                if (totalOperaciones > 0 && errores === 0) {
                     showSuccessModal();
                     if (typeof UIUtils !== 'undefined') {
-                        UIUtils.showWarning(`⚠️ Se guardaron ${asistenciasLocales.length} asistencias localmente (backend no disponible)`);
+                        UIUtils.showSuccess(`✅ ${guardadas} creadas, ${actualizadas} actualizadas`);
+                    }
+                } else if (asistenciasLocales.length > 0 && totalOperaciones === 0) {
+                    showSuccessModal();
+                    if (typeof UIUtils !== 'undefined') {
+                        UIUtils.showWarning(`⚠️ ${asistenciasLocales.length} guardadas localmente`);
                     } else {
-                        alert(`Se guardaron ${asistenciasLocales.length} asistencias localmente`);
+                        alert(`${asistenciasLocales.length} asistencias guardadas localmente`);
                     }
-                } else if (guardadas > 0 && errores > 0) {
+                } else if (totalOperaciones > 0 && errores > 0) {
                     showSuccessModal();
                     if (typeof UIUtils !== 'undefined') {
-                        UIUtils.showWarning(`✅ ${guardadas} en servidor, ⚠️ ${asistenciasLocales.length} guardadas localmente`);
+                        UIUtils.showWarning(`✅ ${totalOperaciones} en servidor, ⚠️ ${asistenciasLocales.length} localmente`);
                     }
                 } else {
                     if (typeof UIUtils !== 'undefined') {
@@ -765,10 +841,7 @@
                     }
                 }
 
-                // Recargar para mostrar datos actualizados
                 await cargarSemana();
-                
-                // Actualizar badge de pendientes
                 actualizarBadgePendientes();
 
             } catch (error) {
@@ -790,6 +863,11 @@
                 const asistenciasLocales = JSON.parse(localStorage.getItem('asistencias_pendientes') || '[]');
                 const badge = document.getElementById('badgePendientes');
                 
+                if (!badge) {
+                    console.warn('⚠️ Elemento badgePendientes no encontrado en el DOM');
+                    return;
+                }
+                
                 if (asistenciasLocales.length > 0) {
                     badge.textContent = asistenciasLocales.length;
                     badge.style.display = 'flex';
@@ -798,93 +876,6 @@
                 }
             } catch (error) {
                 console.warn('Error al actualizar badge:', error);
-            }
-        }
-
-        // ==========================================
-        // SINCRONIZAR ASISTENCIAS LOCALES AL BACKEND
-        // ==========================================
-        async function sincronizarAsistenciasLocales() {
-            try {
-                const asistenciasLocales = JSON.parse(localStorage.getItem('asistencias_pendientes') || '[]');
-                
-                if (asistenciasLocales.length === 0) {
-                    if (typeof UIUtils !== 'undefined') {
-                        UIUtils.showInfo('No hay asistencias pendientes de sincronizar');
-                    } else {
-                        alert('No hay asistencias pendientes de sincronizar');
-                    }
-                    return;
-                }
-
-                if (!confirm(`¿Sincronizar ${asistenciasLocales.length} asistencias locales al servidor?`)) {
-                    return;
-                }
-
-                if (typeof UIUtils !== 'undefined') {
-                    UIUtils.showLoader('Sincronizando asistencias...');
-                }
-
-                let sincronizadas = 0;
-                let errores = 0;
-                const asistenciasRestantes = [];
-
-                for (const asistencia of asistenciasLocales) {
-                    // Remover campos temporales locales
-                    const { idAsistencia, timestamp, ...datos } = asistencia;
-
-                    try {
-                        await asistenciaService.create(datos);
-                        sincronizadas++;
-                        console.log('✅ Asistencia sincronizada:', datos);
-                    } catch (error) {
-                        console.warn('⚠️ No se pudo sincronizar:', error.message);
-                        asistenciasRestantes.push(asistencia);
-                        errores++;
-                    }
-                }
-
-                // Actualizar localStorage solo con las que no se pudieron sincronizar
-                localStorage.setItem('asistencias_pendientes', JSON.stringify(asistenciasRestantes));
-
-                if (typeof UIUtils !== 'undefined') {
-                    UIUtils.hideLoader();
-                }
-
-                if (sincronizadas > 0 && errores === 0) {
-                    if (typeof UIUtils !== 'undefined') {
-                        UIUtils.showSuccess(`✅ Se sincronizaron ${sincronizadas} asistencias al servidor`);
-                    } else {
-                        alert(`Se sincronizaron ${sincronizadas} asistencias`);
-                    }
-                } else if (sincronizadas > 0 && errores > 0) {
-                    if (typeof UIUtils !== 'undefined') {
-                        UIUtils.showWarning(`✅ ${sincronizadas} sincronizadas, ⚠️ ${errores} pendientes`);
-                    } else {
-                        alert(`${sincronizadas} sincronizadas, ${errores} pendientes`);
-                    }
-                } else {
-                    if (typeof UIUtils !== 'undefined') {
-                        UIUtils.showError('❌ No se pudo sincronizar ninguna asistencia. Verifica que el backend esté funcionando.');
-                    } else {
-                        alert('No se pudo sincronizar. Backend no disponible.');
-                    }
-                }
-
-                // Recargar para mostrar datos actualizados
-                await cargarSemana();
-                
-                // Actualizar badge de pendientes
-                actualizarBadgePendientes();
-
-            } catch (error) {
-                if (typeof UIUtils !== 'undefined') {
-                    UIUtils.hideLoader();
-                    UIUtils.showError('Error al sincronizar: ' + error.message);
-                } else {
-                    alert('Error al sincronizar: ' + error.message);
-                }
-                console.error(error);
             }
         }
 
@@ -908,5 +899,6 @@
         }
     </script>
 
+    <script src="../../scripts/utils/logoutModal.js"></script>
 </body>
 </html>

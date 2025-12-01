@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Tutor</title>
+    <link rel="stylesheet" href="../../css/Editar estudiante.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+    <link rel="stylesheet" href="../../css/modalactualizar.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role" id="userRole">Cargando...</div>
+                <div class="name" id="userName">Cargando...</div>
+            </div>
+            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+        </div>
+    </header>
+
+    <script>
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                } else {
+                    userRole.textContent = 'Usuario';
+                }
+            } catch (error) {
+                console.error('❌ Error al cargar datos del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
+            }
+        })();
+    </script>
+    
+    <script>
+      (function() {
+        function waitForRouteGuard(roles) {
+          if (typeof RouteGuard !== 'undefined') {
+            RouteGuard.protect(roles);
+          } else {
+            setTimeout(function() { waitForRouteGuard(roles); }, 50);
+          }
+        }
+        waitForRouteGuard(['docente','admin']);
+      })();
+    </script>
+
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li><a href="../estudiantesdocente/estudiante.html"><span class="icon"> <img class="icon" src="../../icons/estudiante.svg" alt=""></span><span class="text">Estudiantes</span></a></li>
+            <li><a href="../tutordocente/tutor.html"><span class="icon"> <img class="icon" src="../../icons/tutor.svg" alt=""></span><span class="text">Tutor</span></a></li>
+            <li><a href="../asistencia/asistencia.html"><span class="icon"> <img class="icon" src="../../icons/asistencia.svg" alt=""></span><span class="text">Asistencias</span></a></li>
+            <li><a href="../calificaciones/calificaciones.html"><span class="icon"> <img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></a></li>
+            <li><a href="../estadisticas/estadisticasdocente.html"><span class="icon"> <img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="content" id="content">
+    <button type="button" class="back-link" aria-label="Volver atrás">
+        <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /> </span>
+        <span class="text">Atrás</span>
+    </button>
+
+    <section class="editar-estudiante">
+  <h2>Editar Tutor</h2>
+
+  <div class="form-contenedor">
+    <div class="form-columna">
+      <div class="form-group">
+        <label>Nombre:</label>
+        <input type="text" id="tutorNombre" name="nombre" placeholder="Cargando...">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Paterno:</label>
+        <input type="text" id="tutorApeP" name="ape_p" placeholder="Cargando...">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Materno:</label>
+        <input type="text" id="tutorApeM" name="ape_m" placeholder="Cargando...">
+      </div>
+
+      <div class="form-group">
+        <label>Parentesco:</label>
+        <input type="text" id="tutorParentesco" name="parentesco" placeholder="Cargando...">
+      </div>
+    </div>
+
+    <div class="form-columna">
+      <div class="form-group">
+        <label for="tutorSexo">Sexo:</label>
+        <select id="tutorSexo" name="sexo">
+          <option value="">Seleccionar</option>
+          <option value="F">Femenino</option>
+          <option value="M">Masculino</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="tutorFechaNacimiento">Fecha de Nacimiento:</label>
+        <input type="date" id="tutorFechaNacimiento" name="fecha_nacimiento">
+      </div>
+
+      <div class="form-group">
+        <label for="tutorUsuario">Usuario:</label>
+        <input type="text" id="tutorUsuario" name="usuario" placeholder="Cargando...">
+      </div>
+
+      <div class="form-group" style="position: relative;">
+        <label for="tutorPassword">Contraseña:</label>
+        <input type="password" id="tutorPassword" name="password" placeholder="Cargando...">
+        <button type="button" id="togglePasswordBtn" style="position: absolute; right: 10px; top: 32px; background: none; border: none; cursor: pointer;">
+          <span class="iconpasswor"><img src="../../icons/visualizar password.svg" alt="Mostrar/Ocultar contraseña" /></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="boton-agregar">
+    <button type="button" onclick="showModal()">
+      <img src="../../icons/guardar.svg" class="btn-icon" alt="Guardar">
+      Guardar
+    </button>
+  </div>
+</section>
+
+<div id="modal-overlay" class="modal-overlay">
+    <div class="modal">
+        <img src="../../icons/info.svg" alt="info" class="modal-icon">
+        <h3>¿Desea Actualizarlo?</h3>
+        <p>Los datos actuales serán reemplazados por la nueva información</p>
+        <div class="modal-buttons">
+            <button class="confirm" onclick="confirmSave()">Guardar</button>
+            <button class="cancel" onclick="closeModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div id="success-modal-overlay" class="modal-overlay"> 
+    <div class="modal">
+        <img src="../../icons/success.svg" alt="success" class="modal-icon">
+        <h3>Actualizado Correctamente</h3>
+        <p>Se actualizó la información existente</p>
+        <div class="modal-buttons">
+            <button class="confirm" onclick="closeSuccessModal()">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<!-- 1. PRIMERO: Cargar dependencias -->
+<script src="../../scripts/loadDependencies.js"></script>
+
+<!-- 2. SCRIPT PRINCIPAL -->
+<script>
+(function() {
+    // Variables globales
+    let tutorId = null;
+    let originalData = null;
+    let dataLoaded = false;
+    let currentPassword = '';
+
+    // ==========================================
+    // CARGAR DATOS DEL TUTOR
+    // ==========================================
+    async function loadTutorData() {
+        if (dataLoaded) {
+            console.log('⚠️ loadTutorData ya fue ejecutada, abortando duplicado...');
+            return;
+        }
+        dataLoaded = true;
+
+        try {
+            console.log('🔍 Iniciando carga de datos del tutor...');
+            
+            // Verificar que las dependencias estén disponibles
+            if (typeof tutorService === 'undefined') {
+                throw new Error('tutorService no está disponible');
+            }
+            if (typeof httpClient === 'undefined') {
+                throw new Error('httpClient no está disponible');
+            }
+            if (typeof API_CONFIG === 'undefined') {
+                throw new Error('API_CONFIG no está disponible');
+            }
+
+            // Obtener el ID del tutor desde la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            tutorId = urlParams.get('id');
+
+            if (!tutorId) {
+                alert('No se proporcionó ID del tutor');
+                window.location.href = '../tutordocente/tutor.html';
+                return;
+            }
+
+            console.log('📌 ID del tutor:', tutorId);
+
+            // Cargar datos del tutor usando el servicio
+            const response = await tutorService.getById(tutorId);
+            console.log('📦 Respuesta completa del servidor:', response);
+
+            // Manejar diferentes formatos de respuesta
+            let tutor;
+            if (response && response.data) {
+                tutor = response.data;
+            } else if (response && typeof response === 'object') {
+                tutor = response;
+            } else {
+                throw new Error('Formato de respuesta inválido');
+            }
+
+            console.log('✅ Datos del tutor procesados:', tutor);
+
+            // Verificar que tengamos datos
+            if (!tutor || !tutor.id_usuario) {
+                throw new Error('No se encontraron datos del tutor');
+            }
+
+            // Guardar datos originales COMPLETOS
+            originalData = { ...tutor };
+            console.log('💾 Datos originales guardados:', originalData);
+
+            // Llenar los campos del formulario
+            document.getElementById('tutorNombre').value = tutor.nombre || '';
+            document.getElementById('tutorApeP').value = tutor.ape_p || '';
+            document.getElementById('tutorApeM').value = tutor.ape_m || '';
+            document.getElementById('tutorParentesco').value = tutor.parentesco || '';
+            document.getElementById('tutorSexo').value = tutor.sexo || '';
+            document.getElementById('tutorUsuario').value = tutor.usuario || '';
+            
+            // Manejo de fecha
+            if (tutor.fecha_nacimiento) {
+                let fechaFormateada = '';
+                
+                if (tutor.fecha_nacimiento.includes && tutor.fecha_nacimiento.includes('T')) {
+                    fechaFormateada = tutor.fecha_nacimiento.split('T')[0];
+                } else if (tutor.fecha_nacimiento.includes && tutor.fecha_nacimiento.includes('-')) {
+                    fechaFormateada = tutor.fecha_nacimiento.split(' ')[0];
+                } else {
+                    const fecha = new Date(tutor.fecha_nacimiento);
+                    fechaFormateada = fecha.toISOString().split('T')[0];
+                }
+                
+                document.getElementById('tutorFechaNacimiento').value = fechaFormateada;
+                console.log('📅 Fecha cargada:', fechaFormateada);
+            } else {
+                console.warn('⚠️ No hay fecha de nacimiento');
+            }
+            
+            // Cargar contraseña
+            const passwordInput = document.getElementById('tutorPassword');
+            if (tutor.password) {
+                currentPassword = tutor.password;
+                passwordInput.value = tutor.password;
+                console.log('🔑 Contraseña cargada correctamente');
+            } else {
+                console.warn('⚠️ El servidor NO devolvió la contraseña');
+                currentPassword = '';
+                passwordInput.value = '';
+            }
+
+            console.log('✅ Formulario cargado exitosamente');
+
+        } catch (error) {
+            console.error('❌ Error al cargar datos del tutor:', error);
+            console.error('Stack:', error.stack);
+            alert('Error al cargar los datos del tutor: ' + error.message);
+            dataLoaded = false;
+            
+            document.getElementById('tutorNombre').placeholder = 'Error al cargar';
+            document.getElementById('tutorApeP').placeholder = 'Error al cargar';
+            document.getElementById('tutorApeM').placeholder = 'Error al cargar';
+            document.getElementById('tutorParentesco').placeholder = 'Error al cargar';
+            document.getElementById('tutorUsuario').placeholder = 'Error al cargar';
+        }
+    }
+
+    // ==========================================
+    // GUARDAR CAMBIOS DEL TUTOR
+    // ==========================================
+    window.confirmSave = async function() {
+        closeModal();
+
+        if (!tutorId) {
+            alert('No se puede guardar: ID del tutor no disponible');
+            return;
+        }
+
+        // Obtener valores de los campos
+        const nombre = document.getElementById('tutorNombre').value.trim();
+        const ape_p = document.getElementById('tutorApeP').value.trim();
+        const ape_m = document.getElementById('tutorApeM').value.trim();
+        const parentesco = document.getElementById('tutorParentesco').value.trim();
+        const sexo = document.getElementById('tutorSexo').value;
+        const fecha_nacimiento = document.getElementById('tutorFechaNacimiento').value;
+        const usuario = document.getElementById('tutorUsuario').value.trim();
+        const password = document.getElementById('tutorPassword').value;
+
+        // Validación
+        if (!nombre || !ape_p) {
+            alert('Nombre y apellido paterno son obligatorios');
+            return;
+        }
+
+        console.log('💾 Preparando datos para guardar...');
+        console.log('📝 Valores del formulario:', {
+            nombre, ape_p, ape_m, parentesco, sexo, fecha_nacimiento, usuario
+        });
+        console.log('🔑 Password actual:', currentPassword);
+        console.log('🔑 Password del input:', password);
+
+        // ✅ CONSTRUIR PAYLOAD EXACTAMENTE COMO EL BACKEND LO ESPERA
+        const payload = {
+            id_usuario: parseInt(tutorId),  // ✅ Incluir ID
+            nombre: nombre,
+            ape_p: ape_p,
+            ape_m: ape_m || '',
+            curp: originalData.curp || '',
+            rfc: originalData.rfc || '',
+            sexo: sexo || '',
+            fecha_nacimiento: fecha_nacimiento || null,
+            usuario: usuario,
+            password: password || currentPassword,  // ✅ Siempre incluir password
+            rol: 'tutor',  // String, no objeto
+            estado: originalData.estado || 'Activo'  // String, no objeto
+        };
+
+        console.log('📦 Payload FINAL a enviar:', payload);
+        console.log('📦 Payload como JSON:', JSON.stringify(payload, null, 2));
+
+        try {
+            console.log('🚀 Enviando actualización al servidor...');
+            const response = await tutorService.update(tutorId, payload);
+            console.log('✅ Respuesta del servidor:', response);
+            console.log('✅ Tutor actualizado correctamente');
+            
+            document.getElementById('success-modal-overlay').style.display = 'flex';
+        } catch (error) {
+            console.error('❌ Error al actualizar tutor:', error);
+            console.error('❌ Detalles del error:', error.message);
+            console.error('❌ Stack:', error.stack);
+            
+            // Mostrar error más detallado
+            if (error.response) {
+                console.error('❌ Respuesta del servidor:', error.response);
+            }
+            
+            alert('Error al actualizar el tutor: ' + error.message);
+        }
+    };
+
+    // ==========================================
+    // FUNCIONES DE LOS MODALES
+    // ==========================================
+    window.showModal = function() {
+        const fecha = document.getElementById('tutorFechaNacimiento').value;
+        console.log('🔍 Verificando datos antes de guardar');
+        console.log('📅 Fecha:', fecha);
+        
+        document.getElementById('modal-overlay').style.display = 'flex';
+    };
+
+    window.closeModal = function() {
+        document.getElementById('modal-overlay').style.display = 'none';
+    };
+
+    window.closeSuccessModal = function() {
+        document.getElementById('success-modal-overlay').style.display = 'none';
+        window.location.href = '../tutordocente/tutor.html';
+    };
+
+    // ==========================================
+    // EVENT LISTENERS
+    // ==========================================
+    
+    const backLink = document.querySelector(".back-link");
+    if (backLink) {
+        backLink.addEventListener("click", function () {
+            window.history.back();
+        });
+    }
+
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const passwordInput = document.getElementById('tutorPassword');
+            if (passwordInput) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    console.log('👁️ Contraseña visible');
+                } else {
+                    passwordInput.type = 'password';
+                    console.log('🔒 Contraseña oculta');
+                }
+            }
+        });
+    }
+
+    // ==========================================
+    // INICIALIZACIÓN
+    // ==========================================
+    function tryLoad() {
+        if (dataLoaded) {
+            console.log('⚠️ tryLoad: datos ya cargados, evitando recarga');
+            return;
+        }
+        
+        if (typeof tutorService !== 'undefined' && 
+            typeof httpClient !== 'undefined' && 
+            typeof API_CONFIG !== 'undefined') {
+            console.log('✅ Dependencias detectadas, cargando datos del tutor...');
+            loadTutorData();
+        } else {
+            console.log('⏳ Esperando dependencias...');
+            setTimeout(tryLoad, 100);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryLoad);
+    } else {
+        tryLoad();
+    }
+
+    window.addEventListener('dependenciesLoaded', function() {
+        console.log('📡 Evento dependenciesLoaded recibido');
+        if (!dataLoaded) {
+            console.log('⏳ Cargando datos desde evento...');
+            loadTutorData();
+        } else {
+            console.log('⚠️ Datos ya cargados, ignorando evento');
+        }
+    });
+
+})();
+</script>
+
+<script src="../../scripts/utils/logoutModal.js"></script>
+</main>
+</body>
+</html>

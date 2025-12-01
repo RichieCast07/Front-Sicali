@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardar Tutor</title>
+    <link rel="stylesheet" href="../../css/Editar estudiante.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+    <link rel="stylesheet" href="../../css/modalactualizar.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role" id="userRole">Cargando...</div>
+                <div class="name" id="userName">Cargando...</div>
+            </div>
+            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+        </div>
+    </header>
+
+    <script>
+        // ==========================================
+        // CARGAR INFORMACIÓN DEL USUARIO DINÁMICAMENTE
+        // ==========================================
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                // Cargar nombre completo
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+
+                // Cargar rol dinámicamente
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                } else {
+                    userRole.textContent = 'Usuario';
+                }
+
+                console.log('✅ Usuario cargado:', {
+                    nombre: userName.textContent,
+                    rol: userRole.textContent,
+                    id: currentUser.id_usuario
+                });
+
+            } catch (error) {
+                console.error('❌ Error al cargar datos del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
+            }
+        })();
+    </script>
+    
+    <script>
+      (function() {
+        function waitForRouteGuard(roles) {
+          if (typeof RouteGuard !== 'undefined') {
+            RouteGuard.protect(roles);
+          } else {
+            setTimeout(function() { waitForRouteGuard(roles); }, 50);
+          }
+        }
+        waitForRouteGuard(['docente','admin']);
+      })();
+    </script>
+
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li><a href="../estudiantesdocente/estudiante.html"><span class="icon"> <img class="icon" src="../../icons/estudiante.svg" alt=""></span><span class="text">Estudiantes</span></a></li>
+            <li><a href="../tutordocente/tutor.html"><span class="icon"> <img class="icon" src="../../icons/tutor.svg" alt=""></span><span class="text">Tutor</span></a></li>
+            <li><a href="../asistencia/asistencia.html"><span class="icon"> <img class="icon" src="../../icons/asistencia.svg" alt=""></span><span class="text">Asistencias</span></a></li>
+            <li><a href="../calificaciones/calificaciones.html"><span class="icon"> <img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></a></li>
+            <li><a href="../estadisticas/estadisticasdocente.html"><span class="icon"> <img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="content" id="content">
+    <button type="button" class="back-link" aria-label="Volver atrás">
+        <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /> </span>
+        <span class="text">Atrás</span>
+    </button>
+
+    <section class="editar-estudiante">
+  <h2>Editar Tutor</h2>
+
+  <div class="form-contenedor">
+    <div class="form-columna">
+      <div class="form-group">
+        <label>Nombre:</label>
+        <input type="text" id="tutorNombre" name="nombre">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Paterno:</label>
+        <input type="text" id="tutorApeP" name="ape_p">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Materno:</label>
+        <input type="text" id="tutorApeM" name="ape_m">
+      </div>
+
+      <div class="form-group">
+        <label>Parentesco:</label>
+        <input type="text" id="tutorParentesco" name="parentesco">
+      </div>
+    </div>
+
+    <div class="form-columna">
+      <div class="form-group">
+        <label for="tutorSexo">Sexo:</label>
+        <select id="tutorSexo" name="sexo">
+          <option value="">Seleccionar</option>
+          <option value="F">Femenino</option>
+          <option value="M">Masculino</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="tutorFechaNacimiento">Fecha de Nacimiento:</label>
+        <input type="date" id="tutorFechaNacimiento" name="fecha_nacimiento">
+      </div>
+
+      <div class="form-group">
+        <label for="tutorUsuario">Usuario:</label>
+        <input type="text" id="tutorUsuario" name="usuario">
+      </div>
+
+      <div class="form-group" style="position: relative;">
+        <label for="tutorPassword">Contraseña:</label>
+        <input type="password" id="tutorPassword" name="password">
+        <button type="button" onclick="togglePassword()" style="position: absolute; right: 10px; top: 32px; background: none; border: none; cursor: pointer;">
+          <span class="iconpasswor"><img src="../../icons/visualizar password.svg" alt="Mostrar/Ocultar contraseña" /></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="boton-agregar">
+    <button type="button" onclick="showModal()">
+      <img src="../../icons/guardar.svg" class="btn-icon" alt="Guardar">
+      Guardar
+    </button>
+  </div>
+</section>
+
+<div id="modal-overlay" class="modal-overlay">
+    <div class="modal">
+        <img src="../../icons/info.svg" alt="info" class="modal-icon">
+        <h3>¿Desea Actualizarlo?</h3>
+        <p>Los datos actuales serán reemplazados por la nueva información</p>
+        <div class="modal-buttons">
+            <button class="confirm" onclick="confirmSave()">Guardar</button>
+            <button class="cancel" onclick="closeModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div id="success-modal-overlay" class="modal-overlay"> 
+    <div class="modal">
+        <img src="../../icons/success.svg" alt="success" class="modal-icon">
+        <h3>Actualizado Correctamente</h3>
+        <p>Se actualizó la información existente</p>
+        <div class="modal-buttons">
+            <button class="confirm" onclick="closeSuccessModal()">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<script src="../../scripts/loadDependencies.js"></script>
+<script src="../../scripts/services/tutorService.js"></script>
+<script>
+// Variable global para guardar el ID del tutor
+let tutorId = null;
+
+// ==========================================
+// CARGAR DATOS DEL TUTOR AL CARGAR LA PÁGINA
+// ==========================================
+document.addEventListener('DOMContentLoaded', async function() {
+    // Obtener el ID del tutor desde la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    tutorId = urlParams.get('id');
+
+    if (!tutorId) {
+        alert('No se proporcionó ID del tutor');
+        window.location.href = '../tutordocente/tutor.html';
+        return;
+    }
+
+    try {
+        // Cargar datos del tutor
+        const response = await tutorService.getById(tutorId);
+        const tutor = response.data || response;
+
+        // Llenar los campos del formulario
+        document.getElementById('tutorNombre').value = tutor.nombre || '';
+        document.getElementById('tutorApeP').value = tutor.ape_p || '';
+        document.getElementById('tutorApeM').value = tutor.ape_m || '';
+        document.getElementById('tutorParentesco').value = tutor.parentesco || '';
+        document.getElementById('tutorSexo').value = tutor.sexo || '';
+        document.getElementById('tutorFechaNacimiento').value = tutor.fecha_nacimiento || '';
+        document.getElementById('tutorUsuario').value = tutor.usuario || '';
+        document.getElementById('tutorPassword').value = '********'; // Por seguridad
+
+        console.log('✅ Datos del tutor cargados:', tutor);
+    } catch (error) {
+        console.error('❌ Error al cargar tutor:', error);
+        alert('Error al cargar los datos del tutor');
+    }
+});
+
+// ==========================================
+// FUNCIONES DE LOS MODALES
+// ==========================================
+function showModal() {
+    document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('modal-overlay').style.display = 'none';
+}
+
+function closeSuccessModal() {
+    document.getElementById('success-modal-overlay').style.display = 'none';
+    window.location.href = '../tutordocente/tutor.html';
+}
+
+// ==========================================
+// GUARDAR CAMBIOS DEL TUTOR
+// ==========================================
+async function confirmSave() {
+    closeModal();
+
+    // Obtener valores de los campos
+    const nombre = document.getElementById('tutorNombre').value.trim();
+    const ape_p = document.getElementById('tutorApeP').value.trim();
+    const ape_m = document.getElementById('tutorApeM').value.trim();
+    const parentesco = document.getElementById('tutorParentesco').value.trim();
+    const sexo = document.getElementById('tutorSexo').value;
+    const fecha_nacimiento = document.getElementById('tutorFechaNacimiento').value;
+    const usuario = document.getElementById('tutorUsuario').value.trim();
+    const password = document.getElementById('tutorPassword').value;
+
+    // Validación
+    if (!nombre || !ape_p) {
+        alert('Nombre y apellido paterno son obligatorios');
+        return;
+    }
+
+    // Preparar payload
+    const payload = {
+        nombre,
+        ape_p,
+        ape_m,
+        parentesco,
+        sexo,
+        fecha_nacimiento, // ✅ Incluye fecha_nacimiento
+        usuario,
+        rol: 'tutor'
+    };
+
+    // Solo incluir password si se modificó
+    if (password && password !== '********') {
+        payload.password = password;
+    }
+
+    try {
+        await tutorService.update(tutorId, payload);
+        console.log('✅ Tutor actualizado correctamente');
+        document.getElementById('success-modal-overlay').style.display = 'flex';
+    } catch (error) {
+        console.error('❌ Error al actualizar tutor:', error);
+        alert('Error al actualizar el tutor. Revisa la consola.');
+    }
+}
+
+// ==========================================
+// OTRAS FUNCIONES
+// ==========================================
+document.querySelector(".back-link").addEventListener("click", function () {
+    window.history.back();
+});
+
+function togglePassword() {
+    const passwordInput = document.getElementById('tutorPassword');
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+    } else {
+        passwordInput.type = 'password';
+    }
+}
+</script>
+</main>
+</body>
+</html>

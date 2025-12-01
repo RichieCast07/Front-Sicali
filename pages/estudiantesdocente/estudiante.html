@@ -16,36 +16,104 @@
         </div>
         <div class="user-info">
             <div class="text-info">
-                <div class="role">Docente</div>
+                <div class="role" id="userRole">Cargando...</div>
                 <div class="name" id="userName">Cargando...</div>
             </div>
-            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+            <div class="avatar" id="userAvatar">
+                <img src="../../img/nino.png" alt="">
+            </div>
         </div>
     </header>
+
+    <script>
+        // ==========================================
+        // CARGAR INFORMACIÓN DEL USUARIO DINÁMICAMENTE
+        // ==========================================
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                // Cargar nombre completo
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+
+                // Cargar rol dinámicamente
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                } else {
+                    userRole.textContent = 'Usuario';
+                }
+
+                console.log('✅ Usuario cargado:', {
+                    nombre: userName.textContent,
+                    rol: userRole.textContent,
+                    id: currentUser.id_usuario
+                });
+
+            } catch (error) {
+                console.error('❌ Error al cargar datos del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
+            }
+        })();
+    </script>
     
     <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
-            <li><span class="icon"> <img class="icon" src="../../icons/estudiante.svg" alt=""></span><span class="text">Estudiantes</span></li>
-            <li><a href="../asistencia/asistencia.html"><span class="icon"> <img class="icon" src="../../icons/asistencia.svg" alt=""></span><span class="text">Asistencias</span></a></li>
-            <li><a href="../calificaciones/calificaciones.html"><span class="icon"> <img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></a></li>
-            <li><a href="../estadisticas/estadisticasdocente.html"><span class="icon"> <img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></a></li>
+            <li class="active">
+                <a href="../estudiantesdocente/estudiante.html">
+                    <span class="icon"><img class="icon" src="../../icons/estudiante.svg" alt=""></span>
+                    <span class="text">Estudiantes</span>
+                </a>
+            </li>
+            <li>
+                <a href="../tutordocente/tutor.html">
+                    <span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span>
+                    <span class="text">Tutor</span>
+                </a>
+            </li>
+            <li>
+                <a href="../asistencia/asistencia.html">
+                    <span class="icon"><img class="icon" src="../../icons/asistencia.svg" alt=""></span>
+                    <span class="text">Asistencias</span>
+                </a>
+            </li>
+            <li>
+                <a href="../calificaciones/calificaciones.html">
+                    <span class="icon"><img class="icon" src="../../icons/calificaciones.svg" alt=""></span>
+                    <span class="text">Calificaciones</span>
+                </a>
+            </li>
+            <li>
+                <a href="../estadisticas/estadisticasdocente.html">
+                    <span class="icon"><img class="icon" src="../../icons/estadisticas.svg" alt=""></span>
+                    <span class="text">Estadísticas</span>
+                </a>
+            </li>
         </ul>
     </nav>
 
     <main class="content" id="content">
-            <section class="docentes-section">
+        <section class="docentes-section">
             <h1 class="titulo">Estudiantes</h1>
 
             <div class="acciones-superiores">
                 <div class="buscador-con-icono">
                     <img src="../../icons/buscador.svg" alt="Icono de buscador" class="icono-input" />
-                    <input type="text" placeholder="Buscar" id="buscarDocente" />
+                    <input type="text" placeholder="Buscar" id="buscarEstudiante" />
                 </div>
 
                 <div class="agregar">
                     <label for="">Estudiante</label>
                     <button class="btn-agregar" onclick="window.location.href='agregarestudiante.html'">
-                      <img src="../../icons/agregar.svg" alt="Icono agregar" class="icono-agregar"/>
+                        <img src="../../icons/agregar.svg" alt="Icono agregar" class="icono-agregar"/>
                         Agregar
                     </button>
                 </div>
@@ -72,268 +140,288 @@
             </table>
         </section>
 
-
-<div id="delete-modal-overlay" class="modal-overlay">
-    <div class="modal">
-        <img src="../../icons/inforojo.svg" alt="eliminar" class="modal-icon">
-        <h3>¿Desea eliminarlo?</h3>
-        <p>Estas acción es permanente y no podrá deshacerse</p>
-        <div class="modal-buttons">
-            <button class="eliminar" onclick="confirmDelete()">Eliminar</button>
-            <button class="cancel" onclick="closeDeleteModal()">Cancelar</button>
+        <!-- Modal Eliminar -->
+        <div id="delete-modal-overlay" class="modal-overlay">
+            <div class="modal">
+                <img src="../../icons/inforojo.svg" alt="eliminar" class="modal-icon">
+                <h3>¿Desea eliminarlo?</h3>
+                <p>Esta acción es permanente y no podrá deshacerse</p>
+                <div class="modal-buttons">
+                    <button class="eliminar" onclick="window.confirmDelete()">Eliminar</button>
+                    <button class="cancel" onclick="closeDeleteModal()">Cancelar</button>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
-<div id="delete-success-modal-overlay" class="modal-overlay">
-    <div class="modal">
-        <img src="../../icons/successrojo.svg" alt="success" class="modal-icon">
-        <h3>Eliminado correctamente</h3>
-        <p>El registro que seleccionaste se elimino del sistema</p>
-        <div class="modal-buttons">
-            <button class="eliminar" onclick="closeDeleteSuccessModal()">Aceptar</button>
+        <!-- Modal Éxito -->
+        <div id="delete-success-modal-overlay" class="modal-overlay">
+            <div class="modal">
+                <img src="../../icons/successrojo.svg" alt="success" class="modal-icon">
+                <h3>Eliminado correctamente</h3>
+                <p>El registro que seleccionaste se eliminó del sistema</p>
+                <div class="modal-buttons">
+                    <button class="eliminar" onclick="closeDeleteSuccessModal()">Aceptar</button>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-
-<script>
-// Proteger esta página para docentes y admins
-(function() {
-    function waitForRouteGuard(roles) {
-        if (typeof RouteGuard !== 'undefined') {
-            RouteGuard.protect(roles);
-        } else {
-            setTimeout(function() { waitForRouteGuard(roles); }, 50);
-        }
-    }
-    waitForRouteGuard(['docente', 'admin']);
-})();
-
-(function(){
-    // Cargar información del docente logueado
-    (function() {
-        try {
-            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            const userName = document.getElementById('userName');
-            
-            if (currentUser.nombre && currentUser.ape_p) {
-                const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
-                userName.textContent = fullName;
-            } else {
-                userName.textContent = 'Usuario';
-            }
-        } catch (error) {
-            console.error('Error al cargar datos del usuario:', error);
-            document.getElementById('userName').textContent = 'Usuario';
-        }
-    })();
-    
-    function isReady(name){ try{ return typeof eval(name) !== 'undefined'; }catch(e){ return false; } }
-    function waitFor(names, timeout=5000){ return new Promise((resolve,reject)=>{ const start=Date.now(); (function poll(){ if(names.every(isReady)) return resolve(); if(Date.now()-start>timeout) return reject(new Error('Servicios no disponibles')); setTimeout(poll,50); })(); }); }
-    function escapeHtml(str){ if(!str) return ''; const div = document.createElement('div'); div.textContent = String(str); return div.innerHTML; }
-    
-    let idToDelete = null;
-    
-    window.showDeleteModal = function(){ document.getElementById('delete-modal-overlay').style.display = 'flex'; };
-    window.closeDeleteModal = function(){ document.getElementById('delete-modal-overlay').style.display = 'none'; };
-    window.closeDeleteSuccessModal = function(){ document.getElementById('delete-success-modal-overlay').style.display = 'none'; };
-    
-    async function loadAndRender(){
-        try{
-            console.log('👥 Cargando estudiantes del docente...');
-            
-            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            
-            if (!currentUser.id_usuario) {
-                console.error('❌ No se encontró información del docente');
-                return;
-            }
-            
-            console.log('👤 Docente ID:', currentUser.id_usuario);
-            
-            // Obtener grupos del docente
-            const todosGrupos = await gruposService.getAll();
-            const gruposDocente = todosGrupos.filter(g => {
-                const docenteId = g.idDocente?.id_usuario || g.idDocente;
-                return Number(docenteId) === Number(currentUser.id_usuario);
-            });
-            
-            console.log('📚 Grupos del docente:', gruposDocente.length);
-            
-            if (gruposDocente.length === 0) {
-                const tbody = document.querySelector('.tabla-docentes tbody');
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:#666">No tienes grupos asignados. Contacta al director.</td></tr>`;
-                return;
-            }
-            
-            // Obtener IDs de los grupos del docente
-            const gruposDocenteIds = gruposDocente.map(g => Number(g.idGrupo));
-            console.log('📋 IDs de grupos:', gruposDocenteIds);
-            
-            // Obtener todas las inscripciones
-            const allEstudianteGrupo = await estudianteGrupoService.getAll();
-            console.log('✅ Total inscripciones:', allEstudianteGrupo.length);
-            
-            // Filtrar solo inscripciones de los grupos del docente
-            const inscripcionesDocente = allEstudianteGrupo.filter(insc => {
-                const grupoId = insc.idGrupo || insc.grupo?.idGrupo;
-                return gruposDocenteIds.includes(Number(grupoId));
-            });
-            
-            console.log('✅ Inscripciones en grupos del docente:', inscripcionesDocente.length);
-            
-            // Obtener IDs únicos de estudiantes
-            const estudiantesIds = [...new Set(inscripcionesDocente.map(insc => {
-                return insc.idEstudiante || insc.estudiante?.id_usuario;
-            }))];
-            
-            console.log('👨‍🎓 Total estudiantes únicos:', estudiantesIds.length);
-            
-            // Obtener todos los estudiantes
-            const todosEstudiantes = await usuariosService.getByRol('estudiante');
-            
-            // Filtrar solo los estudiantes del docente
-            const students = todosEstudiantes.filter(s => 
-                estudiantesIds.includes(s.id_usuario)
-            );
-            
-            console.log('✅ Estudiantes filtrados:', students.length);
-            
-            let gruposMap = new Map();
-            let tutoresMap = new Map();
-            
-            try {
-                // Cargar tutores
-                const allTutores = await usuariosService.getByRol('tutor');
-                const tutoresArray = Array.isArray(allTutores) ? allTutores : (allTutores ? [allTutores] : []);
-                tutoresArray.forEach(t => tutoresMap.set(t.id_usuario, t));
-                
-                // Mapear grupos por estudiante
-                inscripcionesDocente.forEach(eg => {
-                    const idEst = eg.idEstudiante || eg.estudiante?.id_usuario;
-                    if (idEst) {
-                        if (!gruposMap.has(idEst)) {
-                            gruposMap.set(idEst, []);
-                        }
-                        gruposMap.get(idEst).push(eg);
-                    }
-                });
-            } catch (loadError) {
-                console.error('Error cargando datos adicionales:', loadError);
-            }
-            
-            const tbody = document.querySelector('.tabla-docentes tbody');
-            const newTbody = tbody.cloneNode(false);
-
-            if(!students.length){
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td colspan="8" style="text-align:center;padding:40px;color:#666">No hay estudiantes en tus grupos</td>`;
-                newTbody.appendChild(tr);
-                tbody.parentNode.replaceChild(newTbody, tbody);
-                return;
-            }
-
-            students.forEach((s, idx) => {
-                const tr = document.createElement('tr');
-                tr.setAttribute('data-id', s.id || s.id_usuario || '');
-                
-                const estudianteGrupos = gruposMap.get(s.id_usuario) || [];
-                const grupoNames = estudianteGrupos.map(eg => {
-                    if (eg.grupo && eg.grupo.nombre) {
-                        return `${eg.grupo.nombre} (Grado ${eg.grupo.grado || ''})`;
-                    }
-                    return eg.idGrupo ? `Grupo ${eg.idGrupo}` : '';
-                }).filter(g => g).join(', ') || '-';
-                
-                // Obtener tutor del estudiante desde LocalStorage (temporal hasta que backend implemente)
-                const estudianteTutorKey = `estudiante_tutor_${s.id_usuario}`;
-                const idTutorGuardado = localStorage.getItem(estudianteTutorKey);
-                const tutor = idTutorGuardado ? tutoresMap.get(Number(idTutorGuardado)) : null;
-                const tutorName = tutor ? `${tutor.nombre} ${tutor.ape_p}`.trim() : '-';
-                
-                tr.innerHTML = `
-                    <td>${idx+1}</td>
-                    <td>${escapeHtml(s.nombre)}</td>
-                    <td>${escapeHtml(s.ape_p)}</td>
-                    <td>${escapeHtml(s.ape_m)}</td>
-                    <td>${escapeHtml(s.curp||'')}</td>
-                    <td>${escapeHtml(grupoNames)}</td>
-                    <td>${escapeHtml(tutorName)}</td>
-                    <td>
-                        <button class="btn-editar"><img src="../../icons/visualizar.svg" alt="visualizar"/></button>
-                        <button class="btn-eliminar"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button>
-                    </td>`;
-                newTbody.appendChild(tr);
-
-                const editBtn = tr.querySelector('.btn-editar');
-                editBtn.addEventListener('click', () => { window.location.href = 'editarestudiante.html?id=' + encodeURIComponent(s.id || s.id_usuario); });
-
-                const delBtn = tr.querySelector('.btn-eliminar');
-                delBtn.addEventListener('click', (e) => { e.preventDefault(); idToDelete = s.id || s.id_usuario; showDeleteModal(); });
-            });
-
-            tbody.parentNode.replaceChild(newTbody, tbody);
-            setupSearch();
-        }catch(err){ console.error('Error cargando estudiantes:', err); }
-    }
-
-    function setupSearch(){
-        const searchInput = document.getElementById('buscarDocente');
-        if(!searchInput) return;
-        
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase().trim();
-            const rows = document.querySelectorAll('.tabla-docentes tbody tr');
-            
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                if(cells.length === 0) return;
-                
-                const nombre = cells[1]?.textContent.toLowerCase() || '';
-                const apeP = cells[2]?.textContent.toLowerCase() || '';
-                const apeM = cells[3]?.textContent.toLowerCase() || '';
-                const curp = cells[4]?.textContent.toLowerCase() || '';
-                const grupo = cells[5]?.textContent.toLowerCase() || '';
-                const tutor = cells[6]?.textContent.toLowerCase() || '';
-                
-                const matches = nombre.includes(searchTerm) || 
-                              apeP.includes(searchTerm) || 
-                              apeM.includes(searchTerm) || 
-                              curp.includes(searchTerm) || 
-                              grupo.includes(searchTerm) ||
-                              tutor.includes(searchTerm);
-                
-                row.style.display = matches ? '' : 'none';
-            });
-        });
-    }
-
-    window.confirmDelete = async function(){
-        try{
-            closeDeleteModal();
-            if(!idToDelete) return;
-            await usuariosService.delete(Number(idToDelete));
-            idToDelete = null;
-            await loadAndRender();
-            document.getElementById('delete-success-modal-overlay').style.display = 'flex';
-        }catch(err){ console.error('Error eliminando estudiante:', err); alert('Error eliminando: '+(err.message||err)); }
-    };
-
-    waitFor(['usuariosService', 'estudianteGrupoService', 'gruposService']).then(loadAndRender).catch(err => console.warn('No se cargaron los servicios:', err.message));
-})();
-</script>
     </main>
-        <script src="../../scripts/loadDependencies.js"></script>
-    </body>
-    </html>
 
+    <script src="../../scripts/loadDependencies.js"></script>
+    <script>
+        // ==========================================
+        // PROTECCIÓN DE RUTAS
+        // ==========================================
+        (function() {
+            function waitForRouteGuard(roles) {
+                if (typeof RouteGuard !== 'undefined') {
+                    RouteGuard.protect(roles);
+                } else {
+                    setTimeout(() => waitForRouteGuard(roles), 50);
+                }
+            }
+            waitForRouteGuard(['docente', 'admin']);
+        })();
 
+        // ==========================================
+        // FUNCIONES GLOBALES
+        // ==========================================
+        (function() {
+            // Utilidades
+            function isReady(name) { 
+                try { 
+                    return typeof eval(name) !== 'undefined'; 
+                } catch(e) { 
+                    return false; 
+                } 
+            }
+            
+            function waitFor(names, timeout = 5000) { 
+                return new Promise((resolve, reject) => { 
+                    const start = Date.now(); 
+                    (function poll() { 
+                        if (names.every(isReady)) return resolve(); 
+                        if (Date.now() - start > timeout) return reject(new Error('Servicios no disponibles')); 
+                        setTimeout(poll, 50); 
+                    })(); 
+                }); 
+            }
+            
+            function escapeHtml(str) { 
+                if (!str) return ''; 
+                const div = document.createElement('div'); 
+                div.textContent = String(str); 
+                return div.innerHTML; 
+            }
+            
+            let idToDelete = null;
+            
+            // Funciones de modales
+            window.showDeleteModal = function() { 
+                document.getElementById('delete-modal-overlay').style.display = 'flex'; 
+            };
+            
+            window.closeDeleteModal = function() { 
+                document.getElementById('delete-modal-overlay').style.display = 'none'; 
+            };
+            
+            window.closeDeleteSuccessModal = function() { 
+                document.getElementById('delete-success-modal-overlay').style.display = 'none'; 
+            };
+            
+            // ==========================================
+            // CARGAR Y RENDERIZAR TODOS LOS ESTUDIANTES
+            // ==========================================
+            async function loadAndRender() {
+                try {
+                    console.log('👥 Cargando TODOS los estudiantes...');
+                    
+                    // ⭐ CAMBIO PRINCIPAL: Obtener TODOS los estudiantes sin filtrar
+                    const todosEstudiantes = await usuariosService.getByRol('estudiante');
+                    const students = Array.isArray(todosEstudiantes) ? todosEstudiantes : (todosEstudiantes ? [todosEstudiantes] : []);
+                    
+                    console.log('✅ Total estudiantes en el sistema:', students.length);
+                    
+                    // Cargar datos adicionales para mostrar grupos y tutores
+                    let gruposMap = new Map();
+                    let tutoresMap = new Map();
+                    
+                    try {
+                        // Cargar todos los grupos
+                        const todosGrupos = await gruposService.getAll();
+                        
+                        // Cargar todas las inscripciones
+                        const allEstudianteGrupo = await estudianteGrupoService.getAll();
+                        console.log('✅ Total inscripciones:', allEstudianteGrupo.length);
+                        
+                        // Cargar todos los tutores
+                        const allTutores = await usuariosService.getByRol('tutor');
+                        const tutoresArray = Array.isArray(allTutores) ? allTutores : (allTutores ? [allTutores] : []);
+                        tutoresArray.forEach(t => tutoresMap.set(t.id_usuario, t));
+                        console.log('✅ Total tutores:', tutoresMap.size);
+                        
+                        // Mapear grupos por estudiante
+                        allEstudianteGrupo.forEach(eg => {
+                            const idEst = eg.idEstudiante || eg.estudiante?.id_usuario;
+                            if (idEst) {
+                                if (!gruposMap.has(idEst)) {
+                                    gruposMap.set(idEst, []);
+                                }
+                                
+                                // Agregar información del grupo
+                                const grupoId = eg.idGrupo || eg.grupo?.idGrupo;
+                                const grupoInfo = todosGrupos.find(g => Number(g.idGrupo) === Number(grupoId));
+                                
+                                gruposMap.get(idEst).push({
+                                    ...eg,
+                                    grupoInfo: grupoInfo
+                                });
+                            }
+                        });
+                        
+                        console.log('✅ Estudiantes con grupos:', gruposMap.size);
+                    } catch (loadError) {
+                        console.error('⚠️ Error cargando datos adicionales:', loadError);
+                    }
+                    
+                    const tbody = document.querySelector('.tabla-docentes tbody');
+                    const newTbody = tbody.cloneNode(false);
 
+                    if (!students.length) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td colspan="8" style="text-align:center;padding:40px;color:#666">No hay estudiantes registrados en el sistema</td>`;
+                        newTbody.appendChild(tr);
+                        tbody.parentNode.replaceChild(newTbody, tbody);
+                        return;
+                    }
 
+                    students.forEach((s, idx) => {
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-id', s.id || s.id_usuario || '');
+                        
+                        // Obtener grupos del estudiante
+                        const estudianteGrupos = gruposMap.get(s.id_usuario) || [];
+                        const grupoNames = estudianteGrupos.map(eg => {
+                            if (eg.grupoInfo) {
+                                return `${eg.grupoInfo.nombre} (Grado ${eg.grupoInfo.grado || ''})`;
+                            }
+                            return eg.idGrupo ? `Grupo ${eg.idGrupo}` : '';
+                        }).filter(g => g).join(', ') || 'Sin grupo';
+                        
+                        // Obtener tutor del estudiante desde LocalStorage
+                        const estudianteTutorKey = `estudiante_tutor_${s.id_usuario}`;
+                        const idTutorGuardado = localStorage.getItem(estudianteTutorKey);
+                        const tutor = idTutorGuardado ? tutoresMap.get(Number(idTutorGuardado)) : null;
+                        const tutorName = tutor ? `${tutor.nombre} ${tutor.ape_p}`.trim() : 'Sin tutor';
+                        
+                        tr.innerHTML = `
+                            <td>${idx + 1}</td>
+                            <td>${escapeHtml(s.nombre)}</td>
+                            <td>${escapeHtml(s.ape_p)}</td>
+                            <td>${escapeHtml(s.ape_m)}</td>
+                            <td>${escapeHtml(s.curp || '')}</td>
+                            <td>${escapeHtml(grupoNames)}</td>
+                            <td>${escapeHtml(tutorName)}</td>
+                            <td>
+                                <button class="btn-editar"><img src="../../icons/visualizar.svg" alt="visualizar"/></button>
+                                <button class="btn-eliminar"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button>
+                            </td>`;
+                        newTbody.appendChild(tr);
 
+                        const editBtn = tr.querySelector('.btn-editar');
+                        editBtn.addEventListener('click', () => { 
+                            window.location.href = 'editarestudiante.html?id=' + encodeURIComponent(s.id || s.id_usuario); 
+                        });
 
+                        const delBtn = tr.querySelector('.btn-eliminar');
+                        delBtn.addEventListener('click', (e) => { 
+                            e.preventDefault(); 
+                            idToDelete = s.id || s.id_usuario; 
+                            showDeleteModal(); 
+                        });
+                    });
 
+                    tbody.parentNode.replaceChild(newTbody, tbody);
+                    setupSearch();
+                    
+                    console.log('✅ Tabla renderizada con', students.length, 'estudiantes');
+                } catch (err) { 
+                    console.error('❌ Error cargando estudiantes:', err); 
+                    const tbody = document.querySelector('.tabla-docentes tbody');
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:#f44">Error al cargar estudiantes</td></tr>`;
+                }
+            }
 
+            // ==========================================
+            // BÚSQUEDA
+            // ==========================================
+            function setupSearch() {
+                const searchInput = document.getElementById('buscarEstudiante');
+                if (!searchInput) return;
+                
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase().trim();
+                    const rows = document.querySelectorAll('.tabla-docentes tbody tr');
+                    
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length === 0) return;
+                        
+                        const nombre = cells[1]?.textContent.toLowerCase() || '';
+                        const apeP = cells[2]?.textContent.toLowerCase() || '';
+                        const apeM = cells[3]?.textContent.toLowerCase() || '';
+                        const curp = cells[4]?.textContent.toLowerCase() || '';
+                        const grupo = cells[5]?.textContent.toLowerCase() || '';
+                        const tutor = cells[6]?.textContent.toLowerCase() || '';
+                        
+                        const matches = nombre.includes(searchTerm) || 
+                                      apeP.includes(searchTerm) || 
+                                      apeM.includes(searchTerm) || 
+                                      curp.includes(searchTerm) || 
+                                      grupo.includes(searchTerm) ||
+                                      tutor.includes(searchTerm);
+                        
+                        row.style.display = matches ? '' : 'none';
+                    });
+                });
+            }
 
+            // ==========================================
+            // ELIMINAR
+            // ==========================================
+            window.confirmDelete = async function() {
+                try {
+                    closeDeleteModal();
+                    if (!idToDelete) return;
+                    
+                    console.log('🗑️ Eliminando estudiante:', idToDelete);
+                    await usuariosService.delete(Number(idToDelete));
+                    
+                    idToDelete = null;
+                    await loadAndRender();
+                    
+                    document.getElementById('delete-success-modal-overlay').style.display = 'flex';
+                    console.log('✅ Estudiante eliminado correctamente');
+                } catch (err) { 
+                    console.error('❌ Error eliminando estudiante:', err); 
+                    alert('Error eliminando: ' + (err.message || err)); 
+                }
+            };
 
-
+            // ==========================================
+            // INICIALIZACIÓN
+            // ==========================================
+            waitFor(['usuariosService', 'estudianteGrupoService', 'gruposService'])
+                .then(() => {
+                    console.log('✅ Servicios cargados correctamente');
+                    loadAndRender();
+                })
+                .catch(err => {
+                    console.error('❌ Error cargando servicios:', err.message);
+                    const tbody = document.querySelector('.tabla-docentes tbody');
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:#f44">Error al cargar servicios necesarios</td></tr>`;
+                });
+        })();
+    </script>
+    <script src="../../scripts/utils/logoutModal.js"></script>
+</body>
+</html>

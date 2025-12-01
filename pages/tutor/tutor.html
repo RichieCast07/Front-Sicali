@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor</title>
+    <link rel="stylesheet" href="../../css/estudiantes.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+    <link rel="stylesheet" href="../../css/modalactualizar.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role" id="userRole">Cargando...</div>
+                <div class="name" id="userName">Cargando...</div>
+            </div>
+            <div class="avatar" id="userAvatar">
+                <img src="../../img/nino.png" alt="">
+            </div>
+        </div>
+    </header>
+
+    <script>
+        // ==========================================
+        // CARGAR INFORMACIÓN DEL USUARIO DINÁMICAMENTE
+        // ==========================================
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                // Cargar nombre completo
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+
+                // Cargar rol dinámicamente
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                } else {
+                    userRole.textContent = 'Usuario';
+                }
+
+                console.log('✅ Usuario cargado:', {
+                    nombre: userName.textContent,
+                    rol: userRole.textContent,
+                    id: currentUser.id_usuario
+                });
+
+            } catch (error) {
+                console.error('❌ Error al cargar datos del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
+            }
+        })();
+    </script>
+
+    <script>
+        // Proteger esta página para docentes y admins
+        (function() {
+            function waitForRouteGuard(roles) {
+                if (typeof RouteGuard !== 'undefined') {
+                    RouteGuard.protect(roles);
+                } else {
+                    setTimeout(function() { waitForRouteGuard(roles); }, 50);
+                }
+            }
+            waitForRouteGuard(['docente', 'admin']);
+        })();
+    </script>
+
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li>
+                <a href="../docentes/docente.html">
+                    <img class="icon" src="../../icons/docente.svg" alt="">
+                    <span class="text">Docentes</span>
+                </a>
+            </li>
+            <li class="active">
+                <a href="../tutordocente/tutor.html">
+                    <span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span>
+                    <span class="text">Tutor</span>
+                </a>
+            </li>
+            <li>
+                <a href="../estudiantes/estudiante.html">
+                    <img class="icon" src="../../icons/estudiante.svg" alt="">
+                    <span class="text">Estudiantes</span>
+                </a>
+            </li>
+            <li>
+                <a href="../grupos/grupos.html">
+                    <img class="icon" src="../../icons/grupos.svg" alt="">
+                    <span class="text">Grupos</span>
+                </a>
+            </li>
+            <li>
+                <a href="../asignaturas/asignatura.html">
+                    <img class="icon" src="../../icons/asignatura.svg" alt="">
+                    <span class="text">Asignaturas</span>
+                </a>
+            </li>
+            <li>
+                <a href="../estadisticas/Estadisticadirector.html">
+                    <img class="icon" src="../../icons/estadisticas.svg" alt="">
+                    <span class="text">Estadísticas</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="content" id="content">
+        <section class="docentes-section">
+            <h1 class="titulo">Tutor</h1>
+
+            <div class="acciones-superiores">
+                <div class="buscador-con-icono">
+                    <img src="../../icons/buscador.svg" alt="Icono de buscador" class="icono-input" />
+                    <input type="text" placeholder="Buscar" id="buscarTutor" />
+                </div>
+
+                <div class="agregar">
+                    <label for="">Tutor</label>
+                    <button class="btn-agregar" id="btnAdd" onclick="window.location.href='agregartutor.html'">
+                        <img src="../../icons/agregar.svg" alt="Icono agregar" class="icono-agregar"/>
+                        Agregar
+                    </button>
+                </div>
+            </div>
+
+            <table class="tabla-docentes">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Apellido Paterno</th>
+                        <th>Apellido Materno</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align:center;padding:40px;color:#666">
+                            Cargando tutores...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <div id="delete-modal-overlay" class="modal-overlay">
+            <div class="modal">
+                <img src="../../icons/inforojo.svg" alt="eliminar" class="modal-icon">
+                <h3>¿Desea eliminarlo?</h3>
+                <p>Esta acción es permanente y no podrá deshacerse</p>
+                <div class="modal-buttons">
+                    <button class="eliminar" onclick="window.confirmDelete()">Eliminar</button>
+                    <button class="cancel" onclick="closeDeleteModal()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="delete-success-modal-overlay" class="modal-overlay">
+            <div class="modal">
+                <img src="../../icons/successrojo.svg" alt="success" class="modal-icon">
+                <h3>Eliminado correctamente</h3>
+                <p>El registro que seleccionaste se eliminó del sistema</p>
+                <div class="modal-buttons">
+                    <button class="eliminar" onclick="closeDeleteSuccessModal()">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../scripts/loadDependencies.js"></script>
+
+    <script>
+        // ==========================================
+        // ENHANCER: CARGAR Y RENDERIZAR TUTORES
+        // ==========================================
+        (function(){
+            let idToDelete = null;
+
+            function waitFor(names, timeout = 5000) {
+                return new Promise((resolve, reject) => {
+                    const start = Date.now();
+                    (function poll() {
+                        try {
+                            const ok = names.every(n => { 
+                                try { 
+                                    return typeof eval(n) !== 'undefined'; 
+                                } catch(e) { 
+                                    return false; 
+                                } 
+                            });
+                            if (ok) return resolve();
+                        } catch (e) {}
+                        if (Date.now() - start > timeout) {
+                            return reject(new Error('Servicios no disponibles: ' + names.join(',')));
+                        }
+                        setTimeout(poll, 50);
+                    })();
+                });
+            }
+
+            function escapeHtml(s) { 
+                return String(s || '').replace(/[&<>"']/g, c => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[c])); 
+            }
+
+            async function loadAndRender(){
+                try {
+                    console.log('👤 Iniciando carga de tutores...');
+                    const raw = await usuariosService.getByRol('tutor');
+                    console.log('✅ Respuesta API:', raw);
+                    
+                    const tutores = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+                    console.log('📊 Total tutores:', tutores.length);
+                    
+                    const tbody = document.querySelector('.tabla-docentes tbody');
+                    const newTbody = tbody.cloneNode(false);
+
+                    if (!tutores.length) {
+                        console.log('⚠️ No hay tutores registrados');
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td colspan="5" style="text-align:center;padding:40px;color:#666">No hay tutores registrados</td>`;
+                        newTbody.appendChild(tr);
+                        tbody.parentNode.replaceChild(newTbody, tbody);
+                        return;
+                    }
+
+                    tutores.forEach((t, idx) => {
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-id', t.id || t.id_usuario || '');
+                        tr.innerHTML = `
+                            <td>${idx + 1}</td>
+                            <td>${escapeHtml(t.nombre)}</td>
+                            <td>${escapeHtml(t.ape_p)}</td>
+                            <td>${escapeHtml(t.ape_m)}</td>
+                            <td>
+                                <button class="btn-editar"><img src="../../icons/visualizar.svg" alt="visualizar"/></button>
+                                <button class="btn-eliminar"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button>
+                            </td>
+                        `;
+                        
+                        const editBtn = tr.querySelector('.btn-editar');
+                        editBtn.addEventListener('click', () => { 
+                            window.location.href = 'editartutor.html?id=' + encodeURIComponent(t.id || t.id_usuario); 
+                        });
+
+                        const delBtn = tr.querySelector('.btn-eliminar');
+                        delBtn.addEventListener('click', (e) => { 
+                            e.preventDefault(); 
+                            idToDelete = t.id || t.id_usuario; 
+                            showDeleteModal(); 
+                        });
+                        
+                        newTbody.appendChild(tr);
+                    });
+
+                    tbody.parentNode.replaceChild(newTbody, tbody);
+                    console.log('✅ Tabla renderizada exitosamente');
+                    setupSearch();
+                } catch(err) { 
+                    console.error('❌ Error cargando tutores:', err); 
+                    const tbody = document.querySelector('.tabla-docentes tbody');
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:#f44">Error al cargar tutores</td></tr>`;
+                }
+            }
+
+            // Setup search functionality
+            function setupSearch() {
+                const searchInput = document.getElementById('buscarTutor');
+                if (!searchInput) return;
+                
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase().trim();
+                    const rows = document.querySelectorAll('.tabla-docentes tbody tr');
+                    
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length === 0) return;
+                        
+                        const nombre = cells[1]?.textContent.toLowerCase() || '';
+                        const apeP = cells[2]?.textContent.toLowerCase() || '';
+                        const apeM = cells[3]?.textContent.toLowerCase() || '';
+                        
+                        const matches = nombre.includes(searchTerm) || 
+                                      apeP.includes(searchTerm) || 
+                                      apeM.includes(searchTerm);
+                        
+                        row.style.display = matches ? '' : 'none';
+                    });
+                });
+            }
+
+            // Implement confirmDelete to call API and refresh
+            window.confirmDelete = async function() {
+                try {
+                    closeDeleteModal();
+                    if (!idToDelete) return;
+
+                    console.log('🗑️ Eliminando tutor:', idToDelete);
+                    await usuariosService.delete(Number(idToDelete));
+                    
+                    idToDelete = null;
+                    await loadAndRender();
+                    
+                    document.getElementById('delete-success-modal-overlay').style.display = 'flex';
+                    console.log('✅ Tutor eliminado correctamente');
+                } catch(err) { 
+                    console.error('❌ Error eliminando tutor:', err); 
+                    alert('Error eliminando: ' + (err.message || err)); 
+                }
+            };
+
+            console.log('🔍 Esperando usuariosService...');
+            waitFor(['usuariosService'])
+                .then(() => {
+                    console.log('✅ usuariosService disponible');
+                    return loadAndRender();
+                })
+                .catch(err => {
+                    console.error('❌ Error cargando servicio:', err);
+                    const tbody = document.querySelector('.tabla-docentes tbody');
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:#f44">Error: No se pudo cargar el servicio de usuarios</td></tr>`;
+                });
+        })();
+    </script>
+
+    <script>
+        // ==========================================
+        // OCULTAR BOTÓN AGREGAR SEGÚN ROL
+        // ==========================================
+        (function(){
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const role = (currentUser.rol || currentUser.role || '').toString().toLowerCase();
+                const btnAdd = document.getElementById('btnAdd');
+                
+                // Solo docentes y admins pueden agregar tutores
+                if (btnAdd && role !== 'docente' && role !== 'admin') {
+                    btnAdd.style.display = 'none';
+                    console.log('⚠️ Botón Agregar oculto para rol:', role);
+                } else {
+                    console.log('✅ Botón Agregar visible para rol:', role);
+                }
+            } catch(e) {
+                console.warn('⚠️ No se pudo verificar rol del usuario');
+            }
+        })();
+    </script>
+
+    <script>
+        function showDeleteModal() {
+            document.getElementById('delete-modal-overlay').style.display = 'flex';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal-overlay').style.display = 'none';
+        }
+
+        function closeDeleteSuccessModal() {
+            document.getElementById('delete-success-modal-overlay').style.display = 'none';
+        }
+    </script>
+
+    <script src="../../scripts/utils/logoutModal.js"></script>
+</body>
+</html>

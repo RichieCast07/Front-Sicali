@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estadistica Docente</title>
+    <title>Estadística Docente</title>
     <link rel="stylesheet" href="../../css/estadisticadocente.css">
     <link rel="stylesheet" href="../../css/navbar.css">
 </head>
@@ -18,94 +18,103 @@
                 <div class="role">Docente</div>
                 <div class="name" id="userName">Cargando...</div>
             </div>
-            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+            <div class="avatar" id="userAvatar">
+                <img src="../../img/nino.png" alt="">
+            </div>
         </div>
     </header>
-    
+
     <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
-            <li><a href="../estudiantes/estudiante.html"><span class="icon"> <img class="icon" src="../../icons/estudiante.svg" alt=""></span><span class="text">Estudiantes</span></a></li>
-            <li><a href="../asistencia/asistencia.html"><span class="icon"> <img class="icon" src="../../icons/asistencia.svg" alt=""></span><span class="text">Asistencias</span></a></li>
-            <li><a href="../calificaciones/calificaciones.html"><span class="icon"> <img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></a></li>
-            <li><span class="icon"> <img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></li>
+            <li>
+                <a href="../estudiantesdocente/estudiante.html">
+                    <span class="icon"><img class="icon" src="../../icons/estudiante.svg" alt=""></span>
+                    <span class="text">Estudiantes</span>
+                </a>
+            </li>
+            <li>
+                <a href="../tutordocente/tutor.html">
+                    <span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span>
+                    <span class="text">Tutor</span>
+                </a>
+            </li>
+            <li>
+                <a href="../asistencia/asistencia.html">
+                    <span class="icon"><img class="icon" src="../../icons/asistencia.svg" alt=""></span>
+                    <span class="text">Asistencias</span>
+                </a>
+            </li>
+            <li>
+                <a href="../calificaciones/calificaciones.html">
+                    <span class="icon"><img class="icon" src="../../icons/calificaciones.svg" alt=""></span>
+                    <span class="text">Calificaciones</span>
+                </a>
+            </li>
+            <li class="active">
+                <span class="icon"><img class="icon" src="../../icons/estadisticas.svg" alt=""></span>
+                <span class="text">Estadísticas</span>
+            </li>
         </ul>
     </nav>
 
     <main class="content" id="content">
-    <section class="statistics-container">
-        <h1 class="statistics-title">Estadísticas</h1>
-        <div class="filters">
-            <div class="estudiante-info">
-                <div class="info-block">
-                    <label>Grupo:</label>
-                    <p id="grupoNombre">Cargando...</p>
-                </div>
+        <section class="statistics-container">
+            <h1 class="statistics-title">Estadísticas</h1>
+            <div class="filters">
+                <div class="estudiante-info">
+                    <div class="info-block">
+                        <label>Grupo:</label>
+                        <p id="grupoNombre">Cargando...</p>
+                    </div>
 
-                <div class="info-block">
-                    <label>Total De Estudiante</label>
-                    <p id="totalEstudiantes">0</p>
+                    <div class="info-block">
+                        <label>Total De Estudiantes</label>
+                        <p id="totalEstudiantes">0</p>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>Periodo</label>
+                    <div class="periodo-select">
+                        <select>
+                            <option value="" selected>seleccionar</option>
+                            <option>Primero</option>
+                            <option>Segundo</option>
+                            <option>Tercero</option>
+                        </select>
+                        <img src="../../icons/seleccionar.svg" alt="Desplegar" class="icono-select">
+                    </div>
                 </div>
             </div>
-            <div class="filter-group">
-                <label>Periodo</label>
-                <div class="periodo-select">
-                    <select>
-                        <option value="" selected>seleccionar</option>
-                        <option>Primero</option>
-                        <option>Segundo</option>
-                        <option>Tercero</option>
-                    </select>
-                    <img src="../../icons/seleccionar.svg" alt="Desplegar" class="icono-select">
+        
+            <div class="chart-container">
+                <div class="chart">
+                    <div class="y-axis">
+                        <span class="y-label">10</span>
+                        <span class="y-label">8</span>
+                        <span class="y-label">6</span>
+                        <span class="y-label">4</span>
+                        <span class="y-label">2</span>
+                        <span class="y-label">0</span>
+                    </div>
+                    <div class="grid-lines">
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                    </div>
+                    
+                    <div class="bars" id="chart-bars">
+                        <div class="no-data" style="text-align: center; padding: 40px; color: #999;">
+                            Cargando estadísticas...
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-    </div>
-    
-  
-    
-    <div class="chart-container">
-        <div class="chart">
-            <div class="y-axis">
-                <span class="y-label">100</span>
-                <span class="y-label">80</span>
-                <span class="y-label">60</span>
-                <span class="y-label">40</span>
-                <span class="y-label">20</span>
-                <span class="y-label">0</span>
-            </div>
-            <div class="grid-lines">
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-            </div>
-            
-            <div class="bars">
+        </section>
+    </main>
 
-                <div class="bar-group">
-                    <div class="bar color-1" style="height: 180px;"></div>
-                    <div class="bar-label">  Multiples <br> Lenguajes</div>
-                </div>
-                <div class="bar-group">
-                    <div class="bar color-2" style="height: 150px;"></div>
-                    <div class="bar-label">Saberes y pensamiento científico</div>
-                </div>
-                <div class="bar-group">
-                    <div class="bar color-3" style="height: 140px;"></div>
-                    <div class="bar-label">Ética, naturaleza y sociedades</div>
-                </div>
-                <div class="bar-group">
-                    <div class="bar color-4" style="height: 200px;"></div>
-                    <div class="bar-label">De lo humano y lo comunitario</div>
-                </div>
-            </div>
-        </div>
-    </div>
- </section>
-</main>
     <script src="../../scripts/loadDependencies.js"></script>
     
     <script>
@@ -162,6 +171,7 @@
             if (!grupos || grupos.length === 0) {
               document.getElementById('grupoNombre').textContent = 'Sin grupos asignados';
               document.getElementById('totalEstudiantes').textContent = '0';
+              document.getElementById('chart-bars').innerHTML = '<div class="no-data" style="text-align: center; padding: 40px; color: #999;">No tienes grupos asignados</div>';
               return;
             }
 
@@ -181,33 +191,93 @@
             
             console.log('✅ Total estudiantes:', totalEstudiantes);
             
+            // Cargar gráfica de calificaciones
+            await cargarGrafica(grupo.idGrupo);
+            
           } catch (error) {
             console.error('❌ Error cargando estadísticas:', error);
             document.getElementById('grupoNombre').textContent = 'Error al cargar';
-            alert('Error: ' + error.message);
+            document.getElementById('chart-bars').innerHTML = '<div class="no-data" style="text-align: center; padding: 40px; color: #f44;">Error al cargar datos</div>';
           }
+        }
+
+        async function cargarGrafica(idGrupo) {
+            try {
+                console.log('📊 Cargando gráfica para grupo:', idGrupo);
+                
+                // Obtener calificaciones del grupo
+                const calificaciones = await calificacionesService.getByGrupo(idGrupo);
+                console.log('✅ Calificaciones cargadas:', calificaciones.length);
+
+                if (calificaciones.length === 0) {
+                    document.getElementById('chart-bars').innerHTML = '<div class="no-data" style="text-align: center; padding: 40px; color: #999;">No hay calificaciones registradas</div>';
+                    return;
+                }
+
+                // Calcular promedio por asignatura
+                const promediosPorAsignatura = {};
+                
+                calificaciones.forEach(calif => {
+                    const idAsig = calif.idAsignatura;
+                    if (!promediosPorAsignatura[idAsig]) {
+                        promediosPorAsignatura[idAsig] = {
+                            suma: 0,
+                            count: 0,
+                            nombre: calif.nombreAsignatura || 'Sin nombre'
+                        };
+                    }
+                    
+                    // Calcular promedio de las 4 calificaciones
+                    const califs = [calif.calificacion1, calif.calificacion2, calif.calificacion3, calif.calificacion4].filter(c => c !== null && c !== undefined);
+                    if (califs.length > 0) {
+                        const promedio = califs.reduce((a, b) => a + b, 0) / califs.length;
+                        promediosPorAsignatura[idAsig].suma += promedio;
+                        promediosPorAsignatura[idAsig].count++;
+                    }
+                });
+
+                // Generar barras
+                const barsContainer = document.getElementById('chart-bars');
+                barsContainer.innerHTML = '';
+
+                const colores = ['color-1', 'color-2', 'color-3', 'color-4'];
+                let colorIndex = 0;
+
+                Object.keys(promediosPorAsignatura).forEach(idAsig => {
+                    const data = promediosPorAsignatura[idAsig];
+                    const promedioFinal = data.count > 0 ? (data.suma / data.count) : 0;
+                    const altura = (promedioFinal / 10) * 200; // Escala de 0-10 a 0-200px
+
+                    const barGroup = document.createElement('div');
+                    barGroup.className = 'bar-group';
+                    barGroup.innerHTML = `
+                        <div class="bar ${colores[colorIndex % colores.length]}" style="height: ${altura}px;"></div>
+                        <div class="bar-label">${data.nombre}<br><small>${promedioFinal.toFixed(1)}</small></div>
+                    `;
+                    barsContainer.appendChild(barGroup);
+                    colorIndex++;
+                });
+
+                console.log('✅ Gráfica renderizada');
+
+            } catch (error) {
+                console.error('❌ Error cargando gráfica:', error);
+                document.getElementById('chart-bars').innerHTML = '<div class="no-data" style="text-align: center; padding: 40px; color: #f44;">Error al cargar datos</div>';
+            }
         }
 
         // Inicializar página
         window.addEventListener('DOMContentLoaded', () => {
           const checkServices = setInterval(() => {
             if (typeof gruposService !== 'undefined' && 
-                typeof estudianteGrupoService !== 'undefined') {
+                typeof estudianteGrupoService !== 'undefined' &&
+                typeof calificacionesService !== 'undefined') {
               clearInterval(checkServices);
               loadEstadisticas();
             }
           }, 100);
         });
     </script>
+    <script src="../../scripts/utils/logoutModal.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-

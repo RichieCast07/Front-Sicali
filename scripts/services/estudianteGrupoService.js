@@ -63,40 +63,72 @@ class EstudianteGrupoService {
      * @param {Object} inscripcion - Datos de la inscripción
      * @param {number} inscripcion.idEstudiante - ID del estudiante
      * @param {number} inscripcion.idGrupo - ID del grupo
-     * @param {string} inscripcion.fechaInscripcion - Fecha de inscripción (YYYY-MM-DD)
-     * @param {string} inscripcion.estado - Estado (Activo, Inactivo)
+     * @param {string} inscripcion.fechaInscripcion - Fecha de inscripción (YYYY-MM-DD) (opcional)
      * @returns {Promise<Object>} Inscripción creada
      */
     async create(inscripcion) {
         try {
-            // El backend espera objetos anidados, no IDs directos
-            const payload = {
-                estudiante: {
-                    id_usuario: Number(inscripcion.idEstudiante)
-                },
-                grupo: {
-                    idGrupo: Number(inscripcion.idGrupo)
-                },
-                fechaInscripcion: typeof inscripcion.fechaInscripcion === 'string' ? inscripcion.fechaInscripcion.trim() : inscripcion.fechaInscripcion,
-                estado: typeof inscripcion.estado === 'string' ? inscripcion.estado.trim() : inscripcion.estado
-            };
+            const idEstudiante = Number(inscripcion.idEstudiante);
+            const idGrupo = Number(inscripcion.idGrupo);
 
-            // Validar IDs antes de enviar
-            if (!payload.estudiante.id_usuario || payload.estudiante.id_usuario <= 0) {
+            // Validar IDs antes de continuar
+            if (!idEstudiante || idEstudiante <= 0) {
                 throw new Error('ID de estudiante inválido');
             }
-            if (!payload.grupo.idGrupo || payload.grupo.idGrupo <= 0) {
+            if (!idGrupo || idGrupo <= 0) {
                 throw new Error('ID de grupo inválido');
             }
-            if (!payload.fechaInscripcion) {
-                throw new Error('Fecha de inscripción requerida');
+
+            // ⚠️ VALIDACIÓN: Un estudiante solo puede estar en un grupo activo
+            // Si ya está inscrito en otro grupo, se permite el CAMBIO DE SALÓN
+            console.log(`🔍 Verificando si estudiante ${idEstudiante} ya está inscrito en algún grupo...`);
+            const inscripcionesActuales = await this.getByEstudiante(idEstudiante);
+            const gruposActivos = inscripcionesActuales.filter(ins => ins.estado === 'Activo');
+            
+            if (gruposActivos.length > 0) {
+                const grupoAnterior = gruposActivos[0].grupo;
+                const idGrupoAnterior = grupoAnterior.idGrupo;
+                
+                // Si es el mismo grupo, no hacer nada (evitar duplicados)
+                if (Number(idGrupoAnterior) === Number(idGrupo)) {
+                    console.warn(`⚠️ El estudiante ya está inscrito en el grupo ${idGrupo}`);
+                    throw new Error(`El estudiante ya está inscrito en el grupo "${grupoAnterior.nombre}"`);
+                }
+                
+                // CAMBIO DE SALÓN: Dar de baja del grupo anterior
+                console.log(`🔄 Cambiando estudiante del grupo "${grupoAnterior.nombre}" (${idGrupoAnterior}) al nuevo grupo (${idGrupo})...`);
+                try {
+                    await this.delete(idEstudiante, idGrupoAnterior);
+                    console.log(`✅ Estudiante dado de baja del grupo anterior: "${grupoAnterior.nombre}"`);
+                } catch (deleteError) {
+                    console.error('❌ Error al dar de baja del grupo anterior:', deleteError);
+                    throw new Error(`No se pudo cambiar de grupo. Error al dar de baja del grupo anterior: ${deleteError.message}`);
+                }
             }
-            if (!payload.estado) {
-                throw new Error('Estado requerido');
+
+            // El backend espera objetos anidados con estado
+            const payload = {
+                estudiante: {
+                    id_usuario: idEstudiante
+                },
+                grupo: {
+                    idGrupo: idGrupo
+                },
+                estado: inscripcion.estado || 'Activo'
+            };
+
+            // Fecha de inscripción es opcional (tiene default CURRENT_TIMESTAMP)
+            if (inscripcion.fechaInscripcion) {
+                payload.fechaInscripcion = typeof inscripcion.fechaInscripcion === 'string' 
+                    ? inscripcion.fechaInscripcion.trim() 
+                    : inscripcion.fechaInscripcion;
             }
+
+            console.log('📤 Enviando inscripción:', payload);
 
             const response = await httpClient.post(API_CONFIG.ENDPOINTS.ESTUDIANTE_GRUPO.CREATE, payload);
             if (response.success) {
+                console.log('✅ Estudiante inscrito correctamente en el grupo');
                 return normalizeEstudianteGrupo(response.data);
             }
 
@@ -107,7 +139,7 @@ class EstudianteGrupoService {
 
             throw new Error(response.message);
         } catch (error) {
-            console.error('Error al inscribir estudiante:', error);
+            console.error('❌ Error al inscribir estudiante:', error);
             throw error;
         }
     }
@@ -116,20 +148,46 @@ class EstudianteGrupoService {
      * Inscribe múltiples estudiantes en un grupo
      * @param {number} idGrupo - ID del grupo
      * @param {Array<number>} estudiantes - IDs de estudiantes
-     * @param {string} fechaInscripcion - Fecha de inscripción
-     * @returns {Promise<Array>} Inscripciones creadas
+     * @param {string} fechaInscripcion - Fecha de inscripción (opcional)
+     * @param {string} estado - Estado de la inscripción (por defecto 'Activo')
+     * @returns {Promise<Object>} Resultado con estudiantes inscritos y rechazados
      */
-    async enrollMultiple(idGrupo, estudiantes, fechaInscripcion) {
+    async enrollMultiple(idGrupo, estudiantes, fechaInscripcion, estado = 'Activo') {
         try {
-            const inscripciones = estudiantes.map(idEstudiante => ({
-                idEstudiante,
-                idGrupo,
-                fechaInscripcion,
-                estado: 'Activo'
-            }));
+            const resultados = {
+                exitosos: [],
+                rechazados: []
+            };
 
-            const promises = inscripciones.map(inscripcion => this.create(inscripcion));
-            return await Promise.all(promises);
+            for (const idEstudiante of estudiantes) {
+                try {
+                    const inscripcion = {
+                        idEstudiante,
+                        idGrupo,
+                        fechaInscripcion,
+                        estado
+                    };
+                    const resultado = await this.create(inscripcion);
+                    resultados.exitosos.push({
+                        idEstudiante,
+                        inscripcion: resultado
+                    });
+                } catch (error) {
+                    console.warn(`⚠️ Estudiante ${idEstudiante} no pudo ser inscrito:`, error.message);
+                    resultados.rechazados.push({
+                        idEstudiante,
+                        razon: error.message
+                    });
+                }
+            }
+
+            console.log(`✅ Inscritos: ${resultados.exitosos.length}, ⚠️ Rechazados: ${resultados.rechazados.length}`);
+            
+            if (resultados.rechazados.length > 0) {
+                console.warn('Estudiantes rechazados:', resultados.rechazados);
+            }
+
+            return resultados;
         } catch (error) {
             console.error('Error al inscribir múltiples estudiantes:', error);
             throw error;

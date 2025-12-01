@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor - Docente</title>
+    <link rel="stylesheet" href="../../css/estudiantes.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+    <link rel="stylesheet" href="../../css/modalactualizar.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role" id="userRole">Cargando...</div>
+                <div class="name" id="userName">Cargando...</div>
+            </div>
+            <div class="avatar" id="userAvatar">
+                <img src="../../img/nino.png" alt="">
+            </div>
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebar">
+        <ul class="menu-list">
+            <li>
+                <a href="../estudiantesdocente/estudiante.html">
+                    <span class="icon"><img class="icon" src="../../icons/estudiante.svg" alt=""></span>
+                    <span class="text">Estudiantes</span>
+                </a>
+            </li>
+            <li class="active">
+                <a href="../tutordocente/tutor.html">
+                    <span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span>
+                    <span class="text">Tutor</span>
+                </a>
+            </li>
+            <li>
+                <a href="../asistencia/asistencia.html">
+                    <span class="icon"><img class="icon" src="../../icons/asistencia.svg" alt=""></span>
+                    <span class="text">Asistencias</span>
+                </a>
+            </li>
+            <li>
+                <a href="../calificaciones/calificaciones.html">
+                    <span class="icon"><img class="icon" src="../../icons/calificaciones.svg" alt=""></span>
+                    <span class="text">Calificaciones</span>
+                </a>
+            </li>
+            <li>
+                <a href="../estadisticas/estadisticasdocente.html">
+                    <span class="icon"><img class="icon" src="../../icons/estadisticas.svg" alt=""></span>
+                    <span class="text">Estadísticas</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="content" id="content">
+        <section class="docentes-section">
+            <h1 class="titulo">Tutor</h1>
+
+            <div class="acciones-superiores">
+                <div class="buscador-con-icono">
+                    <img src="../../icons/buscador.svg" alt="Icono de buscador" class="icono-input" />
+                    <input type="text" placeholder="Buscar" id="buscarTutor" />
+                </div>
+
+                <div class="agregar">
+                    <label for="">Tutor</label>
+                    <button class="btn-agregar" id="btnAdd" onclick="window.location.href='agregartutor.html'">
+                        <img src="../../icons/agregar.svg" alt="Icono agregar" class="icono-agregar"/>
+                        Agregar
+                    </button>
+                </div>
+            </div>
+
+            <table class="tabla-docentes">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Apellido Paterno</th>
+                        <th>Apellido Materno</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align:center;padding:40px;color:#666">
+                            Cargando tutores...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Modal de confirmación de eliminación -->
+        <div id="delete-modal-overlay" class="modal-overlay">
+            <div class="modal">
+                <img src="../../icons/inforojo.svg" alt="eliminar" class="modal-icon">
+                <h3>¿Desea eliminarlo?</h3>
+                <p>Esta acción es permanente y no podrá deshacerse</p>
+                <div class="modal-buttons">
+                    <button class="eliminar" onclick="window.confirmDelete()">Eliminar</button>
+                    <button class="cancel" onclick="closeDeleteModal()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de éxito -->
+        <div id="delete-success-modal-overlay" class="modal-overlay">
+            <div class="modal">
+                <img src="../../icons/successrojo.svg" alt="success" class="modal-icon">
+                <h3>Eliminado correctamente</h3>
+                <p>El registro que seleccionaste se eliminó del sistema</p>
+                <div class="modal-buttons">
+                    <button class="eliminar" onclick="closeDeleteSuccessModal()">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- SCRIPTS - ORDEN IMPORTANTE -->
+    
+    <!-- 1. PRIMERO: Cargar dependencias -->
+    <script src="../../scripts/loadDependencies.js"></script>
+
+    <!-- 2. Cargar información del usuario en el header -->
+    <script>
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                } else {
+                    userRole.textContent = 'Usuario';
+                }
+            } catch (error) {
+                console.error('❌ Error al cargar datos del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
+            }
+        })();
+    </script>
+
+    <!-- 3. Protección de ruta -->
+    <script>
+        (function() {
+            function waitForRouteGuard() {
+                if (typeof RouteGuard !== 'undefined') {
+                    RouteGuard.protect(['docente', 'admin']);
+                } else {
+                    setTimeout(waitForRouteGuard, 50);
+                }
+            }
+            waitForRouteGuard();
+        })();
+    </script>
+
+    <!-- 4. Ocultar botón agregar según rol -->
+    <script>
+        (function(){
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const role = (currentUser.rol || currentUser.role || '').toString().toLowerCase();
+                const btnAdd = document.getElementById('btnAdd');
+                
+                if (btnAdd && role !== 'docente' && role !== 'admin') {
+                    btnAdd.style.display = 'none';
+                }
+            } catch(e) {
+                console.warn('⚠️ No se pudo verificar rol del usuario');
+            }
+        })();
+    </script>
+
+    <!-- 5. SCRIPT PRINCIPAL: Cargar tutores -->
+    <script>
+        (function(){
+            let idToDelete = null;
+
+            function escapeHtml(s) { 
+                return String(s || '').replace(/[&<>"']/g, c => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                }[c])); 
+            }
+
+            async function loadAndRender(){
+                const tbody = document.querySelector('.tabla-docentes tbody');
+                
+                try {
+                    console.log('🔄 Iniciando carga de tutores...');
+                    
+                    // Verificar dependencias
+                    if (typeof API_CONFIG === 'undefined') {
+                        throw new Error('API_CONFIG no está disponible');
+                    }
+                    if (typeof httpClient === 'undefined') {
+                        throw new Error('httpClient no está disponible');
+                    }
+                    if (typeof tutorService === 'undefined') {
+                        throw new Error('tutorService no está disponible');
+                    }
+                    
+                    console.log('✅ Todas las dependencias cargadas');
+                    console.log('📍 Endpoint:', API_CONFIG.ENDPOINTS.USUARIOS.BY_ROL('tutor'));
+                    
+                    // Obtener tutores
+                    const response = await tutorService.getAll();
+                    console.log('📦 Respuesta raw:', response);
+                    
+                    // Manejar diferentes formatos de respuesta
+                    let tutores;
+                    if (Array.isArray(response)) {
+                        tutores = response;
+                    } else if (response && Array.isArray(response.data)) {
+                        tutores = response.data;
+                    } else if (response && typeof response === 'object') {
+                        tutores = [response];
+                    } else {
+                        tutores = [];
+                    }
+                    
+                    console.log('✅ Tutores procesados:', tutores);
+                    console.log('📊 Total tutores:', tutores.length);
+                    
+                    // Limpiar tabla
+                    tbody.innerHTML = '';
+
+                    if (tutores.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="5" style="text-align:center;padding:40px;color:#666">
+                                    No hay tutores registrados
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+
+                    // Renderizar tutores
+                    tutores.forEach((t, idx) => {
+                        const tr = document.createElement('tr');
+                        const userId = t.id_usuario || t.id || '';
+                        tr.setAttribute('data-id', userId);
+                        
+                        tr.innerHTML = `
+                            <td>${idx + 1}</td>
+                            <td>${escapeHtml(t.nombre)}</td>
+                            <td>${escapeHtml(t.ape_p)}</td>
+                            <td>${escapeHtml(t.ape_m)}</td>
+                            <td>
+                                <button class="btn-editar" data-id="${userId}">
+                                    <img src="../../icons/visualizar.svg" alt="visualizar"/>
+                                </button>
+                                <button class="btn-eliminar" data-id="${userId}">
+                                    <img src="../../icons/eliminar.svg" alt="Eliminar"/>
+                                </button>
+                            </td>
+                        `;
+                        
+                        tbody.appendChild(tr);
+                    });
+
+                    console.log('✅ Tabla renderizada exitosamente');
+
+                    // Event listeners para botones
+                    document.querySelectorAll('.btn-editar').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const id = this.getAttribute('data-id');
+                            window.location.href = 'editartutor.html?id=' + encodeURIComponent(id);
+                        });
+                    });
+
+                    document.querySelectorAll('.btn-eliminar').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            idToDelete = this.getAttribute('data-id');
+                            showDeleteModal();
+                        });
+                    });
+
+                    setupSearch();
+                    
+                } catch(err) { 
+                    console.error('❌ Error cargando tutores:', err);
+                    console.error('Stack:', err.stack);
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align:center;padding:40px;color:#f44">
+                                Error al cargar tutores: ${escapeHtml(err.message)}
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+
+            function setupSearch() {
+                const searchInput = document.getElementById('buscarTutor');
+                if (!searchInput) return;
+                
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase().trim();
+                    const rows = document.querySelectorAll('.tabla-docentes tbody tr');
+                    
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length <= 1) return;
+                        
+                        const nombre = cells[1]?.textContent.toLowerCase() || '';
+                        const apeP = cells[2]?.textContent.toLowerCase() || '';
+                        const apeM = cells[3]?.textContent.toLowerCase() || '';
+                        
+                        const matches = nombre.includes(searchTerm) || 
+                                      apeP.includes(searchTerm) || 
+                                      apeM.includes(searchTerm);
+                        
+                        row.style.display = matches ? '' : 'none';
+                    });
+                });
+            }
+
+            window.confirmDelete = async function() {
+                try {
+                    closeDeleteModal();
+                    if (!idToDelete) return;
+
+                    console.log('🗑️ Eliminando tutor ID:', idToDelete);
+                    
+                    const endpoint = API_CONFIG.ENDPOINTS.USUARIOS.DELETE(idToDelete);
+                    await httpClient.delete(endpoint);
+                    
+                    idToDelete = null;
+                    await loadAndRender();
+                    
+                    document.getElementById('delete-success-modal-overlay').style.display = 'flex';
+                    console.log('✅ Tutor eliminado correctamente');
+                    
+                } catch(err) { 
+                    console.error('❌ Error eliminando tutor:', err); 
+                    alert('Error eliminando: ' + (err.message || err)); 
+                }
+            };
+
+            window.showDeleteModal = function() {
+                document.getElementById('delete-modal-overlay').style.display = 'flex';
+            };
+
+            window.closeDeleteModal = function() {
+                document.getElementById('delete-modal-overlay').style.display = 'none';
+            };
+
+            window.closeDeleteSuccessModal = function() {
+                document.getElementById('delete-success-modal-overlay').style.display = 'none';
+            };
+
+            // ====================================================
+            // ESPERAR A QUE SE CARGUEN LAS DEPENDENCIAS
+            // ====================================================
+            function tryLoad() {
+                if (typeof tutorService !== 'undefined' && 
+                    typeof httpClient !== 'undefined' && 
+                    typeof API_CONFIG !== 'undefined') {
+                    console.log('✅ Dependencias detectadas, cargando tutores...');
+                    loadAndRender();
+                } else {
+                    console.log('⏳ Esperando dependencias...');
+                    setTimeout(tryLoad, 100);
+                }
+            }
+
+            // Iniciar cuando el DOM esté listo
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', tryLoad);
+            } else {
+                tryLoad();
+            }
+
+            // También escuchar el evento personalizado
+            window.addEventListener('dependenciesLoaded', function() {
+                console.log('✅ Evento dependenciesLoaded recibido');
+                setTimeout(loadAndRender, 100);
+            });
+
+        })();
+    </script>
+
+    <!-- 6. Script de logout modal -->
+    <script src="../../scripts/utils/logoutModal.js"></script>
+</body>
+</html>

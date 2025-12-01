@@ -13,7 +13,8 @@
         'services/grupoAsignaturaService.js',
         'services/ciclosService.js',
         'services/usuariosService.js',
-        'services/authService.js'
+        'services/authService.js',
+        'services/tutorService.js'
     ];
 
     const base = (function() {

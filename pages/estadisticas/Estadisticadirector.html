@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estadistica Director</title>
+    <title>Estadística Director</title>
     <link rel="stylesheet" href="../../css/estadisticadirector.css">
     <link rel="stylesheet" href="../../css/navbar.css">
 </head>
@@ -15,188 +15,329 @@
         </div>
         <div class="user-info">
             <div class="text-info">
-                <div class="role">Director</div>
-                <div class="name">Jorge Luis Omalley Pinacho</div>
+                <div class="role" id="userRole">Cargando...</div>
+                <div class="name" id="userName">Cargando...</div>
             </div>
-            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+            <div class="avatar" id="userAvatar">
+                <img src="../../img/nino.png" alt="">
+            </div>
         </div>
     </header>
+
+    <script>
+        // ==========================================
+        // CARGAR INFORMACIÓN DEL USUARIO DINÁMICAMENTE
+        // ==========================================
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                // Cargar nombre completo
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+
+                // Cargar rol dinámicamente
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                } else {
+                    userRole.textContent = 'Usuario';
+                }
+
+                console.log('✅ Usuario cargado:', {
+                    nombre: userName.textContent,
+                    rol: userRole.textContent,
+                    id: currentUser.id_usuario
+                });
+
+            } catch (error) {
+                console.error('❌ Error al cargar datos del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
+            }
+        })();
+    </script>
+    
+    <script>
+        // Proteger esta página solo para admins
+        (function() {
+            function waitForRouteGuard(roles) {
+                if (typeof RouteGuard !== 'undefined') {
+                    RouteGuard.protect(roles);
+                } else {
+                    setTimeout(function() { waitForRouteGuard(roles); }, 50);
+                }
+            }
+            waitForRouteGuard(['admin']);
+        })();
+    </script>
     
     <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
-            <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
-            <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
-            <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
-            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
-            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+            <li>
+                <a href="../docentes/docente.html">
+                    <img class="icon" src="../../icons/docente.svg" alt="">
+                    <span class="text">Docentes</span>
+                </a>
+            </li>
+            <li>
+                <a href="../tutordocente/tutor.html">
+                    <span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span>
+                    <span class="text">Tutor</span>
+                </a>
+            </li>
+            <li>
+                <a href="../estudiantes/estudiante.html">
+                    <img class="icon" src="../../icons/estudiante.svg" alt="">
+                    <span class="text">Estudiantes</span>
+                </a>
+            </li>
+            <li>
+                <a href="../grupos/grupos.html">
+                    <img class="icon" src="../../icons/grupos.svg" alt="">
+                    <span class="text">Grupos</span>
+                </a>
+            </li>
+            <li>
+                <a href="../asignaturas/asignatura.html">
+                    <img class="icon" src="../../icons/asignatura.svg" alt="">
+                    <span class="text">Asignaturas</span>
+                </a>
+            </li>
+            <li class="active">
+                <a href="../estadisticas/Estadisticadirector.html">
+                    <img class="icon" src="../../icons/estadisticas.svg" alt="">
+                    <span class="text">Estadísticas</span>
+                </a>
+            </li>
         </ul>
     </nav>
 
-
     <main class="content" id="content">
-    
-    <section class="statistics-container">
-        <h1 class="statistics-title">Estadísticas</h1>
-        <div class="filters">
-        <div class="filter-group">
-            <label class="filter-label">Grupo:</label>
-            <div class="periodo-select">
-                <select class="filter-select">
-                    <option>seleccionar</option>
-                    <option>Primero A</option>
-                    <option>Segundo A</option>
-                    <option>Tercero A</option>
-                    <option>Cuarto A</option>
-                    <option>Quinto A</option>
-                    <option>Sexto A</option>
-                </select>
-                <img src="../../icons/seleccionar.svg" alt="" class="select-icon">
-            </div>
-        </div>
-        
-        <div class="filter-group">
-            <label class="filter-label">Periodo:</label>
-            <div class="periodo-select">
-                <select class="filter-select">
-                    <option>seleccionar</option>
-                    <option>Periodo 1</option>
-                    <option>Periodo 2</option>
-                    <option>Periodo 3</option>
-                </select>
-                <img src="../../icons/seleccionar.svg" alt="" class="select-icon">
-            </div>
-        </div>
-    </div>
-    </div>
-    
-  
-    
-    <div class="chart-container">
-        <div class="chart">
-            <div class="y-axis">
-                <span class="y-label">100</span>
-                <span class="y-label">80</span>
-                <span class="y-label">60</span>
-                <span class="y-label">40</span>
-                <span class="y-label">20</span>
-                <span class="y-label">0</span>
-            </div>
-            <div class="grid-lines">
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
+        <section class="statistics-container">
+            <h1 class="statistics-title">Estadísticas</h1>
+            <div class="filters">
+                <div class="filter-group">
+                    <label class="filter-label">Grupo:</label>
+                    <div class="periodo-select">
+                        <select class="filter-select" id="grupoSelect">
+                            <option value="">Seleccionar grupo</option>
+                        </select>
+                        <img src="../../icons/seleccionar.svg" alt="" class="select-icon">
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Periodo:</label>
+                    <div class="periodo-select">
+                        <select class="filter-select" id="periodoSelect">
+                            <option value="">Seleccionar periodo</option>
+                        </select>
+                        <img src="../../icons/seleccionar.svg" alt="" class="select-icon">
+                    </div>
+                </div>
             </div>
             
-            <div class="bars">
-                <div class="bar-group">
-                    <div class="bar color-1" style="height: 180px;"></div>
-                    <div class="bar-label">  Multiples <br> Lenguajes </div>
-                </div>
-                <div class="bar-group">
-                    <div class="bar color-2" style="height: 150px;"></div>
-                    <div class="bar-label">Saberes y pensamiento científico</div>
-                </div>
-                <div class="bar-group">
-                    <div class="bar color-3" style="height: 140px;"></div>
-                    <div class="bar-label">Ética, naturaleza y sociedades</div>
-                </div>
-                <div class="bar-group">
-                    <div class="bar color-4" style="height: 200px;"></div>
-                    <div class="bar-label">De lo humano y lo comunitario</div>
+            <div class="chart-container">
+                <div class="chart">
+                    <div class="y-axis">
+                        <span class="y-label">10</span>
+                        <span class="y-label">8</span>
+                        <span class="y-label">6</span>
+                        <span class="y-label">4</span>
+                        <span class="y-label">2</span>
+                        <span class="y-label">0</span>
+                    </div>
+                    <div class="grid-lines">
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                    </div>
+                    
+                    <div class="bars" id="chart-bars">
+                        <div class="no-data" style="text-align: center; padding: 40px; color: #999;">
+                            Selecciona un grupo para ver las estadísticas
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
- </section>
-</main>
+        </section>
+    </main>
+
     <script src="../../scripts/loadDependencies.js"></script>
+    
     <script>
-    // Proteger esta página solo para admins
-    (function() {
-        function waitForRouteGuard(roles) {
-            if (typeof RouteGuard !== 'undefined') {
-                RouteGuard.protect(roles);
-            } else {
-                setTimeout(function() { waitForRouteGuard(roles); }, 50);
-            }
-        }
-        waitForRouteGuard(['admin']);
-    })();
-
-    (function(){
-        function waitFor(names, timeout = 5000) {
-            return new Promise((resolve, reject) => {
-                const start = Date.now();
-                (function poll() {
-                    try {
-                        const ok = names.every(n => { try { return typeof eval(n) !== 'undefined'; } catch(e){ return false; } });
-                        if (ok) return resolve();
-                    } catch (e) {}
-                    if (Date.now() - start > timeout) return reject(new Error('Servicios no disponibles'));
-                    setTimeout(poll, 50);
-                })();
-            });
-        }
-
-        async function loadEstadisticas() {
-            try {
-                console.log('📊 Cargando estadísticas...');
-                
-                // Cargar datos necesarios
-                const [grupos, ciclos] = await Promise.all([
-                    gruposService.getAll(),
-                    ciclosService.getAll()
-                ]);
-
-                console.log('✅ Grupos cargados:', grupos.length);
-                console.log('✅ Ciclos cargados:', ciclos.length);
-
-                // Llenar select de grupos
-                const grupoSelect = document.querySelector('.filters .filter-select');
-                grupoSelect.innerHTML = '<option value="">Seleccionar grupo</option>';
-                grupos.forEach(grupo => {
-                    const option = document.createElement('option');
-                    option.value = grupo.idGrupo;
-                    option.textContent = `${grupo.nombre} - Grado ${grupo.grado}`;
-                    grupoSelect.appendChild(option);
+        // ==========================================
+        // ENHANCER: CARGAR ESTADÍSTICAS
+        // ==========================================
+        (function(){
+            function waitFor(names, timeout = 5000) {
+                return new Promise((resolve, reject) => {
+                    const start = Date.now();
+                    (function poll() {
+                        try {
+                            const ok = names.every(n => { 
+                                try { 
+                                    return typeof eval(n) !== 'undefined'; 
+                                } catch(e) { 
+                                    return false; 
+                                } 
+                            });
+                            if (ok) return resolve();
+                        } catch (e) {}
+                        if (Date.now() - start > timeout) {
+                            return reject(new Error('Servicios no disponibles'));
+                        }
+                        setTimeout(poll, 50);
+                    })();
                 });
-
-                // Llenar select de periodos
-                const periodoSelect = document.querySelectorAll('.filter-select')[1];
-                periodoSelect.innerHTML = '<option value="">Seleccionar periodo</option>';
-                ciclos.forEach(ciclo => {
-                    const option = document.createElement('option');
-                    option.value = ciclo.idCiclo;
-                    option.textContent = `${ciclo.nombre} (${ciclo.anio_inicio}-${ciclo.anio_fin})`;
-                    periodoSelect.appendChild(option);
-                });
-
-                console.log('✅ Selects actualizados');
-
-            } catch (error) {
-                console.error('❌ Error cargando estadísticas:', error);
             }
-        }
 
-        console.log('🔍 Esperando servicios...');
-        waitFor(['gruposService', 'ciclosService']).then(() => {
-            console.log('✅ Servicios cargados');
-            loadEstadisticas();
-        }).catch(err => console.error('❌ Error:', err));
-    })();
+            async function loadEstadisticas() {
+                try {
+                    console.log('📊 Cargando estadísticas...');
+                    
+                    // Cargar datos necesarios
+                    const [grupos, ciclos, asignaturas] = await Promise.all([
+                        gruposService.getAll(),
+                        ciclosService.getAll(),
+                        httpClient.get(API_CONFIG.ENDPOINTS.ASIGNATURAS.LIST)
+                    ]);
+
+                    console.log('✅ Grupos cargados:', grupos.length);
+                    console.log('✅ Ciclos cargados:', ciclos.length);
+                    console.log('✅ Asignaturas cargadas:', asignaturas.length);
+
+                    // Llenar select de grupos
+                    const grupoSelect = document.getElementById('grupoSelect');
+                    grupoSelect.innerHTML = '<option value="">Seleccionar grupo</option>';
+                    grupos.forEach(grupo => {
+                        const option = document.createElement('option');
+                        option.value = grupo.idGrupo;
+                        option.textContent = `${grupo.nombre} - Grado ${grupo.grado}`;
+                        grupoSelect.appendChild(option);
+                    });
+
+                    // Llenar select de periodos
+                    const periodoSelect = document.getElementById('periodoSelect');
+                    periodoSelect.innerHTML = '<option value="">Seleccionar periodo</option>';
+                    ciclos.forEach(ciclo => {
+                        const option = document.createElement('option');
+                        option.value = ciclo.idCiclo;
+                        option.textContent = ciclo.nombre;
+                        periodoSelect.appendChild(option);
+                    });
+
+                    // Event listener para cambios de grupo
+                    grupoSelect.addEventListener('change', async function() {
+                        const idGrupo = this.value;
+                        if (!idGrupo) {
+                            document.getElementById('chart-bars').innerHTML = '<div class="no-data" style="text-align: center; padding: 40px; color: #999;">Selecciona un grupo para ver las estadísticas</div>';
+                            return;
+                        }
+                        await cargarGrafica(idGrupo, asignaturas);
+                    });
+
+                    console.log('✅ Selects actualizados');
+
+                } catch (error) {
+                    console.error('❌ Error cargando estadísticas:', error);
+                }
+            }
+
+            async function cargarGrafica(idGrupo, asignaturas) {
+                try {
+                    console.log('📊 Cargando gráfica para grupo:', idGrupo);
+                    
+                    // Obtener calificaciones del grupo
+                    const calificaciones = await calificacionesService.getByGrupo(idGrupo);
+                    console.log('✅ Calificaciones cargadas:', calificaciones.length);
+
+                    if (calificaciones.length === 0) {
+                        document.getElementById('chart-bars').innerHTML = '<div class="no-data" style="text-align: center; padding: 40px; color: #999;">No hay calificaciones registradas para este grupo</div>';
+                        return;
+                    }
+
+                    // Calcular promedio por asignatura
+                    const promediosPorAsignatura = {};
+                    
+                    calificaciones.forEach(calif => {
+                        const idAsig = calif.idAsignatura;
+                        if (!promediosPorAsignatura[idAsig]) {
+                            promediosPorAsignatura[idAsig] = {
+                                suma: 0,
+                                count: 0,
+                                nombre: calif.nombreAsignatura || 'Sin nombre'
+                            };
+                        }
+                        
+                        // Calcular promedio de las 4 calificaciones
+                        const califs = [
+                            calif.calificacion1, 
+                            calif.calificacion2, 
+                            calif.calificacion3, 
+                            calif.calificacion4
+                        ].filter(c => c !== null && c !== undefined);
+                        
+                        if (califs.length > 0) {
+                            const promedio = califs.reduce((a, b) => a + b, 0) / califs.length;
+                            promediosPorAsignatura[idAsig].suma += promedio;
+                            promediosPorAsignatura[idAsig].count++;
+                        }
+                    });
+
+                    // Generar barras
+                    const barsContainer = document.getElementById('chart-bars');
+                    barsContainer.innerHTML = '';
+
+                    const colores = ['color-1', 'color-2', 'color-3', 'color-4'];
+                    let colorIndex = 0;
+
+                    Object.keys(promediosPorAsignatura).forEach(idAsig => {
+                        const data = promediosPorAsignatura[idAsig];
+                        const promedioFinal = data.count > 0 ? (data.suma / data.count) : 0;
+                        const altura = (promedioFinal / 10) * 200; // Escala de 0-10 a 0-200px
+
+                        const barGroup = document.createElement('div');
+                        barGroup.className = 'bar-group';
+                        barGroup.innerHTML = `
+                            <div class="bar ${colores[colorIndex % colores.length]}" style="height: ${altura}px;"></div>
+                            <div class="bar-label">${data.nombre}<br><small>${promedioFinal.toFixed(1)}</small></div>
+                        `;
+                        barsContainer.appendChild(barGroup);
+                        colorIndex++;
+                    });
+
+                    console.log('✅ Gráfica renderizada con', Object.keys(promediosPorAsignatura).length, 'asignaturas');
+
+                } catch (error) {
+                    console.error('❌ Error cargando gráfica:', error);
+                    document.getElementById('chart-bars').innerHTML = '<div class="no-data" style="text-align: center; padding: 40px; color: #f44;">Error al cargar datos</div>';
+                }
+            }
+
+            console.log('🔍 Esperando servicios...');
+            waitFor(['gruposService', 'ciclosService', 'calificacionesService', 'httpClient', 'API_CONFIG'])
+                .then(() => {
+                    console.log('✅ Servicios cargados');
+                    loadEstadisticas();
+                })
+                .catch(err => {
+                    console.error('❌ Error cargando servicios:', err);
+                    document.getElementById('chart-bars').innerHTML = '<div class="no-data" style="text-align: center; padding: 40px; color: #f44;">Error: No se pudieron cargar los servicios necesarios</div>';
+                });
+        })();
     </script>
+    
+    <script src="../../scripts/utils/logoutModal.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-

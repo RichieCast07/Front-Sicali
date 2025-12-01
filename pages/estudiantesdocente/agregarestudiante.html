@@ -13,16 +13,19 @@
     <header class="header">
         <div class="left-section">
             <h1 class="logo">SICALI</h1>
-        </div>
-        <div class="user-info">
-            <div class="text-info">
-                <div class="role">Docente</div>
-                <div class="name">Jorge Luis Omalley Pinacho</div>
-            </div>
-            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
-        </div>
-    </header>
-    
+        <li>
+          <a href="../estadisticas/estadisticasdocente.html"
+            ><span class="icon">
+              <img
+                class="icon"
+                src="../../icons/estadisticas.svg"
+                alt="" /></span
+            ><span class="text">Estadísticas</span></a
+          >
+        </li>
+        <li>
+          <a href="../tutordocente/tutor.html"><span class="icon"> <img class="icon" src="../../icons/tutor.svg" alt=""></span><span class="text">Tutor</span></a>
+        </li>
     <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
             <li><span class="icon"> <img class="icon" src="../../icons/estudiante.svg" alt=""></span><span class="text">Estudiantes</span></li>
@@ -240,8 +243,7 @@
               const inscripcion = {
                 idEstudiante: estudianteCreado.id_usuario,
                 idGrupo: parseInt(idGrupo),
-                fechaInscripcion: new Date().toISOString().split('T')[0],
-                estado: 'Activo'
+                fechaInscripcion: new Date().toISOString().split('T')[0]
               };
               await estudianteGrupoService.create(inscripcion);
               console.log('✅ Estudiante asignado al grupo correctamente');

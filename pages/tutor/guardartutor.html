@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar estudiantes</title>
+    <link rel="stylesheet" href="../../css/Editar estudiante.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+    <link rel="stylesheet" href="../../css/modalactualizar.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="left-section">
+            <h1 class="logo">SICALI</h1>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role">Director</div>
+                <div class="name">Jorge Luis Omalley Pinacho</div>
+            </div>
+            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+        </div>
+    </header>
+    
+    <script>
+      (function() {
+        function waitForRouteGuard(roles) {
+          if (typeof RouteGuard !== 'undefined') {
+            RouteGuard.protect(roles);
+          } else {
+            setTimeout(function() { waitForRouteGuard(roles); }, 50);
+          }
+        }
+        waitForRouteGuard(['docente','admin']);
+      })();
+    </script>
+
+    <nav class="sidebar" id="sidebar">
+       <ul class="menu-list">
+            <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+            <li><a href="../tutor/tutor.html"><span class="icon"> <img class="icon" src="../../icons/tutor.svg" alt=""></span><span class="text">Tutor</span></a></li>
+            <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+            <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="content" id="content">
+    <button type="button" class="back-link" aria-label="Volver atrás">
+        <span class="icon"><img src="../../icons/atrass.svg" alt="Flecha atrás" /> </span>
+        <span class="text">Atrás</span>
+    </button>
+
+    <section class="editar-estudiante">
+  <h2>Tutor</h2>
+
+  <div class="form-contenedor">
+    <div class="form-columna">
+      
+<div class="form-group">
+        <label>Nombre:</label>
+        <input type="text" value="Antonio">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Paterno:</label>
+        <input type="text" value="Giron">
+      </div>
+
+      <div class="form-group">
+        <label>Apellido Materno:</label>
+        <input type="text" value="Garcia">
+      </div>
+
+      <div class="form-group">
+        <label>Parentesco:</label>
+        <input type="text" value="PADRE">
+      </div>
+      
+    </div>
+
+    <div class="form-columna">
+     
+
+      
+
+      <div class="form-group">
+        <label>Sexo</label>
+        <select>
+          <option>Seleccionar</option>
+          <option>Femenino</option>
+          <option>Masculino</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha de Nacimiento</label>
+        <input type="date">
+      </div>
+      <div class="form-group">
+            <label>Usuario:</label>
+            <input type="text" value="alejandra.vela">
+          </div>
+          <div class="form-group" style="position: relative;">
+          <label>Contraseña:</label>
+          <input type="password" id="password" value="1sicali">
+          <button type="button" onclick="togglePassword()" style="position: absolute; right: 10px; top: 32px;">
+            <span class="iconpasswor"><img src="../../icons/visualizar password.svg" alt="Flecha atrás" /></span>
+          </button>
+         </div>
+    </div>
+  </div>
+
+  <div class="boton-agregar">
+    <button type="button" onclick="showModal()">
+      <img src="../../icons/guardar.svg" class="btn-icon" alt="Guardar">
+      Guardar
+    </button>
+  </div>
+</section>
+
+<div id="modal-overlay" class="modal-overlay">
+    <div class="modal">
+        <img src="../../icons/info.svg" alt="info" class="modal-icon">
+        <h3>¿Desea Actualizarlo?</h3>
+        <p>Los datos actuales serán reemplazados por la nueva información</p>
+        <div class="modal-buttons">
+            <button class="confirm" onclick="confirmSave()">Guardar</button>
+            <button class="cancel" onclick="closeModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div id="success-modal-overlay" class="modal-overlay"> 
+    <div class="modal">
+        <img src="../../icons/success.svg" alt="info" class="modal-icon">
+        <h3>Actualizado Correctamente</h3>
+        <p>Se actualizo la información existente</p>
+        <div class="modal-buttons">
+            <button class="confirm" onclick="closeSuccessModal()">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function showModal() {
+    document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('modal-overlay').style.display = 'none';
+}
+
+function closeSuccessModal() {
+    document.getElementById('success-modal-overlay').style.display = 'none';
+}
+
+function confirmSave() {
+    closeModal();
+    document.getElementById('success-modal-overlay').style.display = 'flex';
+}
+
+ document.querySelector(".back-link").addEventListener("click", function () {
+    window.history.back();
+    });
+
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+  } else {
+    passwordInput.type = 'password';
+  }}
+
+</script>
+</main>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+

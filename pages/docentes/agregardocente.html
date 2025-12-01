@@ -16,18 +16,61 @@
     </div>
     <div class="user-info">
       <div class="text-info">
-        <div class="role">Director</div>
-        <div class="name">Jorge Luis Omalley Pinacho</div>
+        <div class="role" id="userRole">Cargando...</div>
+        <div class="name" id="userName">Cargando...</div>
       </div>
       <div class="avatar"><img src="../../img/nino.png" alt=""></div>
     </div>
   </header>
 
+  <script>
+    // ==========================================
+    // CARGAR INFORMACIÓN DEL USUARIO DINÁMICAMENTE
+    // ==========================================
+    (function() {
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            const userName = document.getElementById('userName');
+            const userRole = document.getElementById('userRole');
+            
+            if (currentUser.nombre && currentUser.ape_p) {
+                const fullName = (currentUser.nombre + ' ' + currentUser.ape_p + ' ' + (currentUser.ape_m || '')).trim();
+                userName.textContent = fullName;
+            } else {
+                userName.textContent = 'Usuario';
+            }
+
+            if (currentUser.rol) {
+                const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                userRole.textContent = rolCapitalizado;
+            } else {
+                userRole.textContent = 'Usuario';
+            }
+        } catch (error) {
+            console.error('❌ Error al cargar datos del usuario:', error);
+            document.getElementById('userName').textContent = 'Usuario';
+            document.getElementById('userRole').textContent = 'Usuario';
+        }
+    })();
+
+    (function() {
+      function waitForRouteGuard(roles) {
+        if (typeof RouteGuard !== 'undefined') {
+          RouteGuard.protect(roles);
+        } else {
+          setTimeout(function() { waitForRouteGuard(roles); }, 50);
+        }
+      }
+      waitForRouteGuard(['admin']);
+    })();
+  </script>
+
   <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
             <li class="active"><a href="./docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+            <li><a href="../tutor/tutor.html"><span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span><span class="text">Tutor</span></a></li>
             <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
-            <li ><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+            <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
             <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
             <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
         </ul>
@@ -46,38 +89,38 @@
         <div class="form-row">
           <div class="form-group">
             <label>Nombre:</label>
-            <input type="text" placeholder="">
+            <input type="text" id="nombre" placeholder="Ingrese nombre">
           </div>
           <div class="form-group">
             <label>RFC:</label>
-            <input type="text" placeholder="">
+            <input type="text" id="rfc" placeholder="Ingrese RFC" maxlength="13">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label>Apellido Paterno:</label>
-            <input type="text" placeholder="">
+            <input type="text" id="ape_p" placeholder="Ingrese apellido paterno">
           </div>
           <div class="form-group">
             <label>CURP:</label>
-            <input type="text" placeholder="">
+            <input type="text" id="curp" placeholder="Ingrese CURP" maxlength="18">
           </div>
         </div>
         
         <div class="form-row">
           <div class="form-group">
             <label>Apellido Materno:</label>
-            <input type="text" placeholder="">
+            <input type="text" id="ape_m" placeholder="Ingrese apellido materno">
           </div>
           
           <div class="form-group select-group">
             <label>Sexo:</label>
             <div class="select-wrapper">
-              <select>
-                <option>Seleccionar</option>
-                <option>Masculino</option>
-                <option>Femenino</option>
+              <select id="sexo">
+                <option value="">Seleccionar</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
               </select>
               <img src="../../icons/seleccionar.svg" alt="Desplegar" class="icono-select">
             </div>
@@ -87,7 +130,7 @@
         <div class="form-rows single">
           <div class="form-group">
             <label>Fecha de Nacimiento:</label>
-            <input type="date" placeholder="DD/MM/AAAA">
+            <input type="date" id="fecha_nacimiento">
           </div>
         </div>
         <div class="boton-agregar">
@@ -99,7 +142,6 @@
        
       </form>
     </section>
-
 
     <div id="modal-overlay" class="modal-overlay">
         <div class="modal">
@@ -113,90 +155,94 @@
     </div>
 
     <script>
-    // Proteger esta página solo para admins
-    (function() {
-        function waitForRouteGuard(roles) {
-            if (typeof RouteGuard !== 'undefined') {
-                RouteGuard.protect(roles);
-            } else {
-                setTimeout(function() { waitForRouteGuard(roles); }, 50);
-            }
-        }
-        waitForRouteGuard(['admin']);
-    })();
-
     (function(){
-      function isReady(name){ try{ return typeof eval(name) !== 'undefined'; }catch(e){ return false; } }
-      function waitFor(names, timeout=5000){ return new Promise((resolve,reject)=>{ const start=Date.now(); (function poll(){ if(names.every(isReady)) return resolve(); if(Date.now()-start>timeout) return reject(new Error('Servicios no disponibles')); setTimeout(poll,50); })(); }); }
-
-      function sexoToCode(text){ if(!text) return ''; const t = text.toLowerCase(); if(t.includes('mas')) return 'M'; if(t.includes('fem')) return 'F'; return text; }
+      function isReady(name){ 
+        try{ 
+          return typeof eval(name) !== 'undefined'; 
+        } catch(e){ 
+          return false; 
+        } 
+      }
+      
+      function waitFor(names, timeout){ 
+        timeout = timeout || 5000;
+        return new Promise(function(resolve, reject){ 
+          const start = Date.now(); 
+          (function poll(){ 
+            if(names.every(isReady)) return resolve(); 
+            if(Date.now() - start > timeout) return reject(new Error('Servicios no disponibles')); 
+            setTimeout(poll, 50); 
+          })(); 
+        }); 
+      }
 
       async function createHandler(){
         try{
-          const form = document.querySelector('.form-docente');
-          const nombre = form.querySelector('input[type="text"]').value.trim();
-          const rfc = form.querySelector('input[placeholder=""]').value.trim();
-          // safer selectors
-          const inputs = form.querySelectorAll('input');
-          const nombreVal = inputs[0] ? inputs[0].value.trim() : '';
-          const rfcVal = inputs[1] ? inputs[1].value.trim() : '';
-          const ape_pVal = inputs[2] ? inputs[2].value.trim() : '';
-          const curpVal = inputs[3] ? inputs[3].value.trim() : '';
-          const ape_mVal = inputs[4] ? inputs[4].value.trim() : '';
-          const sexoSelect = form.querySelector('select');
-          const sexoVal = sexoToCode(sexoSelect ? sexoSelect.selectedOptions[0].text : '');
+          const nombre = document.getElementById('nombre').value.trim();
+          const rfc = document.getElementById('rfc').value.trim();
+          const ape_p = document.getElementById('ape_p').value.trim();
+          const curp = document.getElementById('curp').value.trim();
+          const ape_m = document.getElementById('ape_m').value.trim();
+          const sexo = document.getElementById('sexo').value;
+          const fecha_nacimiento = document.getElementById('fecha_nacimiento').value;
 
-          const username = (nombreVal && ape_pVal) ? `${nombreVal.split(' ')[0].toLowerCase()}.${ape_pVal.toLowerCase()}` : `user${Date.now()}`;
+          if (!nombre || !ape_p) {
+            alert('Nombre y apellido paterno son obligatorios');
+            return;
+          }
+
+          const username = (nombre && ape_p) ? (nombre.split(' ')[0].toLowerCase() + '.' + ape_p.toLowerCase()) : ('user' + Date.now());
           const password = 'ChangeMe123';
 
           const payload = {
-            nombre: nombreVal,
-            ape_p: ape_pVal,
-            ape_m: ape_mVal,
-            curp: curpVal,
-            rfc: rfcVal,
-            sexo: sexoVal,
+            nombre: nombre,
+            ape_p: ape_p,
+            ape_m: ape_m || '',
+            curp: curp || '',
+            rfc: rfc || '',
+            sexo: sexo || '',
+            fecha_nacimiento: fecha_nacimiento || null,
             usuario: username,
-            password,
+            password: password,
             rol: 'docente',
             estado: 'Activo'
           };
 
-          console.log('Payload a enviar:', payload);
+          console.log('📦 Payload a enviar:', payload);
           const result = await usuariosService.create(payload);
-          console.log('Resultado:', result);
+          console.log('✅ Docente creado:', result);
           document.getElementById('modal-overlay').style.display = 'flex';
-        }catch(err){ 
-          console.error('Error completo:', err); 
+        } catch(err){ 
+          console.error('❌ Error completo:', err); 
           console.error('Stack trace:', err.stack);
-          alert('Error al crear docente: '+(err.message||err)); 
+          alert('Error al crear docente: ' + (err.message || err)); 
         }
       }
 
-      document.querySelector('.back-link').addEventListener('click', function(){ window.history.back(); });
+      function closeModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+        window.location.href = 'docente.html';
+      }
 
-      waitFor(['usuariosService']).then(()=>{
+      document.querySelector('.back-link').addEventListener('click', function(){ 
+        window.history.back(); 
+      });
+
+      waitFor(['usuariosService']).then(function(){
+        console.log('✅ usuariosService disponible');
         document.querySelector('.btn-agregar').addEventListener('click', createHandler);
         const accept = document.querySelector('#modal-overlay .guardar');
-        if(accept){ accept.addEventListener('click', ()=>{ document.getElementById('modal-overlay').style.display='none'; window.location.href='docente.html'; }); }
-      }).catch(err=>console.error(err));
+        if(accept){ 
+          accept.addEventListener('click', closeModal); 
+        }
+      }).catch(function(err){
+        console.error('❌ Error esperando servicios:', err);
+      });
     })();
     </script>
 
-
-
   </main>
     <script src="../../scripts/loadDependencies.js"></script>
+    <script src="../../scripts/utils/logoutModal.js"></script>
   </body>
   </html>
-
-
-
-
-
-
-
-
-
-
-

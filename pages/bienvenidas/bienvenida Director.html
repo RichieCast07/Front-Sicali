@@ -8,32 +8,75 @@
     <link rel="stylesheet" href="../../css/navbar.css">
 </head>
 <body>
-    
-     <header class="header">
+    <header class="header">
         <div class="left-section">
             <h1 class="logo">SICALI</h1>
         </div>
         <div class="user-info">
             <div class="text-info">
-                <div class="role">Director</div>
+                <div class="role" id="userRole">Cargando...</div>
                 <div class="name" id="userName">Cargando...</div>
             </div>
-            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+            <div class="avatar" id="userAvatar" style="cursor: pointer;">
+                <img src="../../img/nino.png" alt="">
+            </div>
         </div>
     </header>
 
+    <!-- Modal Cerrar Sesión -->
+    <div id="logoutModal" class="logout-modal" style="display: none;">
+        <button id="logoutBtn" class="logout-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Cerrar Sesión
+        </button>
+    </div>
+
     <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
-            <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
-            <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
-            <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
-            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
-            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+            <li>
+                <a href="../docentes/docente.html">
+                    <img class="icon" src="../../icons/docente.svg" alt="">
+                    <span class="text">Docentes</span>
+                </a>
+            </li>
+            <li>
+                <a href="../tutordocente/tutor.html">
+                    <span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span>
+                    <span class="text">Tutor</span>
+                </a>
+            </li>
+            <li>
+                <a href="../estudiantes/estudiante.html">
+                    <img class="icon" src="../../icons/estudiante.svg" alt="">
+                    <span class="text">Estudiantes</span>
+                </a>
+            </li>
+            <li>
+                <a href="../grupos/grupos.html">
+                    <img class="icon" src="../../icons/grupos.svg" alt="">
+                    <span class="text">Grupos</span>
+                </a>
+            </li>
+            <li>
+                <a href="../asignaturas/asignatura.html">
+                    <img class="icon" src="../../icons/asignatura.svg" alt="">
+                    <span class="text">Asignaturas</span>
+                </a>
+            </li>
+            <li>
+                <a href="../estadisticas/Estadisticadirector.html">
+                    <img class="icon" src="../../icons/estadisticas.svg" alt="">
+                    <span class="text">Estadísticas</span>
+                </a>
+            </li>
         </ul>
     </nav>
 
     <main class="content" id="content">
-
         <div class="welcome-container">
             <h1 class="welcome-title">Bienvenido al Sistema de<br>Calificaciones Infantil</h1>
             <p class="welcome-description">
@@ -44,11 +87,63 @@
                 <img src="../../img/imagenbienvenidas2.png" alt="Niños celebrando">
             </div>
         </div>
-        
     </main>
+
     <script src="../../scripts/loadDependencies.js"></script>
+    
+    <style>
+        .logout-modal {
+            position: absolute;
+            top: 65px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 8px;
+            z-index: 1001;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .logout-btn:hover {
+            background: #cc0000;
+        }
+
+        .logout-btn svg {
+            flex-shrink: 0;
+        }
+    </style>
+
     <script>
-        // DEBUG: Verificar localStorage inmediatamente
+        // ==========================================
+        // DEBUG Y PROTECCIÓN DE RUTAS
+        // ==========================================
         console.log('=== DEBUG BIENVENIDA DIRECTOR ===');
         console.log('localStorage.currentUser:', localStorage.getItem('currentUser'));
         console.log('localStorage.authToken:', localStorage.getItem('authToken'));
@@ -57,7 +152,7 @@
         (function() {
             function waitForRouteGuard(roles) {
                 if (typeof RouteGuard !== 'undefined') {
-                    console.log('RouteGuard cargado, protegiendo página...');
+                    console.log('✅ RouteGuard cargado, protegiendo página...');
                     RouteGuard.protect(roles);
                 } else {
                     setTimeout(function() { waitForRouteGuard(roles); }, 50);
@@ -66,35 +161,91 @@
             waitForRouteGuard(['admin']);
         })();
 
-        // Cargar información del usuario logueado
+        // ==========================================
+        // CARGAR INFORMACIÓN DEL USUARIO DINÁMICAMENTE
+        // ==========================================
         (function() {
             try {
                 const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
                 
+                console.log('📋 Datos del usuario:', currentUser);
+                
+                // Cargar nombre completo
                 if (currentUser.nombre && currentUser.ape_p) {
                     const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
                     userName.textContent = fullName;
+                    console.log('✅ Nombre cargado:', fullName);
                 } else {
                     userName.textContent = 'Usuario';
+                    console.warn('⚠️ No se encontró nombre completo del usuario');
                 }
+
+                // Cargar rol dinámicamente
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                    console.log('✅ Rol cargado:', rolCapitalizado);
+                } else {
+                    userRole.textContent = 'Usuario';
+                    console.warn('⚠️ No se encontró rol del usuario');
+                }
+
+                console.log('✅ Usuario cargado correctamente:', {
+                    nombre: userName.textContent,
+                    rol: userRole.textContent,
+                    id: currentUser.id_usuario
+                });
+
             } catch (error) {
-                console.error('Error al cargar datos del usuario:', error);
+                console.error('❌ Error al cargar datos del usuario:', error);
                 document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
             }
         })();
+
+        // ==========================================
+        // MODAL DE CERRAR SESIÓN
+        // ==========================================
+        (function initLogoutModal() {
+            const userAvatar = document.getElementById('userAvatar');
+            const logoutModal = document.getElementById('logoutModal');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            if (!userAvatar || !logoutModal || !logoutBtn) {
+                console.error('❌ No se encontraron elementos para modal de logout');
+                return;
+            }
+
+            // Mostrar/ocultar modal al hacer clic en el avatar
+            userAvatar.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isVisible = logoutModal.style.display === 'block';
+                logoutModal.style.display = isVisible ? 'none' : 'block';
+                console.log('🔄 Modal de logout:', isVisible ? 'cerrado' : 'abierto');
+            });
+
+            // Cerrar modal al hacer clic fuera
+            document.addEventListener('click', (e) => {
+                if (!logoutModal.contains(e.target) && e.target !== userAvatar) {
+                    logoutModal.style.display = 'none';
+                }
+            });
+
+            // Cerrar sesión
+            logoutBtn.addEventListener('click', () => {
+                console.log('🚪 Cerrando sesión...');
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('authToken');
+                console.log('✅ Sesión cerrada, redirigiendo...');
+                window.location.href = '../../index.html';
+            });
+
+            console.log('✅ Modal de logout inicializado');
+        })();
     </script>
+    
+    <script src="../../scripts/utils/logoutModal.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-

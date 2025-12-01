@@ -22,6 +22,19 @@
     </div>
   </header>
 
+  <script>
+    (function() {
+      function waitForRouteGuard(roles) {
+        if (typeof RouteGuard !== 'undefined') {
+          RouteGuard.protect(roles);
+        } else {
+          setTimeout(function() { waitForRouteGuard(roles); }, 50);
+        }
+      }
+      waitForRouteGuard(['admin']);
+    })();
+  </script>
+
   <nav class="sidebar">
     <ul class="menu-list">
       <li class="active"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></li>
@@ -29,6 +42,7 @@
       <li><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></li>
       <li><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></li>
       <li><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></li>
+      <li><a href="../tutordocente/tutor.html"><img class="icon" src="../../icons/tutor.svg" alt=""><span class="text">Tutor</span></a></li>
     </ul>
   </nav>
 

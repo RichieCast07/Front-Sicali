@@ -1,7 +1,7 @@
 const API_CONFIG = {
     // URL base de la API (ajustar según ambiente)
     // En desarrollo local podemos apuntar a un proxy para evitar CORS
-    BASE_URL: 'https://sicalibackend.mangelg.space/api',
+    BASE_URL: 'http://localhost:7001/api',
     
     // Timeout para peticiones (ms)
     TIMEOUT: 30000,
@@ -70,6 +70,7 @@ const API_CONFIG = {
             BY_ESTUDIANTE: (idEstudiante) => `/asistencias/estudiante/${idEstudiante}`,
             BY_GRUPO: (idGrupo) => `/asistencias/grupo/${idGrupo}`,
             BY_FECHA: (fecha) => `/asistencias/fecha/${fecha}`,
+            PORCENTAJE: (idEstudiante, idGrupo) => `/asistencias/porcentaje/${idEstudiante}/${idGrupo}`,
             UPDATE: (id) => `/asistencias/${id}`,
             DELETE: (id) => `/asistencias/${id}`
         },

@@ -6,10 +6,9 @@
     <title>Bienvenida Docente</title>
     <link rel="stylesheet" href="../../css/bienvenidaDocente.css">
     <link rel="stylesheet" href="../../css/navbar.css">
-
 </head>
 <body>
-     <header class="header">
+    <header class="header">
         <div class="left-section">
             <h1 class="logo">SICALI</h1>
         </div>
@@ -18,26 +17,58 @@
                 <div class="role">Docente</div>
                 <div class="name" id="userName">Cargando...</div>
             </div>
-            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+            <div class="avatar" id="userAvatar">
+                <img src="../../img/nino.png" alt="">
+            </div>
         </div>
     </header>
 
+    <!-- Modal Cerrar Sesión -->
+    <div id="logoutModal" class="logout-modal" style="display: none;">
+        <button id="logoutBtn" class="logout-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Cerrar Sesión
+        </button>
+    </div>
+
     <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
-            <li><a href="../estudiantesdocente/estudiante.html"><span class="icon"> <img class="icon" src="../../icons/estudiante.svg" alt=""></span><span class="text">Estudiantes</span></a></li>
-            <li><a href="../asistencia/asistencia.html"><span class="icon"> <img class="icon" src="../../icons/asistencia.svg" alt=""></span><span class="text">Asistencias</span></a></li>
-            <li><a href="../calificaciones/calificaciones.html"><span class="icon"> <img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></a></li>
-            <li><a href="../estadisticas/estadisticasdocente.html"><span class="icon"> <img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></a></li>
+            <li>
+                <a href="../estudiantesdocente/estudiante.html">
+                    <span class="icon"><img class="icon" src="../../icons/estudiante.svg" alt=""></span>
+                    <span class="text">Estudiantes</span>
+                </a>
+            </li>
+            <li>
+                <a href="../tutordocente/tutor.html">
+                    <span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span>
+                    <span class="text">Tutor</span>
+                </a>
+            </li>
+            <li>
+                <a href="../asistencia/asistencia.html">
+                    <span class="icon"><img class="icon" src="../../icons/asistencia.svg" alt=""></span>
+                    <span class="text">Asistencias</span>
+                </a>
+            </li>
+            <li>
+                <a href="../calificaciones/calificaciones.html">
+                    <span class="icon"><img class="icon" src="../../icons/calificaciones.svg" alt=""></span>
+                    <span class="text">Calificaciones</span>
+                </a>
+            </li>
+            <li>
+                <a href="../estadisticas/estadisticasdocente.html">
+                    <span class="icon"><img class="icon" src="../../icons/estadisticas.svg" alt=""></span>
+                    <span class="text">Estadísticas</span>
+                </a>
+            </li>
         </ul>
     </nav>
-
-    <main class="content" id="content">
-        
-    </main>
-</body>
-</html>
-
-<body>
 
     <main class="content" id="content">
         <div class="welcome-container">
@@ -50,23 +81,27 @@
                 <img src="../../img/imagenbienvenidas2.png" alt="Niños celebrando">
             </div>
         </div>
-
     </main>
+
     <script src="../../scripts/loadDependencies.js"></script>
     <script>
-        // Proteger esta página para docentes y admins
+        // ==========================================
+        // PROTECCIÓN DE RUTAS
+        // ==========================================
         (function() {
             function waitForRouteGuard(roles) {
                 if (typeof RouteGuard !== 'undefined') {
                     RouteGuard.protect(roles);
                 } else {
-                    setTimeout(function() { waitForRouteGuard(roles); }, 50);
+                    setTimeout(() => waitForRouteGuard(roles), 50);
                 }
             }
             waitForRouteGuard(['docente', 'admin']);
         })();
 
-        // Cargar información del usuario logueado
+        // ==========================================
+        // CARGAR INFORMACIÓN DEL USUARIO
+        // ==========================================
         (function() {
             try {
                 const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
@@ -83,17 +118,45 @@
                 document.getElementById('userName').textContent = 'Usuario';
             }
         })();
-    </script>
 
+        // ==========================================
+        // MODAL DE CERRAR SESIÓN
+        // ==========================================
+        (function initLogoutModal() {
+            const userAvatar = document.getElementById('userAvatar');
+            const logoutModal = document.getElementById('logoutModal');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            if (!userAvatar || !logoutModal || !logoutBtn) {
+                console.error('❌ No se encontraron elementos para modal de logout');
+                return;
+            }
+
+            // Toggle modal al hacer clic en el avatar
+            userAvatar.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isVisible = logoutModal.style.display === 'block';
+                logoutModal.style.display = isVisible ? 'none' : 'block';
+            });
+
+            // Cerrar modal al hacer clic fuera
+            document.addEventListener('click', (e) => {
+                if (!logoutModal.contains(e.target) && e.target !== userAvatar) {
+                    logoutModal.style.display = 'none';
+                }
+            });
+
+            // Cerrar sesión
+            logoutBtn.addEventListener('click', () => {
+                console.log('🚪 Cerrando sesión...');
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('authToken');
+                window.location.href = '../../index.html';
+            });
+
+            console.log('✅ Modal de logout inicializado');
+        })();
+    </script>
+    <script src="../../scripts/utils/logoutModal.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-

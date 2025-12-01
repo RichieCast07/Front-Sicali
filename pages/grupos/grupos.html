@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grupo</title>
+    <title>Grupos</title>
     <link rel="stylesheet" href="../../css/estudiantes.css">
     <link rel="stylesheet" href="../../css/navbar.css">
     <link rel="stylesheet" href="../../css/modalactualizar.css">
-
-
 </head>
 
 <body>
@@ -18,158 +16,276 @@
         </div>
         <div class="user-info">
             <div class="text-info">
-                <div class="role">Director</div>
-                <div class="name">Jorge Luis Omalley Pinacho</div>
-
-<script>
-// Enhancer: conecta la UI de Grupos con `gruposService` sin eliminar el HTML existente.
-(function(){
-    let idToDelete = null;
-
-    function waitFor(names, timeout = 5000) {
-        return new Promise((resolve, reject) => {
-            const start = Date.now();
-            (function poll() {
-                try {
-                    const ok = names.every(n => { try { return typeof eval(n) !== 'undefined'; } catch(e){ return false; } });
-                    if (ok) return resolve();
-                } catch (e) {}
-                if (Date.now() - start > timeout) return reject(new Error('Servicios no disponibles: ' + names.join(',')));
-                setTimeout(poll, 50);
-            })();
-        });
-    }
-
-    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-    async function loadAndRender(){
-        try{
-            const raw = await gruposService.getAll();
-            const groups = Array.isArray(raw) ? raw : (raw ? [raw] : []);
-            
-            // Cargar inscripciones para contar alumnos por grupo
-            let inscripciones = [];
-            try {
-                inscripciones = await estudianteGrupoService.getAll();
-                console.log('✅ Inscripciones cargadas:', inscripciones.length);
-            } catch (error) {
-                console.warn('⚠️ No se pudieron cargar inscripciones:', error);
-            }
-            
-            // Contar alumnos por grupo
-            const alumnosPorGrupo = new Map();
-            inscripciones.forEach(insc => {
-                const grupoId = insc.idGrupo || insc.grupo?.idGrupo;
-                if (grupoId) {
-                    alumnosPorGrupo.set(Number(grupoId), (alumnosPorGrupo.get(Number(grupoId)) || 0) + 1);
-                }
-            });
-            console.log('📊 Alumnos por grupo:', alumnosPorGrupo);
-            
-            const tbody = document.querySelector('.tabla-docentes tbody');
-            const newTbody = tbody.cloneNode(false);
-
-            // Si no hay grupos, reemplazar el tbody con un mensaje "sin resultados"
-            if(!groups.length) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td colspan="6" style="text-align:center;padding:16px;color:#666">No hay grupos registrados</td>`;
-                newTbody.appendChild(tr);
-                tbody.parentNode.replaceChild(newTbody, tbody);
-                return;
-            }
-            groups.forEach((g, idx) => {
-                const tr = document.createElement('tr');
-                tr.setAttribute('data-id', g.id || g.idGrupo || '');
-                const docenteName = (g.idDocente && (g.idDocente.nombre ? `${g.idDocente.nombre} ${g.idDocente.ape_p||''}` : g.idDocente)) || '';
-                
-                // Obtener total de alumnos del Map
-                const grupoId = g.idGrupo || g.id;
-                const totalAlumnos = alumnosPorGrupo.get(Number(grupoId)) || 0;
-                
-                tr.innerHTML = `
-                    <td>${idx+1}</td>
-                    <td>${escapeHtml(g.nombre)}</td>
-                    <td>${escapeHtml(g.grado)}</td>
-                    <td>${escapeHtml(docenteName)}</td>
-                    <td>${totalAlumnos}</td>
-                    <td>
-                        <button class="btn-editar"><img src="../../icons/visualizar.svg" alt="visualizar"/></button>
-                        <button class="btn-eliminar"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button>
-                    </td>`;
-                newTbody.appendChild(tr);
-
-                // attach handlers
-                const editBtn = tr.querySelector('.btn-editar');
-                editBtn.addEventListener('click', () => { window.location.href = 'editargrupo.html?id=' + encodeURIComponent(g.id || g.idGrupo); });
-
-                const delBtn = tr.querySelector('.btn-eliminar');
-                delBtn.addEventListener('click', (e) => { e.preventDefault(); idToDelete = g.id || g.idGrupo; showDeleteModal(); });
-            });
-            tbody.parentNode.replaceChild(newTbody, tbody);
-            setupSearch();
-        }catch(err){ console.error('Error cargando grupos (enhancer)', err); }
-    }
-
-    // Setup search functionality
-    function setupSearch(){
-        const searchInput = document.getElementById('buscarGrupo');
-        if(!searchInput) return;
-        
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase().trim();
-            const rows = document.querySelectorAll('.tabla-docentes tbody tr');
-            
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                if(cells.length === 0) return;
-                
-                // Buscar en nombre, grado, docente (columnas 1-4)
-                const nombre = cells[1]?.textContent.toLowerCase() || '';
-                const grado = cells[2]?.textContent.toLowerCase() || '';
-                const docente = cells[3]?.textContent.toLowerCase() || '';
-                
-                const matches = nombre.includes(searchTerm) || 
-                              grado.includes(searchTerm) || 
-                              docente.includes(searchTerm);
-                
-                row.style.display = matches ? '' : 'none';
-            });
-        });
-    }
-
-    // Sobrescribe confirmDelete global para llamar a la API y refrescar tabla
-    window.confirmDelete = async function(){
-        try{
-            closeDeleteModal();
-            if(!idToDelete) return;
-            await gruposService.delete(Number(idToDelete));
-            idToDelete = null;
-            await loadAndRender();
-            document.getElementById('delete-success-modal-overlay').style.display = 'flex';
-        }catch(err){ console.error('Error eliminando grupo (enhancer)', err); alert('Error eliminando: '+(err.message||err)); }
-    };
-
-    // Inicializar cuando servicios estén disponibles
-    waitFor(['gruposService', 'estudianteGrupoService']).then(loadAndRender).catch(err => console.warn('No se cargaron los servicios:', err.message));
-})();
-</script>
+                <div class="role" id="userRole">Cargando...</div>
+                <div class="name" id="userName">Cargando...</div>
             </div>
-            <div class="avatar"><img src="../../img/nino.png" alt=""></div>
+            <div class="avatar" id="userAvatar">
+                <img src="../../img/nino.png" alt="">
+            </div>
         </div>
     </header>
+
+    <script>
+        // ==========================================
+        // CARGAR INFORMACIÓN DEL USUARIO DINÁMICAMENTE
+        // ==========================================
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                // Cargar nombre completo
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+
+                // Cargar rol dinámicamente
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                } else {
+                    userRole.textContent = 'Usuario';
+                }
+
+                console.log('✅ Usuario cargado:', {
+                    nombre: userName.textContent,
+                    rol: userRole.textContent,
+                    id: currentUser.id_usuario
+                });
+
+            } catch (error) {
+                console.error('❌ Error al cargar datos del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
+            }
+        })();
+    </script>
+
+    <script>
+        // ==========================================
+        // ENHANCER: CARGAR Y RENDERIZAR GRUPOS
+        // ==========================================
+        (function(){
+            let idToDelete = null;
+
+            function waitFor(names, timeout = 5000) {
+                return new Promise((resolve, reject) => {
+                    const start = Date.now();
+                    (function poll() {
+                        try {
+                            const ok = names.every(n => { 
+                                try { 
+                                    return typeof eval(n) !== 'undefined'; 
+                                } catch(e) { 
+                                    return false; 
+                                } 
+                            });
+                            if (ok) return resolve();
+                        } catch (e) {}
+                        if (Date.now() - start > timeout) {
+                            return reject(new Error('Servicios no disponibles: ' + names.join(',')));
+                        }
+                        setTimeout(poll, 50);
+                    })();
+                });
+            }
+
+            function escapeHtml(s) { 
+                return String(s || '').replace(/[&<>"']/g, c => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[c])); 
+            }
+
+            async function loadAndRender(){
+                try {
+                    console.log('📚 Cargando grupos...');
+
+                    const raw = await gruposService.getAll();
+                    const groups = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+                    
+                    console.log('✅ Grupos cargados:', groups.length);
+
+                    // Cargar inscripciones para contar alumnos por grupo
+                    let inscripciones = [];
+                    try {
+                        inscripciones = await estudianteGrupoService.getAll();
+                        console.log('✅ Inscripciones cargadas:', inscripciones.length);
+                    } catch (error) {
+                        console.warn('⚠️ No se pudieron cargar inscripciones:', error);
+                    }
+                    
+                    // Contar alumnos por grupo
+                    const alumnosPorGrupo = new Map();
+                    inscripciones.forEach(insc => {
+                        const grupoId = insc.idGrupo || insc.grupo?.idGrupo;
+                        if (grupoId) {
+                            alumnosPorGrupo.set(Number(grupoId), (alumnosPorGrupo.get(Number(grupoId)) || 0) + 1);
+                        }
+                    });
+                    console.log('📊 Alumnos por grupo:', alumnosPorGrupo);
+                    
+                    const tbody = document.querySelector('.tabla-docentes tbody');
+                    const newTbody = tbody.cloneNode(false);
+
+                    if (!groups.length) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td colspan="6" style="text-align:center;padding:40px;color:#666">No hay grupos registrados</td>`;
+                        newTbody.appendChild(tr);
+                        tbody.parentNode.replaceChild(newTbody, tbody);
+                        return;
+                    }
+
+                    groups.forEach((g, idx) => {
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-id', g.id || g.idGrupo || '');
+                        const docenteName = (g.idDocente && (g.idDocente.nombre ? `${g.idDocente.nombre} ${g.idDocente.ape_p || ''}` : g.idDocente)) || '-';
+                        
+                        // Obtener total de alumnos del Map
+                        const grupoId = g.idGrupo || g.id;
+                        const totalAlumnos = alumnosPorGrupo.get(Number(grupoId)) || 0;
+                        
+                        tr.innerHTML = `
+                            <td>${idx + 1}</td>
+                            <td>${escapeHtml(g.nombre)}</td>
+                            <td>${escapeHtml(g.grado)}</td>
+                            <td>${escapeHtml(docenteName)}</td>
+                            <td>${totalAlumnos}</td>
+                            <td>
+                                <button class="btn-editar"><img src="../../icons/visualizar.svg" alt="visualizar"/></button>
+                                <button class="btn-eliminar"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button>
+                            </td>`;
+                        newTbody.appendChild(tr);
+
+                        const editBtn = tr.querySelector('.btn-editar');
+                        editBtn.addEventListener('click', () => { 
+                            window.location.href = 'editargrupo.html?id=' + encodeURIComponent(g.id || g.idGrupo); 
+                        });
+
+                        const delBtn = tr.querySelector('.btn-eliminar');
+                        delBtn.addEventListener('click', (e) => { 
+                            e.preventDefault(); 
+                            idToDelete = g.id || g.idGrupo; 
+                            showDeleteModal(); 
+                        });
+                    });
+
+                    tbody.parentNode.replaceChild(newTbody, tbody);
+                    setupSearch();
+
+                    console.log('✅ Tabla renderizada con', groups.length, 'grupos');
+
+                } catch(err) { 
+                    console.error('❌ Error cargando grupos:', err); 
+                    const tbody = document.querySelector('.tabla-docentes tbody');
+                    tbody.innerHTML = `<td colspan="6" style="text-align:center;padding:40px;color:#f44">Error al cargar grupos</td>`;
+                }
+            }
+
+            // Setup search functionality
+            function setupSearch() {
+                const searchInput = document.getElementById('buscarGrupo');
+                if (!searchInput) return;
+                
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase().trim();
+                    const rows = document.querySelectorAll('.tabla-docentes tbody tr');
+                    
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length === 0) return;
+                        
+                        const nombre = cells[1]?.textContent.toLowerCase() || '';
+                        const grado = cells[2]?.textContent.toLowerCase() || '';
+                        const docente = cells[3]?.textContent.toLowerCase() || '';
+                        
+                        const matches = nombre.includes(searchTerm) || 
+                                      grado.includes(searchTerm) || 
+                                      docente.includes(searchTerm);
+                        
+                        row.style.display = matches ? '' : 'none';
+                    });
+                });
+            }
+
+            window.confirmDelete = async function() {
+                try {
+                    closeDeleteModal();
+                    if (!idToDelete) return;
+
+                    console.log('🗑️ Eliminando grupo:', idToDelete);
+                    await gruposService.delete(Number(idToDelete));
+                    
+                    idToDelete = null;
+                    await loadAndRender();
+                    
+                    document.getElementById('delete-success-modal-overlay').style.display = 'flex';
+                    console.log('✅ Grupo eliminado correctamente');
+                } catch(err) { 
+                    console.error('❌ Error eliminando grupo:', err); 
+                    alert('Error eliminando: ' + (err.message || err)); 
+                }
+            };
+
+            waitFor(['gruposService', 'estudianteGrupoService'])
+                .then(() => {
+                    console.log('✅ Servicios cargados');
+                    loadAndRender();
+                })
+                .catch(err => console.error('❌ Error cargando servicios:', err.message));
+        })();
+    </script>
     
     <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
-            <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
-            <li ><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
-            <li class="active"><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
-            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
-            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+            <li>
+                <a href="../docentes/docente.html">
+                    <img class="icon" src="../../icons/docente.svg" alt="">
+                    <span class="text">Docentes</span>
+                </a>
+            </li>
+            <li>
+                <a href="../tutor/tutor.html">
+                    <span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span>
+                    <span class="text">Tutor</span>
+                </a>
+            </li>
+            <li>
+                <a href="../estudiantes/estudiante.html">
+                    <img class="icon" src="../../icons/estudiante.svg" alt="">
+                    <span class="text">Estudiantes</span>
+                </a>
+            </li>
+            <li class="active">
+                <a href="../grupos/grupos.html">
+                    <img class="icon" src="../../icons/grupos.svg" alt="">
+                    <span class="text">Grupos</span>
+                </a>
+            </li>
+            <li>
+                <a href="../asignaturas/asignatura.html">
+                    <img class="icon" src="../../icons/asignatura.svg" alt="">
+                    <span class="text">Asignaturas</span>
+                </a>
+            </li>
+            <li>
+                <a href="../estadisticas/Estadisticadirector.html">
+                    <img class="icon" src="../../icons/estadisticas.svg" alt="">
+                    <span class="text">Estadísticas</span>
+                </a>
+            </li>
         </ul>
     </nav>
 
     <main class="content" id="content">
-            <section class="docentes-section">
+        <section class="docentes-section">
             <h1 class="titulo">Grupos</h1>
 
             <div class="acciones-superiores">
@@ -181,7 +297,7 @@
                 <div class="agregar">
                     <label for="">Grupo</label>
                     <button class="btn-agregar" onclick="window.location.href='agregargrupo.html'">
-                      <img src="../../icons/agregar.svg" alt="Icono agregar" class="icono-agregar"/>
+                        <img src="../../icons/agregar.svg" alt="Icono agregar" class="icono-agregar"/>
                         Agregar
                     </button>
                 </div>
@@ -200,36 +316,8 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>1</td>
-                         <td>A</td>
-                          <td>Primero</td>
-                        <td>Velazque Padilla Alejandra</td>
-                        <td>15</td>
-                        <td>
-                            <button class="btn-editar" onclick="window.location.href='editargrupo.html'"><img src="../../icons/visualizar.svg" alt="visualizar"/></button>
-                            <button class="btn-eliminar" onclick="showDeleteModal()"><img src="../../icons/eliminar.svg" alt="Eliminar"/></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>A</td>
-                        <td>Segundo</td>
-                        <td>Roque Salvatierra Maria</td>
-                        <td>19</td>
-                        <td>
-                            <button class="btn-editar" onclick="window.location.href='editargrupo.html'"><img src="../../icons/visualizar.svg" alt="visualizar"/></button>
-                            <button class="btn-eliminar" onclick="showDeleteModal()"><img src="../../icons/Eliminar.svg" alt="Eliminar"/></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>A</td>
-                        <td>Tercero</td>
-                        <td>Omalley Pinacho Jorge</td>
-                        <td>13</td>
-                        <td>
-                            <button class="btn-editar" onclick="window.location.href='editargrupo.html'"><img src="../../icons/visualizar.svg" alt="visualizar"/></button>
-                            <button class="btn-eliminar" onclick="showDeleteModal()"><img src="../../icons/Eliminar.svg" alt="Eliminar"/></button>
+                        <td colspan="6" style="text-align:center;padding:40px;color:#666">
+                            Cargando grupos...
                         </td>
                     </tr>
                 </tbody>
@@ -237,69 +325,56 @@
         </section>
 
         <div id="delete-modal-overlay" class="modal-overlay">
-   <div class="modal">
-       <img src="../../icons/inforojo.svg" alt="eliminar" class="modal-icon">
-       <h3>¿Desea eliminarlo?</h3>
-       <p>Estas acción es permanente y no podrá deshacerse</p>
-       <div class="modal-buttons">
-           <button class="eliminar" onclick="window.confirmDelete()">Eliminar</button>
-           <button class="cancel" onclick="closeDeleteModal()">Cancelar</button>
-       </div>
-   </div>
-</div>
+            <div class="modal">
+                <img src="../../icons/inforojo.svg" alt="eliminar" class="modal-icon">
+                <h3>¿Desea eliminarlo?</h3>
+                <p>Esta acción es permanente y no podrá deshacerse</p>
+                <div class="modal-buttons">
+                    <button class="eliminar" onclick="window.confirmDelete()">Eliminar</button>
+                    <button class="cancel" onclick="closeDeleteModal()">Cancelar</button>
+                </div>
+            </div>
+        </div>
 
-<div id="delete-success-modal-overlay" class="modal-overlay">
-   <div class="modal">
-       <img src="../../icons/successrojo.svg" alt="success" class="modal-icon">
-       <h3>Eliminado correctamente</h3>
-       <p>El registro que seleccionaste se elimino del sistema</p>
-       <div class="modal-buttons">
-           <button class="eliminar" onclick="closeDeleteSuccessModal()">Aceptar</button>
-       </div>
-   </div>
-</div>
-
-<script>
-    // Proteger esta página solo para admins
-    (function() {
-        function waitForRouteGuard(roles) {
-            if (typeof RouteGuard !== 'undefined') {
-                RouteGuard.protect(roles);
-            } else {
-                setTimeout(function() { waitForRouteGuard(roles); }, 50);
-            }
-        }
-        waitForRouteGuard(['admin']);
-    })();
-
-    function showDeleteModal() {
-   document.getElementById('delete-modal-overlay').style.display = 'flex';
-}
-
-
-function closeDeleteModal() {
-   document.getElementById('delete-modal-overlay').style.display = 'none';
-}
-
-/* confirmDelete() is implemented by the enhancer above and performs the API delete. */
-
-function closeDeleteSuccessModal() {
-    document.getElementById('delete-success-modal-overlay').style.display = 'none';
-}
-</script>
-
+        <div id="delete-success-modal-overlay" class="modal-overlay">
+            <div class="modal">
+                <img src="../../icons/successrojo.svg" alt="success" class="modal-icon">
+                <h3>Eliminado correctamente</h3>
+                <p>El registro que seleccionaste se eliminó del sistema</p>
+                <div class="modal-buttons">
+                    <button class="eliminar" onclick="closeDeleteSuccessModal()">Aceptar</button>
+                </div>
+            </div>
+        </div>
     </main>
-        <script src="../../scripts/loadDependencies.js"></script>
-    </body>
-    </html>
 
+    <script>
+        // Proteger esta página solo para admins
+        (function() {
+            function waitForRouteGuard(roles) {
+                if (typeof RouteGuard !== 'undefined') {
+                    RouteGuard.protect(roles);
+                } else {
+                    setTimeout(function() { waitForRouteGuard(roles); }, 50);
+                }
+            }
+            waitForRouteGuard(['admin']);
+        })();
 
+        function showDeleteModal() {
+            document.getElementById('delete-modal-overlay').style.display = 'flex';
+        }
 
+        function closeDeleteModal() {
+            document.getElementById('delete-modal-overlay').style.display = 'none';
+        }
 
+        function closeDeleteSuccessModal() {
+            document.getElementById('delete-success-modal-overlay').style.display = 'none';
+        }
+    </script>
 
-
-
-
-
-
-
+    <script src="../../scripts/loadDependencies.js"></script>
+    <script src="../../scripts/utils/logoutModal.js"></script>
+</body>
+</html>

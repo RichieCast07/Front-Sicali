@@ -19,43 +19,53 @@
           <div class="role">Docente</div>
           <div class="name" id="userName">Cargando...</div>
         </div>
-        <div class="avatar"><img src="../../img/nino.png" alt="" /></div>
+        <div class="avatar" id="userAvatar" style="cursor: pointer;">
+          <img src="../../img/nino.png" alt="" />
+        </div>
       </div>
     </header>
+
+    <!-- Modal Cerrar Sesión -->
+    <div id="logoutModal" class="logout-modal" style="display: none;">
+      <button id="logoutBtn" class="logout-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        Cerrar Sesión
+      </button>
+    </div>
 
     <nav class="sidebar" id="sidebar">
       <ul class="menu-list">
         <li>
-          <a href="../estudiantesdocente/estudiante.html"
-            ><span class="icon">
-              <img class="icon" src="../../icons/estudiante.svg" alt="" /></span
-            ><span class="text">Estudiantes</span></a
-          >
+          <a href="../estudiantesdocente/estudiante.html">
+            <span class="icon"><img class="icon" src="../../icons/estudiante.svg" alt="" /></span>
+            <span class="text">Estudiantes</span>
+          </a>
         </li>
         <li>
-          <a href="../asistencia/asistencia.html"
-            ><span class="icon">
-              <img class="icon" src="../../icons/asistencia.svg" alt="" /></span
-            ><span class="text">Asistencias</span></a
-          >
+          <a href="../tutordocente/tutor.html">
+            <span class="icon"><img class="icon" src="../../icons/tutor.svg" alt="" /></span>
+            <span class="text">Tutor</span>
+          </a>
         </li>
         <li>
-          <span class="icon">
-            <img
-              class="icon"
-              src="../../icons/calificaciones.svg"
-              alt="" /></span
-          ><span class="text">Calificaciones</span>
+          <a href="../asistencia/asistencia.html">
+            <span class="icon"><img class="icon" src="../../icons/asistencia.svg" alt="" /></span>
+            <span class="text">Asistencias</span>
+          </a>
+        </li>
+        <li class="active">
+          <span class="icon"><img class="icon" src="../../icons/calificaciones.svg" alt="" /></span>
+          <span class="text">Calificaciones</span>
         </li>
         <li>
-          <a href="../estadisticas/estadisticasdocente.html"
-            ><span class="icon">
-              <img
-                class="icon"
-                src="../../icons/estadisticas.svg"
-                alt="" /></span
-            ><span class="text">Estadísticas</span></a
-          >
+          <a href="../estadisticas/estadisticasdocente.html">
+            <span class="icon"><img class="icon" src="../../icons/estadisticas.svg" alt="" /></span>
+            <span class="text">Estadísticas</span>
+          </a>
         </li>
       </ul>
     </nav>
@@ -355,7 +365,7 @@
             const asignaturaId = document.getElementById('asignaturaSelect').value;
             if (!asignaturaId || !currentGrupo) return;
 
-            console.log('📊 Cargando calificaciones existentes...');
+            console.log('📊 Cargando calificaciones existentes para grupo', currentGrupo.idGrupo, 'asignatura', asignaturaId);
 
             let calificacionesActuales = [];
 
@@ -363,21 +373,57 @@
             try {
               const response = await httpClient.get(API_CONFIG.ENDPOINTS.CALIFICACIONES.LIST);
               
-              if (response.success && response.data) {
-                const calificaciones = Array.isArray(response.data) ? response.data : [response.data];
-                
-                // Filtrar calificaciones del grupo y asignatura actual
-                calificacionesActuales = calificaciones.filter(cal => {
-                  const grupoId = cal.idGrupo || cal.grupo?.idGrupo;
-                  const asigId = cal.idAsignatura || cal.asignatura?.idAsignatura;
-                  return Number(grupoId) === Number(currentGrupo.idGrupo) && 
-                         Number(asigId) === Number(asignaturaId);
-                });
-
-                console.log('✅ Calificaciones del backend:', calificacionesActuales.length);
+              console.log('📦 Response completo del backend:', response);
+              
+              let calificaciones = [];
+              
+              // El httpClient ya desenvuelve response.data, pero calificaciones tiene otro nivel
+              if (response && response.data) {
+                // Si response.data tiene otra propiedad data (doble anidamiento)
+                if (response.data.data && Array.isArray(response.data.data)) {
+                  calificaciones = response.data.data;
+                } 
+                // Si response.data es directamente un array
+                else if (Array.isArray(response.data)) {
+                  calificaciones = response.data;
+                }
+                // Si response.data es un solo objeto
+                else {
+                  calificaciones = [response.data];
+                }
+              } 
+              // Si response es directamente un array
+              else if (Array.isArray(response)) {
+                calificaciones = response;
               }
+              
+              console.log(`🔎 Total calificaciones en BD: ${calificaciones.length}`);
+              if (calificaciones.length > 0) {
+                console.log('📋 Primera calificación de ejemplo:', calificaciones[0]);
+              }
+              console.log(`🎯 Filtrando por grupo ${currentGrupo.idGrupo} y asignatura ${asignaturaId}`);
+              
+              // Filtrar calificaciones del grupo y asignatura actual
+              calificacionesActuales = calificaciones.filter(cal => {
+                const grupoId = cal.idGrupo || cal.grupo?.idGrupo;
+                const asigId = cal.idAsignatura || cal.asignatura?.idAsignatura;
+                const coincideGrupo = Number(grupoId) === Number(currentGrupo.idGrupo);
+                const coincideAsignatura = Number(asigId) === Number(asignaturaId);
+                
+                // Log detallado de cada calificación
+                console.log(`  📋 Cal: Estudiante=${cal.idEstudiante}, Grupo=${grupoId} (buscando ${currentGrupo.idGrupo}), Asig=${asigId} (buscando ${asignaturaId})`);
+                console.log(`     Coincide Grupo: ${coincideGrupo}, Coincide Asignatura: ${coincideAsignatura}`);
+                
+                if (coincideGrupo && coincideAsignatura) {
+                  console.log(`  ✅ MATCH! Esta calificación será cargada`);
+                }
+                
+                return coincideGrupo && coincideAsignatura;
+              });
+
+              console.log('✅ Calificaciones filtradas del backend:', calificacionesActuales.length);
             } catch (error) {
-              console.warn('⚠️ Backend no disponible, usando localStorage');
+              console.warn('⚠️ Backend no disponible, usando localStorage:', error.message);
             }
 
             // Cargar calificaciones de localStorage
@@ -409,23 +455,44 @@
             }
 
             if (calificacionesActuales.length === 0) {
-              console.log('ℹ️ No hay calificaciones previas');
+              console.log('ℹ️ No hay calificaciones previas para esta asignatura');
+              // Limpiar todos los inputs cuando no hay calificaciones
+              document.querySelectorAll('.calificacion-input').forEach(input => {
+                input.value = '0';
+              });
               return;
             }
 
             console.log('✅ Total calificaciones encontradas:', calificacionesActuales.length);
+            console.log('📋 Calificaciones a cargar:', calificacionesActuales);
+
+            // Primero limpiar todos los inputs
+            document.querySelectorAll('.calificacion-input').forEach(input => {
+              input.value = '0';
+            });
 
             // Rellenar inputs con calificaciones existentes
             calificacionesActuales.forEach(cal => {
               const estudianteId = cal.idEstudiante || cal.estudiante?.id_usuario;
               const row = document.querySelector(`tr[data-estudiante-id="${estudianteId}"]`);
               
+              console.log(`🔍 Buscando row para estudiante ${estudianteId}:`, row ? 'encontrado' : 'NO encontrado');
+              
               if (row) {
                 const inputs = row.querySelectorAll('.calificacion-input');
-                if (cal.calificacion1 !== undefined && inputs[0]) inputs[0].value = cal.calificacion1;
-                if (cal.calificacion2 !== undefined && inputs[1]) inputs[1].value = cal.calificacion2;
-                if (cal.calificacion3 !== undefined && inputs[2]) inputs[2].value = cal.calificacion3;
-                if (cal.calificacion4 !== undefined && inputs[3]) inputs[3].value = cal.calificacion4;
+                
+                // Asegurarse de que los valores no sean null/undefined
+                const c1 = cal.calificacion1 !== null && cal.calificacion1 !== undefined ? cal.calificacion1 : 0;
+                const c2 = cal.calificacion2 !== null && cal.calificacion2 !== undefined ? cal.calificacion2 : 0;
+                const c3 = cal.calificacion3 !== null && cal.calificacion3 !== undefined ? cal.calificacion3 : 0;
+                const c4 = cal.calificacion4 !== null && cal.calificacion4 !== undefined ? cal.calificacion4 : 0;
+                
+                if (inputs[0]) inputs[0].value = c1;
+                if (inputs[1]) inputs[1].value = c2;
+                if (inputs[2]) inputs[2].value = c3;
+                if (inputs[3]) inputs[3].value = c4;
+                
+                console.log(`✅ Calificaciones cargadas para estudiante ${estudianteId}:`, c1, c2, c3, c4);
               }
             });
 
@@ -489,9 +556,10 @@
                 erroresValidacion.push(`Estudiante ${idx + 1}: calificaciones fuera del rango 0-10`);
               }
               
+              // El backend acepta camelCase en JSON (idEstudiante, idGrupo, idAsignatura)
               calificaciones.push({
                 idEstudiante: parseInt(estudianteId),
-                idGrupo: currentGrupo.idGrupo,
+                idGrupo: parseInt(currentGrupo.idGrupo),
                 idAsignatura: parseInt(asignaturaId),
                 calificacion1: cal1,
                 calificacion2: cal2,
@@ -528,7 +596,7 @@
                   errores.push(`Estudiante ${cal.idEstudiante}: ${response.error || 'Error desconocido'}`);
                 }
               } catch (error) {
-                console.warn('⚠️ Backend no disponible (404), guardando localmente:', error.message);
+                console.warn('⚠️ Backend no disponible, guardando localmente:', error.message);
                 
                 // Guardar en localStorage como fallback
                 calificacionesLocales.push({
@@ -587,11 +655,75 @@
                 typeof usuariosService !== 'undefined') {
               clearInterval(checkServices);
               loadGrupoDocente();
+              
+              // Event listener para cambio de asignatura
+              const asignaturaSelect = document.getElementById('asignaturaSelect');
+              if (asignaturaSelect) {
+                asignaturaSelect.addEventListener('change', async function() {
+                  const asignaturaId = this.value;
+                  if (asignaturaId && currentEstudiantes.length > 0) {
+                    console.log(`🔄 Cambiando a asignatura ${asignaturaId}...`);
+                    await loadCalificacionesExistentes();
+                  }
+                });
+              }
             }
           }, 100);
         });
       </script>
     </main>
+
+    <!-- Estilos Modal Logout -->
+    <style>
+      /* Avatar clickeable */
+      #userAvatar {
+        cursor: pointer !important;
+        transition: opacity 0.2s;
+      }
+
+      #userAvatar:hover {
+        opacity: 0.8;
+      }
+
+      .logout-modal {
+        position: absolute;
+        top: 65px;
+        right: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: 8px;
+        z-index: 1001;
+        animation: fadeIn 0.2s ease;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .logout-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: #ff4444;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background 0.2s;
+        white-space: nowrap;
+      }
+
+      .logout-btn:hover {
+        background: #cc0000;
+      }
+    </style>
+
     <script src="../../scripts/loadDependencies.js"></script>
+    <script src="../../scripts/utils/logoutModal.js"></script>
   </body>
 </html>

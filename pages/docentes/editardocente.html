@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Editar Docente</title>
+  <title>Visualizar Docente</title>
   <link rel="stylesheet" href="../../css/editardocente.css">
   <link rel="stylesheet" href="../../css/navbar.css">
 </head>
@@ -15,22 +15,65 @@
     </div>
     <div class="user-info">
       <div class="text-info">
-        <div class="role">Director</div>
-        <div class="name">Jorge Luis Omalley Pinacho</div>
+        <div class="role" id="userRole">Cargando...</div>
+        <div class="name" id="userName">Cargando...</div>
       </div>
       <div class="avatar"><img src="../../img/nino.png" alt=""></div>
     </div>
   </header>
 
-    <nav class="sidebar" id="sidebar">
-        <ul class="menu-list">
-            <li class="active"><a href="./docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
-            <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
-            <li ><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
-            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
-            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
-        </ul>
-    </nav>
+  <script>
+    // ==========================================
+    // CARGAR INFORMACIÓN DEL USUARIO DINÁMICAMENTE
+    // ==========================================
+    (function() {
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            const userName = document.getElementById('userName');
+            const userRole = document.getElementById('userRole');
+            
+            if (currentUser.nombre && currentUser.ape_p) {
+                const fullName = (currentUser.nombre + ' ' + currentUser.ape_p + ' ' + (currentUser.ape_m || '')).trim();
+                userName.textContent = fullName;
+            } else {
+                userName.textContent = 'Usuario';
+            }
+
+            if (currentUser.rol) {
+                const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                userRole.textContent = rolCapitalizado;
+            } else {
+                userRole.textContent = 'Usuario';
+            }
+        } catch (error) {
+            console.error('❌ Error al cargar datos del usuario:', error);
+            document.getElementById('userName').textContent = 'Usuario';
+            document.getElementById('userRole').textContent = 'Usuario';
+        }
+    })();
+
+    (function() {
+      function waitForRouteGuard(roles) {
+        if (typeof RouteGuard !== 'undefined') {
+          RouteGuard.protect(roles);
+        } else {
+          setTimeout(function() { waitForRouteGuard(roles); }, 50);
+        }
+      }
+      waitForRouteGuard(['admin']);
+    })();
+  </script>
+
+  <nav class="sidebar" id="sidebar">
+      <ul class="menu-list">
+          <li class="active"><a href="./docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+          <li><a href="../tutor/tutor.html"><span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span><span class="text">Tutor</span></a></li>
+          <li><a href="../estudiantes/estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
+          <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
+          <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
+          <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+      </ul>
+  </nav>
 
   <main class="content">
     <button type="button" class="back-link">
@@ -45,36 +88,36 @@
         <div class="form-row">
           <div class="form-group">
             <label>Nombre:</label>
-            <input type="text" value="alejandra" disabled>
+            <input type="text" id="nombre" disabled placeholder="Cargando...">
           </div>
           <div class="form-group">
             <label>RFC:</label>
-            <input type="text" value="VETA850621det" disabled>
+            <input type="text" id="rfc" disabled placeholder="Cargando...">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label>Apellido Paterno:</label>
-            <input type="text" value="vela" disabled>
+            <input type="text" id="ape_p" disabled placeholder="Cargando...">
           </div>
           <div class="form-group">
             <label>CURP:</label>
-            <input type="text" value="VETA850621MDFLLRA9" disabled>
+            <input type="text" id="curp" disabled placeholder="Cargando...">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label>Apellido Materno:</label>
-            <input type="text" value="torrez" disabled>
+            <input type="text" id="ape_m" disabled placeholder="Cargando...">
           </div>
           <div class="form-group">
             <label>Sexo:</label>
-            <select disabled>
-              <option>Seleccionar</option>
-              <option>Masculino</option>
-              <option selected>Femenino</option>
+            <select id="sexo" disabled>
+              <option value="">Seleccionar</option>
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
             </select>
           </div>
         </div>
@@ -82,22 +125,20 @@
         <div class="form-row">
           <div class="form-group">
             <label>Fecha de Nacimiento:</label>
-            <input type="date" value="1985-06-21" disabled>
+            <input type="date" id="fecha_nacimiento" disabled>
           </div>
           <div class="form-group">
             <label>Usuario:</label>
-            <input type="text" value="alejandra.vela" disabled>
+            <input type="text" id="usuario" disabled placeholder="Cargando...">
           </div>
           <div class="form-group" style="position: relative;">
-          <label>Contraseña:</label>
-          <input type="password" id="password" value="1sicali" disabled>
-          <button type="button" onclick="togglePassword()" style="position: absolute; right: 10px; top: 32px;">
-            <span class="iconpasswor"><img src="../../icons/visualizar password.svg" alt="Flecha atrás" /></span>
-          </button>
-         </div>
+            <label>Contraseña:</label>
+            <input type="password" id="password" disabled placeholder="Cargando...">
+            <button type="button" id="togglePasswordBtn" style="position: absolute; right: 10px; top: 32px; background: none; border: none; cursor: pointer;">
+              <span class="iconpasswor"><img src="../../icons/visualizar password.svg" alt="Mostrar/Ocultar contraseña" /></span>
+            </button>
+          </div>
         </div>
-
-
 
         <div class="boton-editar">
           <button type="button" onclick="navigateToSave()" class="btn-editar">
@@ -108,128 +149,131 @@
       </form>
     </section>
  
- <script>
-    // Proteger esta página solo para admins
-    (function() {
-        function waitForRouteGuard(roles) {
-            if (typeof RouteGuard !== 'undefined') {
-                RouteGuard.protect(roles);
-            } else {
-                setTimeout(function() { waitForRouteGuard(roles); }, 50);
-            }
-        }
-        waitForRouteGuard(['admin']);
-    })();
+    <script>
+    let dataLoaded = false;
+    let savedFecha = null;
+    let savedPassword = null;
 
     document.querySelector(".back-link").addEventListener("click", function () {
-    window.history.back();
+      window.history.back();
     });
 
-  function getIdFromQuery(){ const p = new URLSearchParams(location.search); return p.get('id'); }
-  function navigateToSave(){ const id = getIdFromQuery(); window.location.href = 'guardardocente.html' + (id? '?id='+encodeURIComponent(id): ''); }
+    function getIdFromQuery(){ 
+      const p = new URLSearchParams(location.search); 
+      return p.get('id'); 
+    }
+    
+    function navigateToSave(){ 
+      const id = getIdFromQuery(); 
+      window.location.href = 'guardardocente.html' + (id ? '?id=' + encodeURIComponent(id) : ''); 
+    }
 
     function togglePassword() {
       const passwordInput = document.getElementById('password');
-      const currentValue = passwordInput.value; // Guardar el valor actual
-      
-      console.log('🔐 Toggle password - Valor actual:', currentValue);
-      
-      if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-      } else {
-        passwordInput.type = 'password';
+      if (passwordInput) {
+        passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
       }
-      
-      // Restaurar el valor después de cambiar el tipo
-      passwordInput.value = currentValue;
-      console.log('✅ Valor restaurado:', passwordInput.value);
     }
 
-  // Load docente data on page load
-  (function(){
-    function isReady(name){ try{ return typeof eval(name) !== 'undefined'; }catch(e){ return false; } }
-    function waitFor(names, timeout=5000){ return new Promise((resolve,reject)=>{ const start=Date.now(); (function poll(){ if(names.every(isReady)) return resolve(); if(Date.now()-start>timeout) return reject(new Error('Servicios no disponibles')); setTimeout(poll,50); })(); }); }
-    
-    waitFor(['usuariosService']).then(async ()=>{
-      const id = getIdFromQuery();
-      if(!id) return;
-      try{
-        const docente = await usuariosService.getById(Number(id));
-        if(!docente) return;
-        
-        const form = document.querySelector('.form-docente');
-        const inputs = form.querySelectorAll('input');
-        const selects = form.querySelectorAll('select');
-        
-        console.log('Docente recibido:', docente);
-        console.log('Inputs encontrados:', inputs.length);
-        console.log('Selects encontrados:', selects.length);
-        
-        // Populate fields (order: nombre, ape_p, ape_m, RFC, CURP, fecha, usuario, password)
-        if(inputs[0]) {
-            inputs[0].value = docente.nombre || '';
-            console.log('Nombre:', inputs[0].value);
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    if (togglePasswordBtn) {
+      togglePasswordBtn.addEventListener('click', togglePassword);
+    }
+
+    // Load docente data on page load
+    (function(){
+      function isReady(name){ 
+        try{ 
+          return typeof eval(name) !== 'undefined'; 
+        } catch(e){ 
+          return false; 
+        } 
+      }
+      
+      function waitFor(names, timeout){ 
+        timeout = timeout || 5000;
+        return new Promise(function(resolve, reject){ 
+          const start = Date.now(); 
+          (function poll(){ 
+            if(names.every(isReady)) return resolve(); 
+            if(Date.now() - start > timeout) return reject(new Error('Servicios no disponibles')); 
+            setTimeout(poll, 50); 
+          })(); 
+        }); 
+      }
+      
+      waitFor(['usuariosService']).then(async function(){
+        if (dataLoaded) return;
+        dataLoaded = true;
+
+        const id = getIdFromQuery();
+        if (!id) {
+          console.log('ℹ️ No hay ID en la URL');
+          return;
         }
-        if(inputs[1]) {
-            inputs[1].value = docente.ape_p || '';
-            console.log('Apellido P:', inputs[1].value);
-        }
-        if(inputs[2]) {
-            inputs[2].value = docente.ape_m || '';
-            console.log('Apellido M:', inputs[2].value);
-        }
-        if(inputs[3]) {
-            inputs[3].value = docente.rfc || '';
-            console.log('RFC:', inputs[3].value);
-        }
-        if(inputs[4]) {
-            inputs[4].value = docente.curp || '';
-            console.log('CURP:', inputs[4].value);
-        }
-        if(inputs[5]) {
-            // La fecha de nacimiento no existe en el backend, dejar vacío o usar created_at
-            inputs[5].value = '';
-            inputs[5].placeholder = 'No disponible';
-            console.log('Fecha nacimiento: No disponible en backend');
-        }
-        if(inputs[6]) {
-            inputs[6].value = docente.usuario || '';
-            console.log('Usuario:', inputs[6].value);
-        }
-        if(inputs[7]) {
-            // Mostrar la contraseña real del backend
-            inputs[7].value = docente.password || '';
-            console.log('Password cargado desde backend');
-        }
-        
-        // Set sexo dropdown
-        if(selects[0]){ 
-          for(const opt of selects[0].options){ 
-            const optText = String(opt.text||'').toLowerCase();
-            const sexo = String(docente.sexo||'').toLowerCase();
-            if((sexo === 'm' && optText.includes('mas')) || (sexo === 'f' && optText.includes('fem'))) {
-              opt.selected = true;
-            }
+
+        try {
+          console.log('🔍 Cargando docente ID:', id);
+          const response = await usuariosService.getById(Number(id));
+          const docente = response.data || response;
+          
+          if (!docente) {
+            console.warn('⚠️ No se encontró el docente');
+            return;
           }
+          
+          console.log('✅ Docente cargado:', docente);
+          
+          // Llenar campos
+          document.getElementById('nombre').value = docente.nombre || '';
+          document.getElementById('rfc').value = docente.rfc || '';
+          document.getElementById('ape_p').value = docente.ape_p || '';
+          document.getElementById('curp').value = docente.curp || '';
+          document.getElementById('ape_m').value = docente.ape_m || '';
+          document.getElementById('sexo').value = docente.sexo || '';
+          document.getElementById('usuario').value = docente.usuario || '';
+          
+          // Guardar y cargar contraseña
+          savedPassword = docente.password || '';
+          document.getElementById('password').value = savedPassword;
+          console.log('🔑 Contraseña cargada');
+          
+          // ✅ CARGAR FECHA
+          const fechaInput = document.getElementById('fecha_nacimiento');
+          if (docente.fecha_nacimiento) {
+            let fechaFormateada = '';
+            const fechaStr = String(docente.fecha_nacimiento);
+            
+            if (fechaStr.indexOf('T') !== -1) {
+              fechaFormateada = fechaStr.split('T')[0];
+            } else if (fechaStr.indexOf('-') !== -1) {
+              fechaFormateada = fechaStr.split(' ')[0];
+            } else {
+              const fecha = new Date(docente.fecha_nacimiento);
+              fechaFormateada = fecha.toISOString().split('T')[0];
+            }
+            
+            savedFecha = fechaFormateada;
+            fechaInput.value = fechaFormateada;
+            console.log('📅 Fecha cargada:', fechaFormateada);
+          } else {
+            console.warn('⚠️ Este docente no tiene fecha de nacimiento registrada');
+            fechaInput.placeholder = 'Sin fecha registrada';
+          }
+          
+          console.log('✅ Datos cargados exitosamente');
+          
+        } catch(e){ 
+          console.error('❌ Error cargando docente:', e); 
+          alert('Error al cargar datos del docente: ' + e.message);
         }
-      }catch(e){ console.error('Error cargando docente', e); }
-    }).catch(err=>console.warn('Servicios no disponibles:', err));
-  })();
+      }).catch(function(err){
+        console.warn('⚠️ Servicios no disponibles:', err);
+      });
+    })();
     </script>
   </main>
     <script src="../../scripts/loadDependencies.js"></script>
+    <script src="../../scripts/utils/logoutModal.js"></script>
   </body>
   </html>
-
-
-
-
-
-
-
-
-
-
-
-
-

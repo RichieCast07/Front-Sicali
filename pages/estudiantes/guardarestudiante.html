@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar estudiantes</title>
+    <title>Editar Estudiante</title>
     <link rel="stylesheet" href="../../css/Editar estudiante.css">
     <link rel="stylesheet" href="../../css/navbar.css">
     <link rel="stylesheet" href="../../css/modalactualizar.css">
@@ -16,16 +16,55 @@
         </div>
         <div class="user-info">
             <div class="text-info">
-                <div class="role">Director</div>
-                <div class="name">Jorge Luis Omalley Pinacho</div>
+                <div class="role" id="userRole">Cargando...</div>
+                <div class="name" id="userName">Cargando...</div>
             </div>
             <div class="avatar"><img src="../../img/nino.png" alt=""></div>
         </div>
     </header>
+
+    <script>
+        // ==========================================
+        // CARGAR INFORMACIÓN DEL USUARIO DINÁMICAMENTE
+        // ==========================================
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = (currentUser.nombre + ' ' + currentUser.ape_p + ' ' + (currentUser.ape_m || '')).trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                } else {
+                    userRole.textContent = 'Usuario';
+                }
+
+                console.log('✅ Usuario cargado:', {
+                    nombre: userName.textContent,
+                    rol: userRole.textContent,
+                    id: currentUser.id_usuario
+                });
+
+            } catch (error) {
+                console.error('❌ Error al cargar datos del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
+            }
+        })();
+    </script>
     
     <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
             <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+            <li><a href="../tutor/tutor.html"><span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span><span class="text">Tutor</span></a></li>
             <li class="active"><a href="estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
             <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
             <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
@@ -40,334 +79,376 @@
     </button>
 
     <section class="editar-estudiante">
-  <h2>Estudiante</h2>
+        <h2>Estudiante</h2>
 
-  <div class="form-contenedor">
-    <div class="form-columna">
-      <h3>Estudiante</h3>
+        <div class="form-contenedor">
+            <div class="form-columna">
+                <div class="form-group">
+                    <label>Nombre:</label>
+                    <input type="text" id="nombre" placeholder="Ingrese nombre">
+                </div>
 
-      <div class="form-group">
-        <label>Nombre:</label>
-        <input type="text" value="Antonio">
-      </div>
+                <div class="form-group">
+                    <label>Apellido Paterno:</label>
+                    <input type="text" id="ape_p" placeholder="Ingrese apellido paterno">
+                </div>
 
-      <div class="form-group">
-        <label>Apellido Paterno:</label>
-        <input type="text" value="Giron">
-      </div>
+                <div class="form-group">
+                    <label>Apellido Materno:</label>
+                    <input type="text" id="ape_m" placeholder="Ingrese apellido materno">
+                </div>
 
-      <div class="form-group">
-        <label>Apellido Materno:</label>
-        <input type="text" value="Lopez">
-      </div>
+                <div class="form-group">
+                    <label>CURP:</label>
+                    <input type="text" id="curp" placeholder="Ingrese CURP" maxlength="18">
+                </div>
 
-      <div class="form-group">
-        <label>Grupo:</label>
-        <select id="grupoSelect">
-          <option value="">Cargando grupos...</option>
-        </select>
-      </div>
+                <div class="form-group">
+                    <label>Sexo:</label>
+                    <select id="sexo">
+                        <option value="">Seleccionar</option>
+                        <option value="F">Femenino</option>
+                        <option value="M">Masculino</option>
+                    </select>
+                </div>
 
-      <div class="form-group">
-        <label>Curp:</label>
-        <input type="text" value="GILA040702MSCLDRA9">
-      </div>
+                <div class="form-group">
+                    <label>Fecha de Nacimiento:</label>
+                    <input type="date" id="fecha_nacimiento">
+                </div>
 
-      <div class="form-group">
-        <label>Sexo</label>
-        <select>
-          <option>Seleccionar</option>
-          <option>Femenino</option>
-          <option>Masculino</option>
-        </select>
-      </div>
+                <div class="form-group">
+                    <label>Grupo:</label>
+                    <select id="grupoSelect">
+                        <option value="">Cargando grupos...</option>
+                    </select>
+                </div>
 
-      <div class="form-group">
-        <label>Fecha de Nacimiento</label>
-        <input type="date">
-      </div>
-    </div>
+                <div class="form-group">
+                    <label>Usuario:</label>
+                    <input type="text" id="usuario" placeholder="Ingrese usuario">
+                </div>
 
-    <div class="form-columna">
-      <h3>Tutor</h3>
+                <div class="form-group" style="position: relative;">
+                    <label>Contraseña:</label>
+                    <input type="password" id="password" placeholder="Ingrese contraseña">
+                    <button type="button" id="togglePasswordBtn" style="position: absolute; right: 10px; top: 32px; background: none; border: none; cursor: pointer;">
+                        <span class="iconpasswor"><img src="../../icons/visualizar password.svg" alt="Mostrar/Ocultar contraseña" /></span>
+                    </button>
+                </div>
+            </div>
+        </div>
 
-      <div class="form-group">
-        <label>Nombre:</label>
-        <input type="text" value="Antonio">
-      </div>
+        <div class="boton-agregar">
+            <button type="button" onclick="showModal()">
+                <img src="../../icons/guardar.svg" class="btn-icon" alt="Guardar">
+                Guardar
+            </button>
+        </div>
+    </section>
 
-      <div class="form-group">
-        <label>Apellido Paterno:</label>
-        <input type="text" value="Giron">
-      </div>
-
-      <div class="form-group">
-        <label>Apellido Materno:</label>
-        <input type="text" value="Garcia">
-      </div>
-
-      <div class="form-group">
-        <label>Parentesco:</label>
-        <input type="text" value="PADRE">
-      </div>
-
-      <div class="form-group">
-        <label>Sexo</label>
-        <select>
-          <option>Seleccionar</option>
-          <option>Femenino</option>
-          <option>Masculino</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Fecha de Nacimiento</label>
-        <input type="date">
-      </div>
-      <div class="form-group">
-            <label>Usuario:</label>
-            <input type="text" value="alejandra.vela">
-          </div>
-          <div class="form-group" style="position: relative;">
-          <label>Contraseña:</label>
-          <input type="password" id="password" value="1sicali">
-          <button type="button" onclick="togglePassword()" style="position: absolute; right: 10px; top: 32px;">
-            <span class="iconpasswor"><img src="../../icons/visualizar password.svg" alt="Flecha atrás" /></span>
-          </button>
-         </div>
-    </div>
-  </div>
-
-  <div class="boton-agregar">
-    <button type="button" onclick="showModal()">
-      <img src="../../icons/guardar.svg" class="btn-icon" alt="Guardar">
-      Guardar
-    </button>
-  </div>
-</section>
-
-<div id="modal-overlay" class="modal-overlay">
-    <div class="modal">
-        <img src="../../icons/info.svg" alt="info" class="modal-icon">
-        <h3>¿Desea Actualizarlo?</h3>
-        <p>Los datos actuales serán reemplazados por la nueva información</p>
-        <div class="modal-buttons">
-            <button class="confirm" onclick="confirmSave()">Guardar</button>
-            <button class="cancel" onclick="closeModal()">Cancelar</button>
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <img src="../../icons/info.svg" alt="info" class="modal-icon">
+            <h3>¿Desea Actualizarlo?</h3>
+            <p>Los datos actuales serán reemplazados por la nueva información</p>
+            <div class="modal-buttons">
+                <button class="confirm" onclick="confirmSave()">Guardar</button>
+                <button class="cancel" onclick="closeModal()">Cancelar</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="success-modal-overlay" class="modal-overlay"> 
-    <div class="modal">
-        <img src="../../icons/success.svg" alt="info" class="modal-icon">
-        <h3>Actualizado Correctamente</h3>
-        <p>Se actualizo la información existente</p>
-        <div class="modal-buttons">
-            <button class="confirm" onclick="closeSuccessModal()">Aceptar</button>
+    <div id="success-modal-overlay" class="modal-overlay"> 
+        <div class="modal">
+            <img src="../../icons/success.svg" alt="success" class="modal-icon">
+            <h3>Actualizado Correctamente</h3>
+            <p>Se actualizó la información existente</p>
+            <div class="modal-buttons">
+                <button class="confirm" onclick="closeSuccessModal()">Aceptar</button>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-// Proteger esta página solo para admins
-(function() {
-    function waitForRouteGuard(roles) {
-        if (typeof RouteGuard !== 'undefined') {
-            RouteGuard.protect(roles);
-        } else {
-            setTimeout(function() { waitForRouteGuard(roles); }, 50);
+    <!-- Cargar dependencias primero -->
+    <script src="../../scripts/loadDependencies.js"></script>
+
+    <script>
+    // Proteger esta página solo para admins
+    (function() {
+        function waitForRouteGuard(roles) {
+            if (typeof RouteGuard !== 'undefined') {
+                RouteGuard.protect(roles);
+            } else {
+                setTimeout(function() { waitForRouteGuard(roles); }, 50);
+            }
+        }
+        waitForRouteGuard(['admin']);
+    })();
+
+    // ==========================================
+    // FUNCIONES DE MODALES
+    // ==========================================
+    function showModal() {
+        document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+    }
+
+    function closeSuccessModal() {
+        document.getElementById('success-modal-overlay').style.display = 'none';
+        window.location.href = 'estudiante.html';
+    }
+
+    // ==========================================
+    // TOGGLE PASSWORD
+    // ==========================================
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        if (passwordInput) {
+            passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
         }
     }
-    waitForRouteGuard(['admin']);
-})();
 
-function showModal() {
-    document.getElementById('modal-overlay').style.display = 'flex';
-}
+    // Event listener para toggle password
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', togglePassword);
+    }
 
-function closeModal() {
-    document.getElementById('modal-overlay').style.display = 'none';
-}
+    // ==========================================
+    // GUARDAR ESTUDIANTE
+    // ==========================================
+    function confirmSave() {
+        (async function(){
+            try {
+                closeModal();
+                
+                const nombre = document.getElementById('nombre').value.trim();
+                const ape_p = document.getElementById('ape_p').value.trim();
+                const ape_m = document.getElementById('ape_m').value.trim();
+                const curp = document.getElementById('curp').value.trim();
+                const sexo = document.getElementById('sexo').value;
+                const fecha_nacimiento = document.getElementById('fecha_nacimiento').value;
+                const grupoSelect = document.getElementById('grupoSelect');
+                const idGrupo = grupoSelect ? Number(grupoSelect.value) || null : null;
+                const usuarioVal = document.getElementById('usuario').value.trim();
+                const passwordVal = document.getElementById('password').value;
 
-function closeSuccessModal() {
-    document.getElementById('success-modal-overlay').style.display = 'none';
-    // Redirigir a la lista de estudiantes
-    window.location.href = 'estudiante.html';
-}
+                // Validaciones
+                if (!nombre || !ape_p) {
+                    alert('Nombre y apellido paterno son obligatorios');
+                    return;
+                }
 
-function confirmSave() {
-    // Perform save via API (create or update depending on query id)
-    (async function(){
-      try{
-        closeModal();
-        const form = document.querySelector('.form-contenedor');
-        const inputs = form.querySelectorAll('input');
-        const selects = form.querySelectorAll('select');
-        const nombre = inputs[0] ? inputs[0].value.trim() : '';
-        const ape_p = inputs[1] ? inputs[1].value.trim() : '';
-        const ape_m = inputs[2] ? inputs[2].value.trim() : '';
-        
-        // Obtener grupo seleccionado
-        const grupoSelect = document.getElementById('grupoSelect');
-        const idGrupo = grupoSelect ? Number(grupoSelect.value) || null : null;
-        
-        const curp = inputs[3] ? inputs[3].value.trim() : '';
-        const sexo = (selects[1] && String(selects[1].selectedOptions[0].text||'').toLowerCase().includes('mas')) ? 'M' : (selects[1] && String(selects[1].selectedOptions[0].text||'').toLowerCase().includes('fem') ? 'F' : '');
-        const usuarioVal = inputs[inputs.length-2] ? inputs[inputs.length-2].value.trim() : '';
-        const passwordVal = inputs[inputs.length-1] ? inputs[inputs.length-1].value : '';
+                // Derivar RFC del CURP
+                const rfc = curp ? curp.toUpperCase().substr(0, 13) : '';
 
-        // Derive RFC from CURP if the form does not include it
-        const rfc = curp ? String(curp).toUpperCase().substr(0,13) : '';
+                const payload = {
+                    nombre: nombre,
+                    ape_p: ape_p,
+                    ape_m: ape_m || '',
+                    curp: curp || '',
+                    rfc: rfc,
+                    sexo: sexo || '',
+                    fecha_nacimiento: fecha_nacimiento || null, // ✅ Incluir fecha
+                    usuario: usuarioVal,
+                    password: passwordVal || 'ChangeMe123',
+                    rol: 'estudiante',
+                    estado: 'Activo'
+                };
 
-        const payload = {
-          nombre,
-          ape_p,
-          ape_m,
-          curp,
-          rfc,
-          sexo,
-          usuario: usuarioVal,
-          password: passwordVal || 'ChangeMe123', // Siempre incluir password
-          rol: 'estudiante',
-          estado: 'Activo'
-        };
+                console.log('📦 Payload a enviar:', payload);
 
-        // Validar que todos los campos estén completos
-        const validation = usuariosService.validate(payload);
-        if (!validation.isValid) {
-          alert('Por favor complete todos los campos correctamente:\n' + validation.errors.join('\n'));
-          return;
-        }
+                const id = (new URLSearchParams(location.search)).get('id');
+                let estudianteId;
+                
+                if (id) {
+                    // Actualizar estudiante existente
+                    payload.id_usuario = Number(id);
+                    await usuariosService.update(Number(id), payload);
+                    estudianteId = Number(id);
+                    console.log('✅ Estudiante actualizado');
+                } else {
+                    // Crear nuevo estudiante
+                    const nuevoEstudiante = await usuariosService.create(payload);
+                    estudianteId = nuevoEstudiante.id_usuario || nuevoEstudiante.id;
+                    console.log('✅ Estudiante creado');
+                }
 
-        const id = (new URLSearchParams(location.search)).get('id');
-        let estudianteId;
-        
-        if(id){
-          await usuariosService.update(Number(id), payload);
-          estudianteId = Number(id);
-        } else {
-          const nuevoEstudiante = await usuariosService.create(payload);
-          estudianteId = nuevoEstudiante.id_usuario || nuevoEstudiante.id;
-        }
+                // Inscribir en grupo si se seleccionó
+                if (idGrupo && estudianteId) {
+                    try {
+                        const inscripcion = {
+                            idEstudiante: estudianteId,
+                            idGrupo: idGrupo,
+                            fechaInscripcion: new Date().toISOString().split('T')[0]
+                        };
+                        
+                        console.log('📝 Creando inscripción estudiante-grupo:', inscripcion);
+                        await estudianteGrupoService.create(inscripcion);
+                        console.log('✅ Inscripción creada');
+                    } catch (inscErr) {
+                        console.error('❌ Error al inscribir en grupo:', inscErr);
+                        if (inscErr.message && inscErr.message.includes('not found')) {
+                            console.warn('⚠️ El backend aún no tiene disponible el endpoint POST /api/estudiante-grupo');
+                        } else {
+                            alert('Advertencia: El estudiante fue guardado pero hubo un error al asignarlo al grupo:\n' + inscErr.message);
+                        }
+                    }
+                }
 
-        // Si se seleccionó un grupo, crear la inscripción
-        if(idGrupo && estudianteId){
-          try {
-            const inscripcion = {
-              idEstudiante: estudianteId,
-              idGrupo: idGrupo,
-              fechaInscripcion: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-              estado: 'Activo'
-            };
-            
-            console.log('📝 Creando inscripción estudiante-grupo:', inscripcion);
-            const result = await estudianteGrupoService.create(inscripcion);
-            console.log('✅ Inscripción creada:', result);
-          } catch(inscErr) {
-            console.error('❌ Error al inscribir en grupo:', inscErr);
-            // Verificar si es error de endpoint no encontrado
-            if(inscErr.message && inscErr.message.includes('not found')) {
-              console.warn('⚠️ El backend aún no tiene disponible el endpoint POST /api/estudiante-grupo');
-            } else {
-              // Otro tipo de error (validación, duplicado, etc)
-              alert('Advertencia: El estudiante fue guardado pero hubo un error al asignarlo al grupo:\n' + inscErr.message);
+                document.getElementById('success-modal-overlay').style.display = 'flex';
+                
+            } catch (err) {
+                console.error('❌ Error guardando estudiante:', err);
+                alert('Error: ' + (err.message || err));
             }
-          }
-        }
+        })();
+    }
 
-        document.getElementById('success-modal-overlay').style.display = 'flex';
-      }catch(err){ console.error('Error guardando estudiante', err); alert('Error: '+(err.message||err)); }
-    })();
-}
-
- document.querySelector(".back-link").addEventListener("click", function () {
-    window.history.back();
+    // ==========================================
+    // BOTÓN ATRÁS
+    // ==========================================
+    document.querySelector(".back-link").addEventListener("click", function () {
+        window.history.back();
     });
 
-// Populate form if editing existing estudiante
-(function(){
-  function isReady(name){ try{ return typeof eval(name) !== 'undefined'; }catch(e){ return false; } }
-  function waitFor(names, timeout=5000){ return new Promise((resolve,reject)=>{ const start=Date.now(); (function poll(){ if(names.every(isReady)) return resolve(); if(Date.now()-start>timeout) return reject(new Error('Servicios no disponibles')); setTimeout(poll,50); })(); }); }
-  
-  async function loadGrupos() {
-    try {
-      const grupoSelect = document.getElementById('grupoSelect');
-      if (!grupoSelect) return;
-      
-      grupoSelect.innerHTML = '<option value="">Cargando grupos...</option>';
-      
-      const grupos = await gruposService.getAll();
-      const gruposArray = Array.isArray(grupos) ? grupos : (grupos ? [grupos] : []);
-      
-      grupoSelect.innerHTML = '<option value="">Seleccionar grupo</option>';
-      gruposArray.forEach(g => {
-        const opt = document.createElement('option');
-        opt.value = g.idGrupo || g.id || '';
-        opt.textContent = `${g.nombre || ''} (Grado ${g.grado || ''})`;
-        grupoSelect.appendChild(opt);
-      });
-      
-      console.log('Grupos cargados:', gruposArray.length);
-    } catch (err) {
-      console.error('Error cargando grupos:', err);
-      const grupoSelect = document.getElementById('grupoSelect');
-      if (grupoSelect) grupoSelect.innerHTML = '<option value="">Error al cargar grupos</option>';
-    }
-  }
-  
-  waitFor(['usuariosService', 'gruposService', 'estudianteGrupoService']).then(async ()=>{
-    // Cargar grupos primero
-    await loadGrupos();
-    
-    const id = (new URLSearchParams(location.search)).get('id');
-    if(!id) return;
-    try{
-      const u = await usuariosService.getById(Number(id));
-      if(!u) return;
-      const form = document.querySelector('.form-contenedor');
-      const inputs = form.querySelectorAll('input');
-      const selects = form.querySelectorAll('select');
-      if(inputs[0]) inputs[0].value = u.nombre || '';
-      if(inputs[1]) inputs[1].value = u.ape_p || '';
-      if(inputs[2]) inputs[2].value = u.ape_m || '';
-      if(inputs[3]) inputs[3].value = u.curp || '';
-      
-      // Seleccionar grupo si existe
-      const grupoSelect = document.getElementById('grupoSelect');
-      if(grupoSelect && u.grupo) {
-        const grupoId = u.grupo.idGrupo || u.grupo.id || u.grupo;
-        grupoSelect.value = grupoId;
-      }
-      
-      if(selects[1]){ for(const opt of selects[1].options){ if(String(opt.text||'').toLowerCase().includes(String(u.sexo||'').toLowerCase())) opt.selected=true; } }
-      // attempt to set username field if exists
-      if(inputs.length >= 2){ inputs[inputs.length-2].value = u.usuario || ''; }
-    }catch(e){ console.error('Error cargando estudiante', e); }
-  }).catch(()=>{});
-})();
+    // ==========================================
+    // CARGAR DATOS DEL ESTUDIANTE
+    // ==========================================
+    (function(){
+        function isReady(name) {
+            try {
+                return typeof eval(name) !== 'undefined';
+            } catch(e) {
+                return false;
+            }
+        }
+        
+        function waitFor(names, timeout) {
+            timeout = timeout || 5000;
+            return new Promise(function(resolve, reject) {
+                const start = Date.now();
+                (function poll() {
+                    if (names.every(isReady)) return resolve();
+                    if (Date.now() - start > timeout) return reject(new Error('Servicios no disponibles'));
+                    setTimeout(poll, 50);
+                })();
+            });
+        }
+        
+        async function loadGrupos() {
+            try {
+                const grupoSelect = document.getElementById('grupoSelect');
+                if (!grupoSelect) return;
+                
+                grupoSelect.innerHTML = '<option value="">Cargando grupos...</option>';
+                
+                const grupos = await gruposService.getAll();
+                const gruposArray = Array.isArray(grupos) ? grupos : (grupos ? [grupos] : []);
+                
+                grupoSelect.innerHTML = '<option value="">Seleccionar grupo</option>';
+                gruposArray.forEach(function(g) {
+                    const opt = document.createElement('option');
+                    opt.value = g.idGrupo || g.id || '';
+                    opt.textContent = (g.nombre || '') + ' (Grado ' + (g.grado || '') + ')';
+                    grupoSelect.appendChild(opt);
+                });
+                
+                console.log('✅ Grupos cargados:', gruposArray.length);
+            } catch (err) {
+                console.error('❌ Error cargando grupos:', err);
+                const grupoSelect = document.getElementById('grupoSelect');
+                if (grupoSelect) grupoSelect.innerHTML = '<option value="">Error al cargar grupos</option>';
+            }
+        }
+        
+        waitFor(['usuariosService', 'gruposService', 'estudianteGrupoService']).then(async function() {
+            console.log('✅ Servicios cargados');
+            
+            // Cargar grupos primero
+            await loadGrupos();
+            
+            const id = (new URLSearchParams(location.search)).get('id');
+            if (!id) {
+                console.log('ℹ️ Modo creación (sin ID)');
+                return;
+            }
+            
+            try {
+                console.log('🔍 Cargando estudiante ID:', id);
+                const response = await usuariosService.getById(Number(id));
+                const u = response.data || response;
+                
+                if (!u) {
+                    console.warn('⚠️ No se encontró el estudiante');
+                    return;
+                }
+                
+                console.log('✅ Estudiante cargado:', u);
+                
+                // Llenar campos
+                document.getElementById('nombre').value = u.nombre || '';
+                document.getElementById('ape_p').value = u.ape_p || '';
+                document.getElementById('ape_m').value = u.ape_m || '';
+                document.getElementById('curp').value = u.curp || '';
+                document.getElementById('sexo').value = u.sexo || '';
+                document.getElementById('usuario').value = u.usuario || '';
+                document.getElementById('password').value = u.password || '';
+                
+                // ✅ CARGAR FECHA
+                if (u.fecha_nacimiento) {
+                    let fechaFormateada = '';
+                    const fechaStr = String(u.fecha_nacimiento);
+                    
+                    if (fechaStr.indexOf('T') !== -1) {
+                        fechaFormateada = fechaStr.split('T')[0];
+                    } else if (fechaStr.indexOf('-') !== -1) {
+                        fechaFormateada = fechaStr.split(' ')[0];
+                    } else {
+                        const fecha = new Date(u.fecha_nacimiento);
+                        fechaFormateada = fecha.toISOString().split('T')[0];
+                    }
+                    
+                    document.getElementById('fecha_nacimiento').value = fechaFormateada;
+                    console.log('📅 Fecha cargada:', fechaFormateada);
+                } else {
+                    console.warn('⚠️ Este estudiante no tiene fecha de nacimiento registrada');
+                }
+                
+                // Cargar grupo si existe
+                try {
+                    const inscripciones = await estudianteGrupoService.getByEstudiante(Number(id));
+                    const grupoSelect = document.getElementById('grupoSelect');
+                    
+                    if (inscripciones && inscripciones.length > 0) {
+                        const primerGrupo = inscripciones[0].grupo;
+                        const grupoId = primerGrupo.idGrupo || primerGrupo.id;
+                        if (grupoSelect && grupoId) {
+                            grupoSelect.value = grupoId;
+                            console.log('✅ Grupo seleccionado:', grupoId);
+                        }
+                    }
+                } catch (grupoErr) {
+                    console.warn('⚠️ No se pudieron cargar los grupos del estudiante:', grupoErr);
+                }
+                
+                console.log('✅ Datos cargados exitosamente');
+                
+            } catch(e) {
+                console.error('❌ Error cargando estudiante:', e);
+                alert('Error al cargar datos del estudiante: ' + e.message);
+            }
+        }).catch(function(err) {
+            console.error('❌ Error esperando servicios:', err);
+        });
+    })();
+    </script>
 
-    function togglePassword() {
-      const passwordInput = document.getElementById('password');
-      if (passwordInput.type === 'password') {
-    passwordInput.type = 'text';
-  } else {
-    passwordInput.type = 'password';
-  }}
-
-</script>
-</main>
-  <script src="../../scripts/loadDependencies.js"></script>
+    <script src="../../scripts/utils/logoutModal.js"></script>
+    </main>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-

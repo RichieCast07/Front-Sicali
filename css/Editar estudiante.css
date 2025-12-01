@@ -13,8 +13,8 @@
   cursor: pointer;
   transition: background 0.2s;
   margin-top: 40px;
-
 }
+
 .back-link:hover {
   background-color: #e0e0e0;
 }
@@ -26,6 +26,9 @@
 .editar-estudiante {
   text-align: center;
   margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
 }
 
 .editar-estudiante h2 {
@@ -37,14 +40,16 @@
 
 .form-contenedor {
   display: flex;
-  justify-content: space-between;
+  justify-content: center; 
   gap: 60px;
-  width: 90%;
+  max-width: 600px; 
+  width: 100%;
   margin: 0 auto;
 }
 
 .form-columna {
-  width: 48%;
+  width: 100%; 
+  max-width: 500px; 
 }
 
 .form-columna h3 {
@@ -87,7 +92,6 @@
   background-color: #fff;
 }
 
-
 .iconpasswor {
   position: absolute;
   right: 10px;
@@ -103,6 +107,7 @@
   display: flex;
   justify-content: center;
   margin-top: 40px;
+  width: 100%; 
 }
 
 .boton-agregar button {
@@ -127,4 +132,17 @@
 .boton-agregar .btn-icon {
   width: 18px;
   height: 18px;
+}
+
+@media (max-width: 768px) {
+  .form-contenedor {
+    flex-direction: column;
+    max-width: 100%;
+    padding: 0 20px;
+  }
+  
+  .form-columna {
+    width: 100%;
+    max-width: 100%;
+  }
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estadistica Tutor</title>
+    <title>Estadísticas Tutor</title>
     <link rel="stylesheet" href="../../css/estadisticaTutor.css">
     <link rel="stylesheet" href="../../css/navbar.css">
 </head>
@@ -16,7 +16,7 @@
         <div class="user-info">
             <div class="text-info">
                 <div class="role">Tutor</div>
-                <div class="name">Elisa Mendez Morales</div>
+                <div class="name" id="userName">Cargando...</div>
             </div>
             <div class="avatar"><img src="../../img/nina.png" alt=""></div>
         </div>
@@ -24,223 +24,470 @@
     
     <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
-            
-            <li ><a href="../calificaciones/calificacionestutor.html"><span class="icon"> <img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></a></li>
-            <li class="active"><span class="icon"> <img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></li>
+            <li>
+                <a href="../calificaciones/calificacionestutor.html">
+                    <span class="icon"><img class="icon" src="../../icons/calificaciones.svg" alt=""></span>
+                    <span class="text">Calificaciones</span>
+                </a>
+            </li>
+            <li class="active">
+                <span class="icon"><img class="icon" src="../../icons/estadisticas.svg" alt=""></span>
+                <span class="text">Estadísticas</span>
+            </li>
         </ul>
     </nav>
 
+    <main class="content" id="content">
+        <section class="statistics-container">
+            <h1 class="statistics-title">Estadísticas</h1>
+            <div class="filters">
+                <div class="estudiante-info">
+                    <div class="info-block">
+                        <label>Estudiante</label>
+                        <p id="estudianteNombre">Cargando...</p>
+                    </div>
 
+                    <div class="info-block">
+                        <label>Grupo</label>
+                        <p id="estudianteGrupo">-</p>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>Asignatura</label>
+                    <div class="periodo-select">
+                        <select id="asignaturaSelect">
+                            <option value="" selected>Todas las asignaturas</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
-<main class="content" id="content">
-    <section class="statistics-container">
-        <h1 class="statistics-title">Estadísticas</h1>
-        <div class="filters">
-            <div class="estudiante-info">
-                <div class="info-block">
-                    <label>Estudiante</label>
-                    <p id="estudianteNombre">Cargando...</p>
+            <div class="chart-container">
+                <div class="chart">
+                    <div class="y-axis">
+                        <span class="y-label">10</span>
+                        <span class="y-label">8</span>
+                        <span class="y-label">6</span>
+                        <span class="y-label">4</span>
+                        <span class="y-label">2</span>
+                        <span class="y-label">0</span>
+                    </div>
+                    <div class="grid-lines">
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                    </div>
+                    
+                    <div class="bars" id="chart-bars">
+                        <div class="no-data">Cargando estadísticas...</div>
+                    </div>
                 </div>
+            </div>
+        </section>
+    </main>
 
-                <div class="info-block">
-                    <label>Grupo</label>
-                    <p id="estudianteGrupo">-</p>
-                </div>
-            </div>
-            <div class="filter-group">
-                <label>Periodo</label>
-        <div class="periodo-select">
-            <select>
-                <option value="" selected>seleccionar</option>
-                <option>Primero</option>
-                <option>Segundo</option>
-                <option>Tercero</option>
-            </select>
-        </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="chart-container">
-        <div class="chart">
-            <div class="y-axis">
-                <span class="y-label">100</span>
-                <span class="y-label">80</span>
-                <span class="y-label">60</span>
-                <span class="y-label">40</span>
-                <span class="y-label">20</span>
-                <span class="y-label">0</span>
-            </div>
-            <div class="grid-lines">
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-                <div class="grid-line"></div>
-            </div>
-            
-            <div class="bars">
-                <div class="bar-group">
-                    <div class="bar color-1" style="height: 180px;"></div>
-                    <div class="bar-label">Periodo 1</div>
-                </div>
-                <div class="bar-group">
-                    <div class="bar color-2" style="height: 150px;"></div>
-                    <div class="bar-label">Periodo 2</div>
-                </div>
-                <div class="bar-group">
-                    <div class="bar color-3" style="height: 140px;"></div>
-                    <div class="bar-label">Periodo 3</div>
-                </div>
-                <div class="bar-group">
-                    <div class="bar color-4" style="height: 200px;"></div>
-                    <div class="bar-label">Final</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    </section>
-</main>
     <script src="../../scripts/loadDependencies.js"></script>
     <script>
-    // Proteger esta página para tutores y admins
-    (function() {
-        function waitForRouteGuard(roles) {
-            if (typeof RouteGuard !== 'undefined') {
-                RouteGuard.protect(roles);
-            } else {
-                setTimeout(function() { waitForRouteGuard(roles); }, 50);
-            }
-        }
-        waitForRouteGuard(['tutor', 'admin']);
-    })();
+        // ==========================================
+        // CONSTANTES Y UTILIDADES
+        // ==========================================
+        const CALIFICACION_MIN = 0;
+        const CALIFICACION_MAX = 10;
+        const CHART_MAX_HEIGHT = 200; // Altura máxima en píxeles para la barra
+        const SERVICE_TIMEOUT = 5000;
 
-    (function(){
-        function waitFor(names, timeout = 5000) {
+        // Esperar a que los servicios estén disponibles
+        function waitForServices(services, timeout = SERVICE_TIMEOUT) {
             return new Promise((resolve, reject) => {
-                const start = Date.now();
-                (function poll() {
+                const startTime = Date.now();
+                const check = setInterval(() => {
                     try {
-                        const ok = names.every(n => { try { return typeof eval(n) !== 'undefined'; } catch(e){ return false; } });
-                        if (ok) return resolve();
-                    } catch (e) {}
-                    if (Date.now() - start > timeout) return reject(new Error('Servicios no disponibles'));
-                    setTimeout(poll, 50);
-                })();
+                        const allAvailable = services.every(service => {
+                            try {
+                                return typeof eval(service) !== 'undefined';
+                            } catch (e) {
+                                return false;
+                            }
+                        });
+                        
+                        if (allAvailable) {
+                            clearInterval(check);
+                            resolve();
+                        } else if (Date.now() - startTime > timeout) {
+                            clearInterval(check);
+                            reject(new Error('Timeout esperando servicios: ' + services.join(', ')));
+                        }
+                    } catch (e) {
+                        // Continuar intentando
+                    }
+                }, 50);
             });
         }
 
+        // Validar calificación
+        function validarCalificacion(valor) {
+            if (valor === null || valor === undefined) return null;
+            const num = parseFloat(valor);
+            if (isNaN(num)) return null;
+            return Math.max(CALIFICACION_MIN, Math.min(CALIFICACION_MAX, num));
+        }
+
+        // Calcular promedio seguro
+        function calcularPromedio(valores) {
+            const validos = valores.filter(v => v !== null && v !== undefined && !isNaN(v));
+            if (validos.length === 0) return 0;
+            const suma = validos.reduce((acc, val) => acc + val, 0);
+            return suma / validos.length;
+        }
+
+        // Extraer ID de estudiante
+        const getEstudianteId = (obj) => obj.idEstudiante || obj.estudiante?.id_usuario;
+
+        // ==========================================
+        // PROTECCIÓN DE RUTAS
+        // ==========================================
+        (function() {
+            function waitForRouteGuard(roles) {
+                if (typeof RouteGuard !== 'undefined') {
+                    RouteGuard.protect(roles);
+                } else {
+                    setTimeout(() => waitForRouteGuard(roles), 50);
+                }
+            }
+            waitForRouteGuard(['tutor', 'admin']);
+        })();
+
+        // ==========================================
+        // CARGAR NOMBRE DEL TUTOR
+        // ==========================================
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+            } catch (error) {
+                console.error('Error al cargar datos del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+            }
+        })();
+
+        // ==========================================
+        // CARGAR GRÁFICA DE CALIFICACIONES
+        // ==========================================
+        async function cargarGrafica(idEstudiante, idAsignatura = null) {
+            try {
+                console.log('📊 Cargando gráfica para estudiante:', idEstudiante);
+                if (idAsignatura) {
+                    console.log('📚 Filtrando por asignatura:', idAsignatura);
+                }
+                
+                // Obtener calificaciones del estudiante
+                let calificaciones = [];
+                
+                try {
+                    // Intentar desde el servicio
+                    const response = await calificacionesService.getByEstudiante(idEstudiante);
+                    calificaciones = Array.isArray(response) ? response : 
+                                    (response.data ? (Array.isArray(response.data) ? response.data : [response.data]) : []);
+                } catch (error) {
+                    console.warn('⚠️ Backend no disponible, intentando localStorage');
+                    
+                    // Fallback a localStorage
+                    const calificacionesLocales = JSON.parse(
+                        localStorage.getItem('calificaciones_pendientes') || '[]'
+                    );
+                    calificaciones = calificacionesLocales.filter(cal => 
+                        Number(cal.idEstudiante) === Number(idEstudiante)
+                    );
+                }
+
+                console.log('✅ Calificaciones cargadas:', calificaciones.length);
+
+                // Filtrar por asignatura si se especifica
+                if (idAsignatura) {
+                    calificaciones = calificaciones.filter(cal => 
+                        Number(cal.idAsignatura) === Number(idAsignatura)
+                    );
+                    console.log('📚 Calificaciones filtradas por asignatura:', calificaciones.length);
+                }
+
+                if (calificaciones.length === 0) {
+                    mostrarMensaje('No hay calificaciones registradas', 'info');
+                    return;
+                }
+
+                // Calcular promedios por periodo
+                const promediosPorPeriodo = {
+                    1: { suma: 0, count: 0 },
+                    2: { suma: 0, count: 0 },
+                    3: { suma: 0, count: 0 },
+                    4: { suma: 0, count: 0 }
+                };
+
+                calificaciones.forEach(calif => {
+                    [1, 2, 3, 4].forEach(periodo => {
+                        const valor = validarCalificacion(calif[`calificacion${periodo}`]);
+                        if (valor !== null) {
+                            promediosPorPeriodo[periodo].suma += valor;
+                            promediosPorPeriodo[periodo].count++;
+                        }
+                    });
+                });
+
+                // Renderizar gráfica
+                renderizarGrafica(promediosPorPeriodo);
+
+            } catch (error) {
+                console.error('❌ Error cargando gráfica:', error);
+                mostrarMensaje('Error al cargar datos de la gráfica', 'error');
+            }
+        }
+
+        // ==========================================
+        // RENDERIZAR GRÁFICA
+        // ==========================================
+        function renderizarGrafica(promediosPorPeriodo) {
+            const barsContainer = document.getElementById('chart-bars');
+            barsContainer.innerHTML = '';
+
+            const colores = ['color-1', 'color-2', 'color-3', 'color-4'];
+            const labels = ['Periodo 1', 'Periodo 2', 'Periodo 3', 'Periodo 4'];
+
+            let sumaTotal = 0;
+            let countTotal = 0;
+
+            [1, 2, 3, 4].forEach((periodo, index) => {
+                const data = promediosPorPeriodo[periodo];
+                const promedio = data.count > 0 ? (data.suma / data.count) : 0;
+                
+                // Calcular altura: escala de 0-10 a 0-200px
+                const altura = (promedio / CALIFICACION_MAX) * CHART_MAX_HEIGHT;
+
+                if (data.count > 0) {
+                    sumaTotal += promedio;
+                    countTotal++;
+                }
+
+                const barGroup = document.createElement('div');
+                barGroup.className = 'bar-group';
+                
+                // Solo mostrar la barra si hay datos
+                if (data.count > 0) {
+                    barGroup.innerHTML = `
+                        <div class="bar ${colores[index]}" style="height: ${altura}px;" title="Promedio: ${promedio.toFixed(1)}"></div>
+                        <div class="bar-label">${labels[index]}<br><small>${promedio.toFixed(1)}</small></div>
+                    `;
+                } else {
+                    barGroup.innerHTML = `
+                        <div class="bar" style="height: 0px; background: #ddd;"></div>
+                        <div class="bar-label">${labels[index]}<br><small>-</small></div>
+                    `;
+                }
+                
+                barsContainer.appendChild(barGroup);
+            });
+
+            // Mostrar promedio general si hay datos
+            if (countTotal > 0) {
+                const promedioFinal = (sumaTotal / countTotal).toFixed(1);
+                console.log('📊 Promedio final:', promedioFinal);
+            }
+
+            console.log('✅ Gráfica renderizada correctamente');
+        }
+
+        // ==========================================
+        // CARGAR ASIGNATURAS EN SELECT
+        // ==========================================
+        async function cargarAsignaturas(idEstudiante) {
+            try {
+                const response = await httpClient.get(API_CONFIG.ENDPOINTS.ASIGNATURAS.LIST);
+                const asignaturas = Array.isArray(response.data) ? response.data : 
+                                   (response.data?.data ? response.data.data : []);
+
+                const select = document.getElementById('asignaturaSelect');
+                
+                asignaturas.forEach(asig => {
+                    const option = document.createElement('option');
+                    option.value = asig.idAsignatura;
+                    option.textContent = asig.nombre;
+                    select.appendChild(option);
+                });
+
+                // Event listener para cambio de asignatura
+                select.addEventListener('change', (e) => {
+                    const idAsignatura = e.target.value ? parseInt(e.target.value) : null;
+                    cargarGrafica(idEstudiante, idAsignatura);
+                });
+
+            } catch (error) {
+                console.warn('⚠️ No se pudieron cargar asignaturas:', error);
+            }
+        }
+
+        // ==========================================
+        // MOSTRAR MENSAJES
+        // ==========================================
+        function mostrarMensaje(mensaje, tipo = 'info') {
+            const colores = {
+                info: { bg: '#e3f2fd', color: '#1565c0' },
+                error: { bg: '#ffebee', color: '#c62828' },
+                warning: { bg: '#fff3e0', color: '#ef6c00' }
+            };
+
+            const estilo = colores[tipo] || colores.info;
+
+            document.getElementById('chart-bars').innerHTML = `
+                <div class="no-data" style="text-align: center; padding: 40px; background: ${estilo.bg}; color: ${estilo.color}; border-radius: 8px;">
+                    ${mensaje}
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // CARGAR ESTADÍSTICAS DEL TUTOR
+        // ==========================================
         async function loadEstadisticasTutor() {
             try {
                 console.log('📈 Cargando estadísticas...');
                 
-                // Verificar si se seleccionó un estudiante específico desde la bienvenida
+                // Verificar si se seleccionó un estudiante específico
                 const estudianteIdSeleccionado = localStorage.getItem('selectedEstudianteId');
                 const estudianteNombreSeleccionado = localStorage.getItem('selectedEstudianteNombre');
                 
+                let estudianteId = null;
+
                 if (estudianteIdSeleccionado) {
-                    // Mostrar estadísticas del estudiante seleccionado
-                    console.log('👤 Mostrando estadísticas para:', estudianteNombreSeleccionado);
+                    // Caso 1: Estudiante seleccionado desde otra página
+                    console.log('👤 Estudiante seleccionado:', estudianteNombreSeleccionado);
                     
                     const estudiante = await usuariosService.getById(estudianteIdSeleccionado);
-                    const nombreCompleto = estudianteNombreSeleccionado || `${estudiante.nombre} ${estudiante.ape_p} ${estudiante.ape_m || ''}`.trim();
+                    const nombreCompleto = estudianteNombreSeleccionado || 
+                        `${estudiante.nombre} ${estudiante.ape_p} ${estudiante.ape_m || ''}`.trim();
                     
                     document.getElementById('estudianteNombre').textContent = nombreCompleto;
+                    estudianteId = estudianteIdSeleccionado;
                     
-                    // Obtener grupos
-                    const todasInscripciones = await estudianteGrupoService.getAll();
-                    const inscripciones = todasInscripciones.filter(insc => {
-                        const idEst = insc.idEstudiante || insc.estudiante?.id_usuario;
-                        return Number(idEst) === Number(estudianteIdSeleccionado);
-                    });
-
-                    if (inscripciones.length > 0) {
-                        const grupo = inscripciones[0].grupo;
-                        document.getElementById('estudianteGrupo').textContent = 
-                            `${grupo.nombre} - Grado ${grupo.grado}`;
-                    } else {
-                        document.getElementById('estudianteGrupo').textContent = 'Sin grupo';
-                    }
+                    // Cargar grupo
+                    await cargarGrupoEstudiante(estudianteIdSeleccionado);
                     
                     // Limpiar selección
                     localStorage.removeItem('selectedEstudianteId');
                     localStorage.removeItem('selectedEstudianteNombre');
                     
-                    console.log('✅ Datos cargados');
-                    return;
-                }
-                
-                // Si no hay selección, mostrar primer estudiante tutorado
-                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                
-                if (!currentUser.id_usuario) {
-                    throw new Error('No se encontró información del tutor');
-                }
-
-                console.log('📊 Buscando estudiantes del tutor:', currentUser.id_usuario);
-
-                // Buscar en LocalStorage qué estudiantes tienen este tutor
-                const estudiantes = await usuariosService.getByRol('estudiante');
-                const estudiantesTutor = [];
-                
-                estudiantes.forEach(est => {
-                    const key = `estudiante_tutor_${est.id_usuario}`;
-                    const idTutor = localStorage.getItem(key);
-                    if (Number(idTutor) === Number(currentUser.id_usuario)) {
-                        estudiantesTutor.push(est);
-                    }
-                });
-
-                console.log('✅ Estudiantes encontrados:', estudiantesTutor.length);
-
-                if (estudiantesTutor.length === 0) {
-                    document.getElementById('estudianteNombre').textContent = 'Sin estudiantes asignados';
-                    document.getElementById('estudianteGrupo').textContent = '-';
-                    return;
-                }
-
-                // Mostrar primer estudiante
-                const estudiante = estudiantesTutor[0];
-                document.getElementById('estudianteNombre').textContent = 
-                    `${estudiante.nombre} ${estudiante.ape_p} ${estudiante.ape_m || ''}`.trim();
-
-                // Obtener grupos del estudiante
-                const todasInscripciones = await estudianteGrupoService.getAll();
-                const inscripciones = todasInscripciones.filter(insc => {
-                    const idEst = insc.idEstudiante || insc.estudiante?.id_usuario;
-                    return Number(idEst) === Number(estudiante.id_usuario);
-                });
-
-                if (inscripciones.length > 0) {
-                    const grupo = inscripciones[0].grupo;
-                    document.getElementById('estudianteGrupo').textContent = 
-                        `${grupo.nombre} - Grado ${grupo.grado}`;
                 } else {
-                    document.getElementById('estudianteGrupo').textContent = 'Sin grupo';
+                    // Caso 2: Mostrar primer estudiante tutorado
+                    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                    
+                    if (!currentUser.id_usuario) {
+                        throw new Error('No se encontró información del tutor');
+                    }
+
+                    console.log('📊 Buscando estudiantes del tutor:', currentUser.id_usuario);
+
+                    // Buscar estudiantes asignados al tutor
+                    const estudiantes = await usuariosService.getByRol('estudiante');
+                    const estudiantesTutor = estudiantes.filter(est => {
+                        const key = `estudiante_tutor_${est.id_usuario}`;
+                        const idTutor = localStorage.getItem(key);
+                        return Number(idTutor) === Number(currentUser.id_usuario);
+                    });
+
+                    console.log('✅ Estudiantes encontrados:', estudiantesTutor.length);
+
+                    if (estudiantesTutor.length === 0) {
+                        document.getElementById('estudianteNombre').textContent = 'Sin estudiantes asignados';
+                        document.getElementById('estudianteGrupo').textContent = '-';
+                        mostrarMensaje('No hay estudiantes asignados a este tutor', 'info');
+                        return;
+                    }
+
+                    // Mostrar primer estudiante
+                    const estudiante = estudiantesTutor[0];
+                    document.getElementById('estudianteNombre').textContent = 
+                        `${estudiante.nombre} ${estudiante.ape_p} ${estudiante.ape_m || ''}`.trim();
+                    
+                    estudianteId = estudiante.id_usuario;
+                    
+                    // Cargar grupo
+                    await cargarGrupoEstudiante(estudiante.id_usuario);
                 }
+
+                // Cargar asignaturas en el select
+                await cargarAsignaturas(estudianteId);
+
+                // Cargar gráfica del estudiante
+                await cargarGrafica(estudianteId);
+
+                console.log('✅ Estadísticas cargadas correctamente');
 
             } catch (error) {
                 console.error('❌ Error cargando estadísticas:', error);
                 document.getElementById('estudianteNombre').textContent = 'Error al cargar';
+                mostrarMensaje('Error al cargar estadísticas: ' + error.message, 'error');
             }
         }
 
-        waitFor(['usuariosService', 'estudianteGrupoService']).then(() => {
-            console.log('✅ Servicios cargados');
-            loadEstadisticasTutor();
-        }).catch(err => console.error('❌ Error:', err));
-    })();
+        // ==========================================
+        // CARGAR GRUPO DEL ESTUDIANTE
+        // ==========================================
+        async function cargarGrupoEstudiante(idEstudiante) {
+            try {
+                const todasInscripciones = await estudianteGrupoService.getAll();
+                const inscripciones = todasInscripciones.filter(insc => {
+                    const idEst = getEstudianteId(insc);
+                    return Number(idEst) === Number(idEstudiante);
+                });
+
+                if (inscripciones.length > 0) {
+                    const grupo = inscripciones[0].grupo;
+                    if (grupo) {
+                        document.getElementById('estudianteGrupo').textContent = 
+                            `${grupo.nombre || 'Sin nombre'} - Grado ${grupo.grado || '-'}`;
+                    } else {
+                        document.getElementById('estudianteGrupo').textContent = 'Sin grupo';
+                    }
+                } else {
+                    document.getElementById('estudianteGrupo').textContent = 'Sin grupo';
+                }
+            } catch (error) {
+                console.warn('⚠️ Error cargando grupo:', error);
+                document.getElementById('estudianteGrupo').textContent = 'Error';
+            }
+        }
+
+        // ==========================================
+        // INICIALIZACIÓN
+        // ==========================================
+        (async function init() {
+            try {
+                console.log('🚀 Inicializando aplicación de estadísticas...');
+                
+                await waitForServices([
+                    'usuariosService', 
+                    'estudianteGrupoService', 
+                    'calificacionesService',
+                    'httpClient'
+                ]);
+                
+                console.log('✅ Servicios cargados');
+                await loadEstadisticasTutor();
+                
+            } catch (error) {
+                console.error('❌ Error en la inicialización:', error);
+                mostrarMensaje('Error al inicializar la aplicación. Por favor, recarga la página.', 'error');
+            }
+        })();
     </script>
+    <script src="../../scripts/utils/logoutModal.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
