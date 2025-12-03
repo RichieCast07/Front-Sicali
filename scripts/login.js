@@ -36,8 +36,7 @@
             const res = await authService.login(creds);
             console.log('Respuesta de login:', res);
             console.log('Usuario recibido:', res.user);
-            console.log('Rol del usuario (original):', res.user?.rol);
-            console.log('Tipo de dato del rol:', typeof res.user?.rol);
+            console.log('Rol del usuario:', res.user?.rol);
             
             if (!res || !res.token) {
                 alert('Login falló: token no recibido');
@@ -53,11 +52,9 @@
             // Guardar token y usuario
             httpClient.setAuthToken(res.token);
             
-            // Normalizar el rol: trim primero, luego lowercase
-            const role = String(res.user.rol).trim().toLowerCase();
+            // Redirección según rol
+            const role = String(res.user.rol).toLowerCase().trim();
             console.log('Rol normalizado para redirección:', role);
-            console.log('Longitud del rol:', role.length);
-            console.log('Rol en hexadecimal:', Array.from(role).map(c => c.charCodeAt(0).toString(16)).join(' '));
             
             try { 
                 localStorage.setItem('currentUser', JSON.stringify(res.user));
@@ -72,48 +69,35 @@
             }
 
             console.log('Usuario guardado:', localStorage.getItem('currentUser'));
-            console.log('Rol procesado:', role);
+            console.log('Rol del usuario:', role);
 
             // Obtener la URL base del sitio
             const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
             console.log('Base URL:', baseUrl);
 
-            // Mapeo de roles a páginas de bienvenida
             const redirectMap = {
                 'docente': baseUrl + '/pages/bienvenidas/bienvenida Docente.html',
                 'director': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
                 'tutor': baseUrl + '/pages/bienvenidas/bienvenida Tutor.html',
-                'estudiante': baseUrl + '/pages/bienvenidas/bienvenida Estudiante.html',
-                // Variantes alternativas por si el rol viene diferente
-                'admin': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
-                'administrador': baseUrl + '/pages/bienvenidas/bienvenida Director.html'
+                'estudiante': baseUrl + '/pages/bienvenidas/bienvenida Estudiante.html'
             };
 
-            console.log('Roles disponibles:', Object.keys(redirectMap));
-            console.log('Buscando rol:', role);
-            
             const target = redirectMap[role];
             
             if (!target) {
-                console.error('❌ Rol no reconocido:', role);
-                console.error('Roles válidos:', Object.keys(redirectMap));
-                console.error('Comparación directa con "director":', role === 'director');
-                console.error('Comparación con espacios:', role === 'director ');
-                alert('Error: Rol de usuario no reconocido: "' + role + '"\nRoles válidos: ' + Object.keys(redirectMap).join(', '));
+                console.error('Rol no reconocido:', role);
+                alert('Error: Rol de usuario no reconocido (' + role + ')');
                 return;
             }
             
-            console.log('✅ Rol encontrado en el mapa');
             console.log('✅ Redirigiendo a:', target);
             
             // Pequeña pausa para asegurar que localStorage se guarde
             setTimeout(() => {
-                console.log('Ejecutando redirección ahora...');
                 window.location.href = target;
             }, 100);
         } catch (err) {
-            console.error('❌ Error en login:', err);
-            console.error('Stack trace:', err.stack);
+            console.error('Error en login:', err);
             const msg = err && err.message ? err.message : 'Error en login';
             alert(msg);
         }
