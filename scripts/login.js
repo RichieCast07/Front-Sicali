@@ -1,6 +1,7 @@
 // login.js - maneja el formulario de login en `index.html`
+// Versión: 2024-12-03-v2
 (function(){
-    console.log('=== login.js cargado ===');
+    console.log('=== login.js cargado (v2 - 2024-12-03) ===');
     
     function $(sel) { return document.querySelector(sel); }
 
