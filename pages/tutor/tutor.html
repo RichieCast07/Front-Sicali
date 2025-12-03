@@ -75,7 +75,7 @@
                     setTimeout(function() { waitForRouteGuard(roles); }, 50);
                 }
             }
-            waitForRouteGuard(['docente', 'director']);
+            waitForRouteGuard([docente, 'admin']);
         })();
     </script>
 
@@ -359,7 +359,7 @@
                 const btnAdd = document.getElementById('btnAdd');
                 
                 // Solo docentes y directores pueden agregar tutores
-                if (btnAdd && role !== 'docente' && role !== 'director') {
+                if (btnAdd && role !== 'docente' && role !== 'admin') {
                     btnAdd.style.display = 'none';
                     console.log('⚠️ Botón Agregar oculto para rol:', role);
                 } else {

@@ -244,8 +244,8 @@ class UsuariosService {
         }
 
         // Validación de rol
-        if (!usuario.rol || !['docente', 'estudiante', 'director', 'tutor'].includes(usuario.rol)) {
-            errors.push('El rol debe ser: docente, estudiante, director o tutor');
+        if (!usuario.rol || !['docente', 'estudiante', 'admin', 'tutor'].includes(usuario.rol)) {
+            errors.push('El rol debe ser: docente, estudiante, admin o tutor');
         }
 
         return {

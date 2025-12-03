@@ -89,7 +89,7 @@
 
             const redirectMap = {
                 'docente': baseUrl + '/pages/bienvenidas/bienvenida Docente.html',
-                'director': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
+                'admin': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
                 'tutor': baseUrl + '/pages/bienvenidas/bienvenida Tutor.html',
                 'estudiante': baseUrl + '/pages/bienvenidas/bienvenida Estudiante.html'
             };
@@ -97,7 +97,7 @@
             console.log('✅ redirectMap creado exitosamente');
             console.log('Claves en redirectMap:', Object.keys(redirectMap));
             console.log('Rol a buscar:', JSON.stringify(role));
-            console.log('redirectMap["director"]:', redirectMap['director']);
+                console.log('redirectMap["admin"]:', redirectMap['admin']);
             console.log('redirectMap[role]:', redirectMap[role]);
 
             const target = redirectMap[role];

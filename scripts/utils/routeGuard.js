@@ -75,7 +75,7 @@ class RouteGuard {
 
     /**
      * Protege una ruta verificando autenticación y roles
-     * @param {string[]} allowedRoles - Roles permitidos (ej: ['docente', 'director'])
+     * @param {string[]} allowedRoles - Roles permitidos (ej: ['docente', 'admin'])
      * @param {string} redirectTo - URL a la que redirigir si no autorizado (default: index.html)
      */
     static protect(allowedRoles = [], redirectTo = 'index.html') {
@@ -153,7 +153,7 @@ class RouteGuard {
         
         const rolePages = {
             docente: basePath + 'pages/bienvenidas/bienvenida Docente.html',
-            director: basePath + 'pages/bienvenidas/bienvenida Director.html',
+            admin: basePath + 'pages/bienvenidas/bienvenida Director.html',
             tutor: basePath + 'pages/bienvenidas/bienvenida Tutor.html',
             estudiante: basePath + 'pages/bienvenidas/bienvenida Estudiante.html'
         };

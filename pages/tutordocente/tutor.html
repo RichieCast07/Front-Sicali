@@ -181,7 +181,7 @@
                 const role = (currentUser.rol || currentUser.role || '').toString().toLowerCase();
                 const btnAdd = document.getElementById('btnAdd');
                 
-                if (btnAdd && role !== 'docente' && role !== 'director') {
+                if (btnAdd && role !== 'docente' && role !== 'admin') {
                     btnAdd.style.display = 'none';
                 }
             } catch(e) {

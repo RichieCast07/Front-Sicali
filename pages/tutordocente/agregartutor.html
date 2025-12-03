@@ -72,7 +72,7 @@
             setTimeout(function() { waitForRouteGuard(roles); }, 50);
           }
         }
-        waitForRouteGuard(['docente','director']);
+        waitForRouteGuard([docente, 'admin']);
       })();
     </script>
 
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const role = (currentUser.rol || currentUser.role || '').toString().toLowerCase();
   const btn = document.getElementById('btnAddTutor');
   if (!btn) return;
-  if (role !== 'docente' && role !== 'director') {
+  if (role !== 'docente' && role !== 'admin') {
     btn.style.display = 'none';
   }
 
