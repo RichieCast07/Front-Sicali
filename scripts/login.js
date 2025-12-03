@@ -77,35 +77,44 @@
             // Obtener la URL base del sitio
             const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
             console.log('Base URL:', baseUrl);
+            console.log('window.location.origin:', window.location.origin);
+            console.log('window.location.pathname:', window.location.pathname);
 
-            const redirectMap = {
-                'docente': baseUrl + '/pages/bienvenidas/bienvenida Docente.html',
-                'director': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
-                'tutor': baseUrl + '/pages/bienvenidas/bienvenida Tutor.html',
-                'estudiante': baseUrl + '/pages/bienvenidas/bienvenida Estudiante.html',
-                'admin': baseUrl + '/pages/bienvenidas/bienvenida Director.html'
-            };
-            
-            console.log('Claves disponibles en redirectMap:', Object.keys(redirectMap));
-            console.log('Intentando acceder a redirectMap[' + JSON.stringify(role) + ']');
+            try {
+                const redirectMap = {
+                    'docente': baseUrl + '/pages/bienvenidas/bienvenida Docente.html',
+                    'director': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
+                    'tutor': baseUrl + '/pages/bienvenidas/bienvenida Tutor.html',
+                    'estudiante': baseUrl + '/pages/bienvenidas/bienvenida Estudiante.html',
+                    'admin': baseUrl + '/pages/bienvenidas/bienvenida Director.html'
+                };
+                
+                console.log('✅ redirectMap creado exitosamente');
+                console.log('Claves disponibles en redirectMap:', Object.keys(redirectMap));
+                console.log('Intentando acceder a redirectMap[' + JSON.stringify(role) + ']');
 
-            const target = redirectMap[role];
-            
-            console.log('Target encontrado:', target);
-            
-            if (!target) {
-                console.error('Rol no reconocido:', role);
-                console.error('Roles disponibles:', Object.keys(redirectMap));
-                alert('Error: Rol de usuario no reconocido (' + role + '). Roles válidos: ' + Object.keys(redirectMap).join(', '));
+                const target = redirectMap[role];
+                
+                console.log('Target encontrado:', target);
+                
+                if (!target) {
+                    console.error('Rol no reconocido:', role);
+                    console.error('Roles disponibles:', Object.keys(redirectMap));
+                    alert('Error: Rol de usuario no reconocido (' + role + '). Roles válidos: ' + Object.keys(redirectMap).join(', '));
+                    return;
+                }
+                
+                console.log('✅ Redirigiendo a:', target);
+                
+                // Pequeña pausa para asegurar que localStorage se guarde
+                setTimeout(() => {
+                    window.location.href = target;
+                }, 100);
+            } catch(redirectError) {
+                console.error('❌ Error creando redirectMap:', redirectError);
+                alert('Error al procesar redirección: ' + redirectError.message);
                 return;
             }
-            
-            console.log('✅ Redirigiendo a:', target);
-            
-            // Pequeña pausa para asegurar que localStorage se guarde
-            setTimeout(() => {
-                window.location.href = target;
-            }, 100);
         } catch (err) {
             console.error('Error en login:', err);
             const msg = err && err.message ? err.message : 'Error en login';
