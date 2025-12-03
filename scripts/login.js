@@ -55,6 +55,9 @@
             // Redirección según rol
             const role = String(res.user.rol).toLowerCase().trim();
             console.log('Rol normalizado para redirección:', role);
+            console.log('Rol tipo:', typeof role);
+            console.log('Rol longitud:', role.length);
+            console.log('Rol charCodes:', Array.from(role).map(c => c.charCodeAt(0)));
             
             try { 
                 localStorage.setItem('currentUser', JSON.stringify(res.user));
@@ -79,14 +82,21 @@
                 'docente': baseUrl + '/pages/bienvenidas/bienvenida Docente.html',
                 'director': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
                 'tutor': baseUrl + '/pages/bienvenidas/bienvenida Tutor.html',
-                'estudiante': baseUrl + '/pages/bienvenidas/bienvenida Estudiante.html'
+                'estudiante': baseUrl + '/pages/bienvenidas/bienvenida Estudiante.html',
+                'admin': baseUrl + '/pages/bienvenidas/bienvenida Director.html'
             };
+            
+            console.log('Claves disponibles en redirectMap:', Object.keys(redirectMap));
+            console.log('Intentando acceder a redirectMap[' + JSON.stringify(role) + ']');
 
             const target = redirectMap[role];
             
+            console.log('Target encontrado:', target);
+            
             if (!target) {
                 console.error('Rol no reconocido:', role);
-                alert('Error: Rol de usuario no reconocido (' + role + ')');
+                console.error('Roles disponibles:', Object.keys(redirectMap));
+                alert('Error: Rol de usuario no reconocido (' + role + '). Roles válidos: ' + Object.keys(redirectMap).join(', '));
                 return;
             }
             
