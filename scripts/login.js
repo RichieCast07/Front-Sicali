@@ -74,45 +74,47 @@
             console.log('Usuario guardado:', localStorage.getItem('currentUser'));
             console.log('Rol del usuario:', role);
 
-            // Obtener la URL base del sitio
-            const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
-            console.log('Base URL:', baseUrl);
+            // Obtener la URL base del sitio de forma más robusta
+            let baseUrl = window.location.origin;
+            // Si la página está en una subcarpeta, agregar esa ruta
+            const pathname = window.location.pathname;
+            if (pathname !== '/' && pathname !== '/index.html') {
+                baseUrl += pathname.substring(0, pathname.lastIndexOf('/'));
+            }
+            
             console.log('window.location.origin:', window.location.origin);
             console.log('window.location.pathname:', window.location.pathname);
+            console.log('Base URL calculada:', baseUrl);
 
-            try {
-                const redirectMap = {
-                    'docente': baseUrl + '/pages/bienvenidas/bienvenida Docente.html',
-                    'director': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
-                    'tutor': baseUrl + '/pages/bienvenidas/bienvenida Tutor.html',
-                };
-                
-                console.log('✅ redirectMap creado exitosamente');
-                console.log('Claves disponibles en redirectMap:', Object.keys(redirectMap));
-                console.log('Intentando acceder a redirectMap[' + JSON.stringify(role) + ']');
+            const redirectMap = {
+                'docente': baseUrl + '/pages/bienvenidas/bienvenida Docente.html',
+                'director': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
+                'tutor': baseUrl + '/pages/bienvenidas/bienvenida Tutor.html',
+                'estudiante': baseUrl + '/pages/bienvenidas/bienvenida Estudiante.html'
+            };
+            
+            console.log('✅ redirectMap creado exitosamente');
+            console.log('Claves en redirectMap:', Object.keys(redirectMap));
+            console.log('Rol a buscar:', JSON.stringify(role));
+            console.log('redirectMap["director"]:', redirectMap['director']);
+            console.log('redirectMap[role]:', redirectMap[role]);
 
-                const target = redirectMap[role];
-                
-                console.log('Target encontrado:', target);
-                
-                if (!target) {
-                    console.error('Rol no reconocido:', role);
-                    console.error('Roles disponibles:', Object.keys(redirectMap));
-                    alert('Error: Rol de usuario no reconocido (' + role + '). Roles válidos: ' + Object.keys(redirectMap).join(', '));
-                    return;
-                }
-                
-                console.log('✅ Redirigiendo a:', target);
-                
-                // Pequeña pausa para asegurar que localStorage se guarde
-                setTimeout(() => {
-                    window.location.href = target;
-                }, 100);
-            } catch(redirectError) {
-                console.error('❌ Error creando redirectMap:', redirectError);
-                alert('Error al procesar redirección: ' + redirectError.message);
+            const target = redirectMap[role];
+            
+            if (!target) {
+                console.error('❌ Rol no encontrado en mapa');
+                console.error('Rol recibido:', role);
+                console.error('Roles disponibles:', Object.keys(redirectMap).join(', '));
+                alert('Error: Rol de usuario no reconocido (' + role + '). Roles válidos: ' + Object.keys(redirectMap).join(', '));
                 return;
             }
+            
+            console.log('✅ Redirigiendo a:', target);
+            
+            // Pequeña pausa para asegurar que localStorage se guarde
+            setTimeout(() => {
+                window.location.href = target;
+            }, 100);
         } catch (err) {
             console.error('Error en login:', err);
             const msg = err && err.message ? err.message : 'Error en login';
