@@ -1,7 +1,7 @@
 const API_CONFIG = {
     // URL base de la API (ajustar según ambiente)
     // Debe estar en sincronía con el servidor backend (puerto 8000)
-    BASE_URL: 'http://localhost:8000/api',
+    BASE_URL: 'http://34.229.189.99:8000/api',
     
     // Timeout para peticiones (ms)
     TIMEOUT: 30000,
