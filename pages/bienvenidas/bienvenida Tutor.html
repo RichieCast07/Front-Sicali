@@ -30,7 +30,7 @@
             setTimeout(function() { waitForRouteGuard(roles); }, 50);
           }
         }
-        waitForRouteGuard(['tutor', 'admin']);
+        waitForRouteGuard(['tutor', 'director']);
       })();
     </script>
 
@@ -46,32 +46,101 @@
         </button>
     </div>
 
-    <nav class="sidebar" id="sidebar">
+    <nav class="sidebar" id="sidebar" style="display: none;">
         <ul class="menu-list">
             <li><a href="../calificaciones/calificacionestutor.html"><span class="icon"> <img class="icon" src="../../icons/calificaciones.svg" alt=""></span><span class="text">Calificaciones</span></a></li>
             <li><a href="../estadisticas/estadisticastutor.html"><span class="icon"> <img class="icon" src="../../icons/estadisticas.svg" alt=""></span><span class="text">Estadísticas</span></a></li>
         </ul>
     </nav>
     
-    <main class="content" id="content">
+    <main class="content" id="content" style="width: 100%; margin-left: 0; padding: 20px;">
         <div class="welcome-container">
-            <h1 class="welcome-title">Bienvenido al Sistema de<br>Calificaciones Infantil</h1>
-            <p class="welcome-description">
-                Como tutor, puedes consultar las calificaciones y estadísticas de tus estudiantes.<br>
-                Selecciona un estudiante de la lista para ver su información.
-            </p>
+            <h1 class="welcome-title">Bienvenido</h1>
+            <p class="welcome-description">Sistema de Calificaciones Infantil - SICALI</p>
+        </div>
+        
+        <div style="max-width: 800px; margin: 40px auto; padding: 0 20px;">
+            <h2 style="color: #1E1E1E; font-size: 20px; font-weight: bold; margin-bottom: 20px;">Mis Estudiantes</h2>
             
-            <div class="estudiantes-section" id="estudiantesSection" style="margin-top: 30px;">
-                <h2 style="color: #333; margin-bottom: 15px;">Mis Estudiantes</h2>
-                <div id="estudiantesLoading" style="text-align: center; padding: 20px;">
-                    <p>Cargando estudiantes...</p>
+            <div id="estudiantesLoading" style="text-align: center; padding: 40px;">
+                <div style="display: inline-block;">
+                    <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #1E1E1E; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                 </div>
-                <div id="estudiantesLista" style="display: none;"></div>
+                <p style="margin-top: 15px; color: #666;">Cargando sus estudiantes...</p>
             </div>
             
-            <div class="welcome-image">
-                <img src="../../img/imagenbienvenidas2.png" alt="Niños celebrando">
-            </div>
+            <div id="estudiantesLista" style="display: none;"></div>
+        </div>
+            
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                
+                .estudiante-card {
+                    background: white;
+                    border: 1px solid #ddd;
+                    padding: 20px;
+                    margin-bottom: 15px;
+                }
+                
+                .estudiante-card:hover {
+                    background: #fafafa;
+                }
+                
+                .estudiante-header {
+                    margin-bottom: 15px;
+                }
+                
+                .estudiante-nombre {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #1E1E1E;
+                    margin: 0;
+                }
+                
+                .estudiante-grupo {
+                    font-size: 13px;
+                    color: #666;
+                    margin: 5px 0 0 0;
+                }
+                
+                .estudiante-buttons {
+                    display: flex;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                }
+                
+                .btn-action {
+                    flex: 1;
+                    min-width: 120px;
+                    padding: 10px 16px;
+                    border: 1px solid #ddd;
+                    background: white;
+                    cursor: pointer;
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: #1E1E1E;
+                    transition: background 0.3s;
+                }
+                
+                .btn-action:hover {
+                    background: #f0f0f0;
+                }
+                
+                .no-estudiantes {
+                    text-align: center;
+                    padding: 40px;
+                    background: #f9f9f9;
+                    border: 1px solid #ddd;
+                }
+                
+                .no-estudiantes p {
+                    margin: 10px 0;
+                    color: #666;
+                }
+            </style>
         </div>
     </main>
     <script src="../../scripts/loadDependencies.js"></script>
@@ -124,7 +193,7 @@
         }
     </style>
     <script>
-        // Proteger esta página para tutores y admins
+        // Proteger esta página para tutores y directores
         (function() {
             function waitForRouteGuard(roles) {
                 if (typeof RouteGuard !== 'undefined') {
@@ -133,7 +202,7 @@
                     setTimeout(function() { waitForRouteGuard(roles); }, 50);
                 }
             }
-            waitForRouteGuard(['tutor', 'admin']);
+            waitForRouteGuard(['tutor', 'director']);
         })();
 
         // Cargar información del usuario logueado
@@ -194,7 +263,7 @@
             const listaDiv = document.getElementById('estudiantesLista');
             
             try {
-                console.log('👥 Cargando estudiantes del tutor...');
+                console.log('Cargando estudiantes del tutor...');
                 
                 const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 
@@ -202,13 +271,13 @@
                     throw new Error('No se encontró información del tutor');
                 }
 
-                console.log('🔍 Tutor actual:', currentUser.id_usuario);
+                console.log('Tutor actual:', currentUser.id_usuario);
 
                 // Obtener todos los estudiantes
                 const todosUsuarios = await usuariosService.getAll();
                 const estudiantes = todosUsuarios.filter(u => u.rol === 'estudiante');
                 
-                console.log('📚 Total estudiantes en sistema:', estudiantes.length);
+                console.log('Total estudiantes en sistema:', estudiantes.length);
                 
                 // Filtrar estudiantes asignados a este tutor desde LocalStorage
                 const misEstudiantes = [];
@@ -220,7 +289,7 @@
                     }
                 });
 
-                console.log('✅ Estudiantes asignados a este tutor:', misEstudiantes.length);
+                console.log('Estudiantes asignados a este tutor:', misEstudiantes.length);
 
                 // Cargar grupos de cada estudiante
                 const inscripciones = await estudianteGrupoService.getAll();
@@ -230,9 +299,9 @@
 
                 if (misEstudiantes.length === 0) {
                     listaDiv.innerHTML = `
-                        <div style="padding: 20px; background: #f5f5f5; border-radius: 8px; text-align: center;">
-                            <p style="color: #666;">No tienes estudiantes asignados actualmente.</p>
-                            <p style="color: #999; font-size: 14px;">Contacta al director para asignarte estudiantes.</p>
+                        <div class="no-estudiantes">
+                            <p style="font-weight: 600; margin-bottom: 5px;">No tiene estudiantes asignados</p>
+                            <p>Contacte al director para asignarse estudiantes tutorados.</p>
                         </div>
                     `;
                     return;
@@ -252,53 +321,53 @@
                         })
                         .join(', ');
 
+                    const nombreCompleto = `${est.nombre} ${est.ape_p} ${est.ape_m || ''}`.trim();
+
                     return `
-                    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 4px solid #4CAF50;">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div style="flex: 1;">
-                                <h3 style="margin: 0 0 8px 0; color: #333; font-size: 18px;">
-                                    ${est.nombre} ${est.ape_p} ${est.ape_m || ''}
-                                </h3>
-                                <p style="margin: 0; color: #666; font-size: 14px;">
+                    <div class="estudiante-card">
+                        <div class="estudiante-header">
+                            <div>
+                                <p class="estudiante-nombre">${nombreCompleto}</p>
+                                <p class="estudiante-grupo">
                                     <strong>CURP:</strong> ${est.curp || 'No especificado'}
                                 </p>
-                                <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">
+                                <p class="estudiante-grupo">
                                     <strong>Grupo(s):</strong> ${gruposEst || 'Sin asignar'}
                                 </p>
                             </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button 
-                                    onclick="verCalificaciones(${est.id_usuario}, '${est.nombre} ${est.ape_p}')"
-                                    style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background 0.3s;">
-                                    📊 Ver Calificaciones
-                                </button>
-                                <button 
-                                    onclick="verEstadisticas(${est.id_usuario}, '${est.nombre} ${est.ape_p}')"
-                                    style="background: #2196F3; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background 0.3s;">
-                                    📈 Ver Estadísticas
-                                </button>
-                            </div>
+                        </div>
+                        <div class="estudiante-buttons">
+                            <button 
+                                onclick="verCalificaciones(${est.id_usuario}, '${nombreCompleto}')"
+                                class="btn-action btn-calificaciones">
+                                Calificaciones
+                            </button>
+                            <button 
+                                onclick="verEstadisticas(${est.id_usuario}, '${nombreCompleto}')"
+                                class="btn-action btn-estadisticas">
+                                Estadísticas
+                            </button>
                         </div>
                     </div>
                 `;
                 }).join('');
 
                 listaDiv.innerHTML = `
-                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                        <p style="margin: 0; color: #2e7d32; font-weight: 500;">
-                            📚 Total de estudiantes tutorados: <strong>${misEstudiantes.length}</strong>
+                    <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #666;">
+                        <p style="margin: 0; color: #666; font-weight: 600;">
+                            Total de estudiantes: <strong>${misEstudiantes.length}</strong>
                         </p>
                     </div>
                     ${cards}
                 `;
 
             } catch (error) {
-                console.error('❌ Error al cargar estudiantes:', error);
+                console.error('Error al cargar estudiantes:', error);
                 loadingDiv.style.display = 'none';
                 listaDiv.style.display = 'block';
                 listaDiv.innerHTML = `
-                    <div style="padding: 20px; background: #ffebee; border-radius: 8px; text-align: center;">
-                        <p style="color: #c62828;">Error al cargar los estudiantes: ${error.message}</p>
+                    <div style="padding: 20px; background: #fff3cd; border-radius: 8px; text-align: center;">
+                        <p style="color: #856404;">Error al cargar los estudiantes: ${error.message}</p>
                     </div>
                 `;
             }
@@ -306,14 +375,14 @@
 
         // Funciones para navegar a las páginas de calificaciones/estadísticas
         function verCalificaciones(idEstudiante, nombreEstudiante) {
-            console.log('📊 Ver calificaciones de:', nombreEstudiante, 'ID:', idEstudiante);
+            console.log('Ver calificaciones de:', nombreEstudiante, 'ID:', idEstudiante);
             localStorage.setItem('selectedEstudianteId', idEstudiante);
             localStorage.setItem('selectedEstudianteNombre', nombreEstudiante);
             window.location.href = '../calificaciones/calificacionestutor.html';
         }
 
         function verEstadisticas(idEstudiante, nombreEstudiante) {
-            console.log('📈 Ver estadísticas de:', nombreEstudiante, 'ID:', idEstudiante);
+            console.log('Ver estadísticas de:', nombreEstudiante, 'ID:', idEstudiante);
             localStorage.setItem('selectedEstudianteId', idEstudiante);
             localStorage.setItem('selectedEstudianteNombre', nombreEstudiante);
             window.location.href = '../estadisticas/estadisticastutor.html';
@@ -321,16 +390,30 @@
 
         // Cargar estudiantes cuando la página esté lista
         window.addEventListener('DOMContentLoaded', () => {
-            console.log('🔍 Esperando servicios...');
-            // Esperar a que los servicios estén disponibles
+            console.log('Esperando servicios...');
+            
+            // Escuchar evento dependenciesLoaded
+            const onDependenciesLoaded = () => {
+                console.log('Servicios disponibles (evento)');
+                loadEstudiantesTutor();
+            };
+            
+            window.addEventListener('dependenciesLoaded', onDependenciesLoaded, { once: true });
+            
+            // Fallback: verificar manualmente
             const checkServices = setInterval(() => {
                 if (typeof usuariosService !== 'undefined' && 
                     typeof estudianteGrupoService !== 'undefined') {
                     clearInterval(checkServices);
-                    console.log('✅ Servicios disponibles');
+                    console.log('Servicios disponibles (polling)');
                     loadEstudiantesTutor();
                 }
             }, 100);
+            
+            // Timeout de seguridad
+            setTimeout(() => {
+                clearInterval(checkServices);
+            }, 10000);
         });
     </script>
 

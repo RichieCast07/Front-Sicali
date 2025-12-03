@@ -279,7 +279,7 @@
     <!-- CÓDIGO DE LA PÁGINA                          -->
     <!-- ============================================ -->
     <script>
-        // Proteger esta página solo para admins
+        // Proteger esta página solo para directores
         (function() {
             function waitForRouteGuard(roles) {
                 if (typeof RouteGuard !== 'undefined') {
@@ -288,7 +288,7 @@
                     setTimeout(function() { waitForRouteGuard(roles); }, 50);
                 }
             }
-            waitForRouteGuard(['admin']);
+            waitForRouteGuard(['director']);
         })();
 
         // Variables globales

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar estudiantes</title>
+    <title>Visualizar Estudiante</title>
     <link rel="stylesheet" href="../../css/Editar estudiante.css">
     <link rel="stylesheet" href="../../css/navbar.css">
 </head>
@@ -12,26 +12,90 @@
     <header class="header">
         <div class="left-section">
             <h1 class="logo">SICALI</h1>
-        <li>
-          <a href="../estadisticas/estadisticasdocente.html"
-            ><span class="icon">
-              <img
-                class="icon"
-                src="../../icons/estadisticas.svg"
-                alt="" /></span
-            ><span class="text">Estadísticas</span></a
-          >
-        </li>
-        <li>
-          <a href="../tutordocente/tutor.html"><span class="icon"> <img class="icon" src="../../icons/tutor.svg" alt=""></span><span class="text">Tutor</span></a>
-        </li>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role" id="userRole">Cargando...</div>
+                <div class="name" id="userName">Cargando...</div>
+            </div>
+            <div class="avatar" id="userAvatar">
+                <img src="../../img/nino.png" alt="">
+            </div>
+        </div>
+    </header>
+
+    <script>
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = (currentUser.nombre + ' ' + currentUser.ape_p + ' ' + (currentUser.ape_m || '')).trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                } else {
+                    userRole.textContent = 'Usuario';
+                }
+            } catch (error) {
+                console.error('❌ Error al cargar datos del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
+            }
+        })();
+    </script>
+    
+    <!-- Modal Cerrar Sesión -->
+    <div id="logoutModal" class="logout-modal" style="display: none;">
+        <button id="logoutBtn" class="logout-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Cerrar Sesión
+        </button>
+    </div>
+
     <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
-            <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
-            <li class="active"><a href="estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
-            <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
-            <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
-            <li><a href="../estadisticas/Estadisticadirector.html"><img class="icon" src="../../icons/estadisticas.svg" alt=""><span class="text">Estadísticas</span></a></li>
+            <li>
+                <a href="estudiante.html">
+                    <span class="icon"><img class="icon" src="../../icons/estudiante.svg" alt=""></span>
+                    <span class="text">Estudiantes</span>
+                </a>
+            </li>
+            <li>
+                <a href="../tutordocente/tutor.html">
+                    <span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span>
+                    <span class="text">Tutor</span>
+                </a>
+            </li>
+            <li>
+                <a href="../asistencia/asistencia.html">
+                    <span class="icon"><img class="icon" src="../../icons/asistencia.svg" alt=""></span>
+                    <span class="text">Asistencias</span>
+                </a>
+            </li>
+            <li>
+                <a href="../calificaciones/calificaciones.html">
+                    <span class="icon"><img class="icon" src="../../icons/calificaciones.svg" alt=""></span>
+                    <span class="text">Calificaciones</span>
+                </a>
+            </li>
+            <li>
+                <a href="../estadisticas/estadisticasdocente.html">
+                    <span class="icon"><img class="icon" src="../../icons/estadisticas.svg" alt=""></span>
+                    <span class="text">Estadísticas</span>
+                </a>
+            </li>
         </ul>
     </nav>
 
@@ -42,120 +106,236 @@
     </button>
 
     <section class="editar-estudiante">
-  <h2>Estudiante</h2>
+        <h2>Estudiante</h2>
 
-  <div class="form-contenedor">
-    <div class="form-columna">
-      <h3>Estudiante</h3>
+        <div class="form-contenedor">
+            <div class="form-columna">
+                <div class="form-group">
+                    <label>Nombre:</label>
+                    <input disabled type="text" id="nombre" placeholder="Cargando...">
+                </div>
 
-      <div class="form-group">
-        <label>Nombre:</label>
-        <input disabled type="text" value="Antonio">
-      </div>
+                <div class="form-group">
+                    <label>Apellido Paterno:</label>
+                    <input disabled type="text" id="ape_p" placeholder="Cargando...">
+                </div>
 
-      <div class="form-group">
-        <label>Apellido Paterno:</label>
-        <input disabled type="text" value="Giron">
-      </div>
+                <div class="form-group">
+                    <label>Apellido Materno:</label>
+                    <input disabled type="text" id="ape_m" placeholder="Cargando...">
+                </div>
 
-      <div class="form-group">
-        <label>Apellido Materno:</label>
-        <input disabled type="text" value="Lopez">
-      </div>
+                <div class="form-group">
+                    <label>CURP:</label>
+                    <input disabled type="text" id="curp" placeholder="Cargando...">
+                </div>
 
-      <div class="form-group">
-        <label>Grupo:</label>
-        <select disabled>
-          <option>Primero A</option>
-        </select>
-      </div>
+                <div class="form-group">
+                    <label>Sexo:</label>
+                    <select disabled id="sexo">
+                        <option value="">Seleccionar</option>
+                        <option value="F">Femenino</option>
+                        <option value="M">Masculino</option>
+                    </select>
+                </div>
 
-      <div class="form-group">
-        <label>Curp:</label>
-        <input disabled type="text" value="GILA040702MSCLDRA9">
-      </div>
+                <div class="form-group">
+                    <label>Fecha de Nacimiento:</label>
+                    <input disabled type="date" id="fecha_nacimiento" placeholder="Cargando...">
+                </div>
 
-      <div class="form-group">
-        <label>Sexo</label>
-        <select disabled>
-          <option>Seleccionar</option>
-          <option>Femenino</option>
-          <option>Masculino</option>
-        </select>
-      </div>
+                <div class="form-group">
+                    <label>Grupo:</label>
+                    <select disabled id="grupo">
+                        <option value="">Cargando...</option>
+                    </select>
+                </div>
 
-      <div class="form-group">
-        <label>Fecha de Nacimiento</label>
-        <input disabled type="date">
-      </div>
-    </div>
+                <!-- Campo de contraseña oculto para estudiantes (no se edita directamente) -->
+            </div>
+        </div>
 
-    <div class="form-columna">
-      <h3>Tutor</h3>
-
-      <div class="form-group">
-        <label>Nombre:</label>
-        <input disabled type="text" value="Antonio">
-      </div>
-
-      <div class="form-group">
-        <label>Apellido Paterno:</label>
-        <input disabled type="text" value="Giron">
-      </div>
-
-      <div class="form-group">
-        <label>Apellido Materno:</label>
-        <input disabled type="text" value="Garcia">
-      </div>
-
-      <div class="form-group">
-        <label>Parentesco:</label>
-        <input disabled type="text" value="PADRE">
-      </div>
-
-      <div class="form-group">
-        <label>Sexo</label>
-        <select disabled>
-          <option>Seleccionar</option>
-          <option>Femenino</option>
-          <option>Masculino</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Fecha de Nacimiento</label>
-        <input disabled type="date">
-      </div>
-    </div>
-  </div>
-
-  <div class="boton-agregar">
-    <button type="button" onclick="navigateToSave()">
-      <img src="../../icons/editar.svg" class="btn-icon" alt="Editar">
-      Editar
-    </button>
-  </div>
-</section>
+        <div class="boton-agregar">
+            <button type="button" onclick="navigateToSave()">
+                <img src="../../icons/editar.svg" class="btn-icon" alt="Editar">
+                Editar
+            </button>
+        </div>
+    </section>
 <script>
-  // Proteger esta página para docentes y admins
-  (function() {
-      function waitForRouteGuard(roles) {
-          if (typeof RouteGuard !== 'undefined') {
-              RouteGuard.protect(roles);
-          } else {
-              setTimeout(function() { waitForRouteGuard(roles); }, 50);
-          }
-      }
-      waitForRouteGuard(['docente', 'admin']);
-  })();
+        (function() {
+            function waitForRouteGuard(roles) {
+                if (typeof RouteGuard !== 'undefined') {
+                    RouteGuard.protect(roles);
+                } else {
+                    setTimeout(function() { waitForRouteGuard(roles); }, 50);
+                }
+            }
+            waitForRouteGuard(['docente', 'director']);
+        })();
 
-  function getIdFromQuery(){ const p = new URLSearchParams(location.search); return p.get('id'); }
-  function navigateToSave(){ const id = getIdFromQuery(); window.location.href = 'guardarestudiante.html' + (id? '?id='+encodeURIComponent(id): ''); }
-  
-  document.querySelector(".back-link").addEventListener("click", function () {
-    window.history.back();
-  });
-</script>
+        (function(){
+            let dataLoaded = false;
+            let savedFecha = null;
+
+            function getIdFromQuery(){ 
+                const p = new URLSearchParams(location.search); 
+                return p.get('id'); 
+            }
+
+            function navigateToSave(){ 
+                const id = getIdFromQuery(); 
+                window.location.href = 'guardarestudiante.html' + (id ? '?id=' + encodeURIComponent(id) : ''); 
+            }
+
+            function togglePassword() {
+                const passwordInput = document.getElementById('password');
+                if (passwordInput) {
+                    passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+                }
+            }
+
+            function monitorFechaInput() {
+                setInterval(function() {
+                    const fechaInput = document.getElementById('fecha_nacimiento');
+                    if (fechaInput && savedFecha && fechaInput.value !== savedFecha) {
+                        console.warn('⚠️ FECHA BORRADA! Restaurando...', {
+                            valorActual: fechaInput.value,
+                            valorGuardado: savedFecha
+                        });
+                        fechaInput.value = savedFecha;
+                    }
+                }, 500);
+            }
+
+            async function loadEstudianteData() {
+                if (dataLoaded) {
+                    console.log('⚠️ Datos ya cargados, abortando...');
+                    return;
+                }
+                dataLoaded = true;
+
+                try {
+                    const id = getIdFromQuery();
+                    console.log('📋 ID desde query:', id);
+                    
+                    if (!id) {
+                        alert('No se especificó ID de estudiante');
+                        window.location.href = 'estudiante.html';
+                        return;
+                    }
+
+                    console.log('🔍 Cargando datos del estudiante ID:', id);
+
+                    const response = await usuariosService.getById(id);
+                    console.log('📦 Respuesta RAW del servidor:', JSON.stringify(response, null, 2));
+                    
+                    const estudiante = response.data || response;
+                    console.log('✅ Estudiante procesado:', JSON.stringify(estudiante, null, 2));
+
+                    // Llenar campos básicos
+                    document.getElementById('nombre').value = estudiante.nombre || '';
+                    document.getElementById('ape_p').value = estudiante.ape_p || '';
+                    document.getElementById('ape_m').value = estudiante.ape_m || '';
+                    document.getElementById('curp').value = estudiante.curp || '';
+                    document.getElementById('sexo').value = estudiante.sexo || '';
+
+                    // Manejo de fecha - IMPORTANTE: fecha_nacimiento es el campo correcto
+                    const fechaInput = document.getElementById('fecha_nacimiento');
+                    console.log('📅 Fecha raw del servidor:', estudiante.fecha_nacimiento);
+                    
+                    if (estudiante.fecha_nacimiento) {
+                        let fechaFormateada = '';
+                        const fechaStr = String(estudiante.fecha_nacimiento);
+                        
+                        if (fechaStr.indexOf('T') !== -1) {
+                            fechaFormateada = fechaStr.split('T')[0];
+                        } else if (fechaStr.indexOf('-') !== -1) {
+                            fechaFormateada = fechaStr.split(' ')[0];
+                        } else {
+                            const fecha = new Date(estudiante.fecha_nacimiento);
+                            fechaFormateada = fecha.toISOString().split('T')[0];
+                        }
+                        
+                        console.log('📅 Fecha formateada:', fechaFormateada);
+                        savedFecha = fechaFormateada;
+                        fechaInput.value = fechaFormateada;
+                        console.log('📅 Fecha asignada al input:', fechaInput.value);
+                    } else {
+                        console.warn('⚠️ No se encontró fecha_nacimiento en los datos del estudiante');
+                    }
+
+                    // Cargar grupos
+                    try {
+                        const inscripciones = await estudianteGrupoService.getByEstudiante(id);
+                        const grupoSelect = document.getElementById('grupo');
+                        
+                        if (inscripciones && inscripciones.length > 0) {
+                            grupoSelect.innerHTML = '';
+                            inscripciones.forEach(function(insc) {
+                                const option = document.createElement('option');
+                                const grupo = insc.grupo;
+                                option.value = grupo.idGrupo;
+                                option.textContent = grupo.nombre + ' - Grado ' + (grupo.grado || '');
+                                grupoSelect.appendChild(option);
+                            });
+                            console.log('✅ Grupos cargados:', inscripciones.length);
+                        } else {
+                            grupoSelect.innerHTML = '<option value="">Sin grupo asignado</option>';
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Error cargando grupos:', error);
+                        document.getElementById('grupo').innerHTML = '<option value="">Error al cargar grupos</option>';
+                    }
+
+                    console.log('✅ CARGA COMPLETA');
+
+                } catch (error) {
+                    console.error('❌ Error cargando datos:', error);
+                    console.error('Stack:', error.stack);
+                    alert('Error al cargar datos del estudiante: ' + error.message);
+                    dataLoaded = false;
+                }
+            }
+
+            // Event listeners
+            const backLink = document.querySelector(".back-link");
+            if (backLink) {
+                backLink.addEventListener("click", function () {
+                    window.history.back();
+                });
+            }
+
+            const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+            if (togglePasswordBtn) {
+                togglePasswordBtn.addEventListener('click', togglePassword);
+            }
+
+            window.togglePassword = togglePassword;
+            window.navigateToSave = navigateToSave;
+
+            function checkServicesAndLoad() {
+                if (dataLoaded) {
+                    console.log('⚠️ checkServicesAndLoad: datos ya cargados');
+                    return;
+                }
+                
+                if (typeof usuariosService !== 'undefined' && 
+                    typeof gruposService !== 'undefined' && 
+                    typeof estudianteGrupoService !== 'undefined') {
+                    console.log('✅ Servicios disponibles, cargando datos...');
+                    loadEstudianteData();
+                } else {
+                    console.log('⏳ Esperando servicios...');
+                    setTimeout(checkServicesAndLoad, 100);
+                }
+            }
+            
+            checkServicesAndLoad();
+        })();
+    </script>
+
+    <script src="../../scripts/utils/logoutModal.js"></script>
 </main>
   <script src="../../scripts/loadDependencies.js"></script>
 </body>

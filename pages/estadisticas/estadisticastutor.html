@@ -22,24 +22,14 @@
         </div>
     </header>
     
-    <nav class="sidebar" id="sidebar">
-        <ul class="menu-list">
-            <li>
-                <a href="../calificaciones/calificacionestutor.html">
-                    <span class="icon"><img class="icon" src="../../icons/calificaciones.svg" alt=""></span>
-                    <span class="text">Calificaciones</span>
-                </a>
-            </li>
-            <li class="active">
-                <span class="icon"><img class="icon" src="../../icons/estadisticas.svg" alt=""></span>
-                <span class="text">Estadísticas</span>
-            </li>
-        </ul>
-    </nav>
-
-    <main class="content" id="content">
+    <main class="content" id="content" style="width: 100%; margin-left: 0; padding: 20px;">
         <section class="statistics-container">
-            <h1 class="statistics-title">Estadísticas</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1 class="statistics-title" style="margin: 0;">Estadísticas</h1>
+                <button onclick="window.location.href='../bienvenidas/bienvenida Tutor.html'" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                    ← Volver
+                </button>
+            </div>
             <div class="filters">
                 <div class="estudiante-info">
                     <div class="info-block">
@@ -97,31 +87,70 @@
         const CALIFICACION_MIN = 0;
         const CALIFICACION_MAX = 10;
         const CHART_MAX_HEIGHT = 200; // Altura máxima en píxeles para la barra
-        const SERVICE_TIMEOUT = 5000;
+        const SERVICE_TIMEOUT = 10000;  // Aumentado a 10 segundos para asegurar carga
 
         // Esperar a que los servicios estén disponibles
         function waitForServices(services, timeout = SERVICE_TIMEOUT) {
             return new Promise((resolve, reject) => {
+                let resolved = false;
+                
+                const onDependenciesLoaded = () => {
+                    if (resolved) return;
+                    // Dar 100ms más para que los servicios se ejecuten completamente
+                    setTimeout(() => {
+                        const allAvailable = services.every(service => typeof window[service] !== 'undefined');
+                        if (allAvailable) {
+                            if (!resolved) {
+                                resolved = true;
+                                window.removeEventListener('dependenciesLoaded', onDependenciesLoaded);
+                                resolve();
+                            }
+                        }
+                    }, 100);
+                };
+                
+                window.addEventListener('dependenciesLoaded', onDependenciesLoaded);
+                
+                // Fallback: verificar manualmente con timeout
                 const startTime = Date.now();
                 const check = setInterval(() => {
+                    if (resolved) {
+                        clearInterval(check);
+                        return;
+                    }
+                    
                     try {
                         const allAvailable = services.every(service => {
                             try {
                                 return typeof eval(service) !== 'undefined';
                             } catch (e) {
-                                return false;
+                                return typeof window[service] !== 'undefined';
                             }
                         });
                         
                         if (allAvailable) {
+                            resolved = true;
                             clearInterval(check);
+                            window.removeEventListener('dependenciesLoaded', onDependenciesLoaded);
                             resolve();
                         } else if (Date.now() - startTime > timeout) {
+                            resolved = true;
                             clearInterval(check);
-                            reject(new Error('Timeout esperando servicios: ' + services.join(', ')));
+                            window.removeEventListener('dependenciesLoaded', onDependenciesLoaded);
+                            
+                            const missing = services.filter(s => typeof window[s] === 'undefined');
+                            console.error('❌ Servicios no disponibles:', missing);
+                            console.log('✅ Servicios disponibles:', Object.keys(window).filter(k => typeof window[k] === 'object' && window[k] && window[k].constructor.name.includes('Service')));
+                            
+                            reject(new Error('Timeout esperando servicios: ' + missing.join(', ')));
                         }
-                    } catch (e) {
-                        // Continuar intentando
+                    } catch (err) {
+                        if (Date.now() - startTime > timeout && !resolved) {
+                            resolved = true;
+                            clearInterval(check);
+                            window.removeEventListener('dependenciesLoaded', onDependenciesLoaded);
+                            reject(err);
+                        }
                     }
                 }, 50);
             });
@@ -157,7 +186,7 @@
                     setTimeout(() => waitForRouteGuard(roles), 50);
                 }
             }
-            waitForRouteGuard(['tutor', 'admin']);
+            waitForRouteGuard(['tutor', 'director']);
         })();
 
         // ==========================================
@@ -185,52 +214,82 @@
         // ==========================================
         async function cargarGrafica(idEstudiante, idAsignatura = null) {
             try {
-                console.log('📊 Cargando gráfica para estudiante:', idEstudiante);
-                if (idAsignatura) {
-                    console.log('📚 Filtrando por asignatura:', idAsignatura);
-                }
-                
-                // Obtener calificaciones del estudiante
+                console.log('=== INICIANDO cargarGrafica ===');
+                console.log('Estudiante ID:', idEstudiante);
+                console.log('Asignatura ID:', idAsignatura);
+                console.log('calificacionesService disponible:', typeof calificacionesService !== 'undefined');
+                console.log('httpClient disponible:', typeof httpClient !== 'undefined');
+
                 let calificaciones = [];
-                
-                try {
-                    // Intentar desde el servicio
-                    const response = await calificacionesService.getByEstudiante(idEstudiante);
-                    calificaciones = Array.isArray(response) ? response : 
-                                    (response.data ? (Array.isArray(response.data) ? response.data : [response.data]) : []);
-                } catch (error) {
-                    console.warn('⚠️ Backend no disponible, intentando localStorage');
-                    
-                    // Fallback a localStorage
-                    const calificacionesLocales = JSON.parse(
-                        localStorage.getItem('calificaciones_pendientes') || '[]'
-                    );
-                    calificaciones = calificacionesLocales.filter(cal => 
-                        Number(cal.idEstudiante) === Number(idEstudiante)
-                    );
+                let asignaturas = [];
+
+                // Obtener calificaciones del estudiante usando calificacionesService
+                if (typeof calificacionesService !== 'undefined') {
+                    try {
+                        console.log('Llamando calificacionesService.getAll()...');
+                        const allCalificaciones = await calificacionesService.getAll();
+                        console.log('Respuesta de calificacionesService:', {
+                            tipo: typeof allCalificaciones,
+                            esArray: Array.isArray(allCalificaciones),
+                            cantidad: Array.isArray(allCalificaciones) ? allCalificaciones.length : 'N/A',
+                            datos: allCalificaciones
+                        });
+                        
+                        calificaciones = allCalificaciones.filter(cal => 
+                            Number(cal.idEstudiante) === Number(idEstudiante)
+                        );
+                        
+                        console.log('Calificaciones filtradas:', {
+                            cantidad: calificaciones.length,
+                            datos: calificaciones
+                        });
+                    } catch (error) {
+                        console.error('Error en calificacionesService.getAll():', error);
+                    }
+                } else {
+                    console.warn('⚠️ calificacionesService NO está definido');
                 }
 
-                console.log('✅ Calificaciones cargadas:', calificaciones.length);
+                // Obtener asignaturas desde las calificaciones normalizadas
+                // (ya incluyen nombreAsignatura desde el backend)
+                if (calificaciones.length > 0) {
+                    const asignaturasMap = {};
+                    calificaciones.forEach(cal => {
+                        if (cal.idAsignatura && cal.nombreAsignatura) {
+                            if (!asignaturasMap[cal.idAsignatura]) {
+                                asignaturasMap[cal.idAsignatura] = {
+                                    idAsignatura: cal.idAsignatura,
+                                    nombre: cal.nombreAsignatura
+                                };
+                            }
+                        }
+                    });
+                    asignaturas = Object.values(asignaturasMap);
+                    console.log('Asignaturas extraídas desde calificaciones:', asignaturas.length);
+                }
 
                 // Filtrar por asignatura si se especifica
                 if (idAsignatura) {
                     calificaciones = calificaciones.filter(cal => 
                         Number(cal.idAsignatura) === Number(idAsignatura)
                     );
-                    console.log('📚 Calificaciones filtradas por asignatura:', calificaciones.length);
+                    console.log('Calificaciones filtradas por asignatura:', calificaciones.length);
                 }
 
                 if (calificaciones.length === 0) {
-                    mostrarMensaje('No hay calificaciones registradas', 'info');
+                    console.warn('❌ Sin calificaciones registradas');
+                    mostrarMensaje('No hay calificaciones registradas para este estudiante', 'info');
                     return;
                 }
 
-                // Calcular promedios por periodo
+                console.log('✅ Cargando gráfica con', calificaciones.length, 'calificaciones');
+
+                // Calcular promedios por periodo y convertir a porcentaje
                 const promediosPorPeriodo = {
-                    1: { suma: 0, count: 0 },
-                    2: { suma: 0, count: 0 },
-                    3: { suma: 0, count: 0 },
-                    4: { suma: 0, count: 0 }
+                    1: { suma: 0, count: 0, porcentaje: 0 },
+                    2: { suma: 0, count: 0, porcentaje: 0 },
+                    3: { suma: 0, count: 0, porcentaje: 0 },
+                    4: { suma: 0, count: 0, porcentaje: 0 }
                 };
 
                 calificaciones.forEach(calif => {
@@ -243,12 +302,51 @@
                     });
                 });
 
+                // Calcular promedios y porcentajes
+                [1, 2, 3, 4].forEach(periodo => {
+                    if (promediosPorPeriodo[periodo].count > 0) {
+                        const promedio = promediosPorPeriodo[periodo].suma / promediosPorPeriodo[periodo].count;
+                        // Convertir a porcentaje (escala 0-10 -> 0-100%)
+                        promediosPorPeriodo[periodo].promedio = promedio;
+                        promediosPorPeriodo[periodo].porcentaje = (promedio / 10) * 100;
+                    }
+                });
+
+                // Cargar asignaturas en el select si no hay filtro
+                if (!idAsignatura && asignaturas.length > 0) {
+                    const select = document.getElementById('asignaturaSelect');
+                    // Limpiar opciones previas (mantener "Todas")
+                    const opcionesTodas = select.querySelector('option[value=""]');
+                    select.innerHTML = '';
+                    if (opcionesTodas) select.appendChild(opcionesTodas);
+
+                    // Agregar solo asignaturas con calificaciones
+                    const idsAsignaturasConCalificaciones = new Set(
+                        calificaciones.map(cal => cal.idAsignatura)
+                    );
+
+                    asignaturas.forEach(asig => {
+                        if (idsAsignaturasConCalificaciones.has(asig.idAsignatura)) {
+                            const option = document.createElement('option');
+                            option.value = asig.idAsignatura;
+                            option.textContent = asig.nombre;
+                            select.appendChild(option);
+                        }
+                    });
+
+                    // Event listener para cambio de asignatura
+                    select.addEventListener('change', (e) => {
+                        const newIdAsignatura = e.target.value ? parseInt(e.target.value) : null;
+                        cargarGrafica(idEstudiante, newIdAsignatura);
+                    }, { once: true });
+                }
+
                 // Renderizar gráfica
                 renderizarGrafica(promediosPorPeriodo);
 
             } catch (error) {
-                console.error('❌ Error cargando gráfica:', error);
-                mostrarMensaje('Error al cargar datos de la gráfica', 'error');
+                console.error('Error cargando gráfica:', error);
+                mostrarMensaje('Error al cargar datos de la gráfica: ' + error.message, 'error');
             }
         }
 
@@ -267,42 +365,45 @@
 
             [1, 2, 3, 4].forEach((periodo, index) => {
                 const data = promediosPorPeriodo[periodo];
-                const promedio = data.count > 0 ? (data.suma / data.count) : 0;
                 
-                // Calcular altura: escala de 0-10 a 0-200px
-                const altura = (promedio / CALIFICACION_MAX) * CHART_MAX_HEIGHT;
-
                 if (data.count > 0) {
-                    sumaTotal += promedio;
+                    // Usar porcentaje calculado
+                    const porcentaje = data.porcentaje || 0;
+                    const promedio = data.promedio || 0;
+                    
+                    // Calcular altura: escala de 0-100% a 0-200px
+                    const altura = (porcentaje / 100) * CHART_MAX_HEIGHT;
+
+                    sumaTotal += porcentaje;
                     countTotal++;
-                }
 
-                const barGroup = document.createElement('div');
-                barGroup.className = 'bar-group';
-                
-                // Solo mostrar la barra si hay datos
-                if (data.count > 0) {
+                    const barGroup = document.createElement('div');
+                    barGroup.className = 'bar-group';
+                    
                     barGroup.innerHTML = `
-                        <div class="bar ${colores[index]}" style="height: ${altura}px;" title="Promedio: ${promedio.toFixed(1)}"></div>
-                        <div class="bar-label">${labels[index]}<br><small>${promedio.toFixed(1)}</small></div>
+                        <div class="bar ${colores[index]}" style="height: ${altura}px;" title="Promedio: ${promedio.toFixed(1)}/10 (${porcentaje.toFixed(0)}%)"></div>
+                        <div class="bar-label">${labels[index]}<br><small>${porcentaje.toFixed(0)}%</small></div>
                     `;
+                    
+                    barsContainer.appendChild(barGroup);
                 } else {
+                    const barGroup = document.createElement('div');
+                    barGroup.className = 'bar-group';
                     barGroup.innerHTML = `
                         <div class="bar" style="height: 0px; background: #ddd;"></div>
                         <div class="bar-label">${labels[index]}<br><small>-</small></div>
                     `;
+                    barsContainer.appendChild(barGroup);
                 }
-                
-                barsContainer.appendChild(barGroup);
             });
 
             // Mostrar promedio general si hay datos
             if (countTotal > 0) {
-                const promedioFinal = (sumaTotal / countTotal).toFixed(1);
-                console.log('📊 Promedio final:', promedioFinal);
+                const promedioFinalPorcentaje = (sumaTotal / countTotal).toFixed(0);
+                console.log('Promedio final:', promedioFinalPorcentaje + '%');
             }
 
-            console.log('✅ Gráfica renderizada correctamente');
+            console.log('Gráfica renderizada correctamente');
         }
 
         // ==========================================
@@ -311,8 +412,18 @@
         async function cargarAsignaturas(idEstudiante) {
             try {
                 const response = await httpClient.get(API_CONFIG.ENDPOINTS.ASIGNATURAS.LIST);
-                const asignaturas = Array.isArray(response.data) ? response.data : 
-                                   (response.data?.data ? response.data.data : []);
+                
+                // Manejar respuesta con estructura { success, data }
+                let asignaturas = [];
+                if (response && response.success) {
+                    asignaturas = Array.isArray(response.data) ? response.data : [];
+                } else if (Array.isArray(response)) {
+                    asignaturas = response;
+                } else if (Array.isArray(response.data)) {
+                    asignaturas = response.data;
+                } else if (response.data?.data && Array.isArray(response.data.data)) {
+                    asignaturas = response.data.data;
+                }
 
                 const select = document.getElementById('asignaturaSelect');
                 
@@ -358,7 +469,7 @@
         // ==========================================
         async function loadEstadisticasTutor() {
             try {
-                console.log('📈 Cargando estadísticas...');
+                console.log('Cargando estadísticas...');
                 
                 // Verificar si se seleccionó un estudiante específico
                 const estudianteIdSeleccionado = localStorage.getItem('selectedEstudianteId');
@@ -367,71 +478,50 @@
                 let estudianteId = null;
 
                 if (estudianteIdSeleccionado) {
-                    // Caso 1: Estudiante seleccionado desde otra página
-                    console.log('👤 Estudiante seleccionado:', estudianteNombreSeleccionado);
+                    // Mostrar estudiante seleccionado
+                    console.log('Estudiante seleccionado:', estudianteNombreSeleccionado);
                     
-                    const estudiante = await usuariosService.getById(estudianteIdSeleccionado);
-                    const nombreCompleto = estudianteNombreSeleccionado || 
-                        `${estudiante.nombre} ${estudiante.ape_p} ${estudiante.ape_m || ''}`.trim();
+                    if (estudianteNombreSeleccionado) {
+                        document.getElementById('estudianteNombre').textContent = estudianteNombreSeleccionado;
+                    }
                     
-                    document.getElementById('estudianteNombre').textContent = nombreCompleto;
                     estudianteId = estudianteIdSeleccionado;
                     
-                    // Cargar grupo
-                    await cargarGrupoEstudiante(estudianteIdSeleccionado);
+                    // Intentar cargar información adicional
+                    try {
+                        if (typeof usuariosService !== 'undefined') {
+                            const estudiante = await usuariosService.getById(estudianteIdSeleccionado);
+                            const nombreCompleto = estudianteNombreSeleccionado || 
+                                `${estudiante.nombre} ${estudiante.ape_p} ${estudiante.ape_m || ''}`.trim();
+                            document.getElementById('estudianteNombre').textContent = nombreCompleto;
+                        }
+                        
+                        if (typeof estudianteGrupoService !== 'undefined') {
+                            await cargarGrupoEstudiante(estudianteIdSeleccionado);
+                        }
+                    } catch (err) {
+                        console.warn('Error cargando info adicional:', err);
+                    }
                     
                     // Limpiar selección
                     localStorage.removeItem('selectedEstudianteId');
                     localStorage.removeItem('selectedEstudianteNombre');
                     
                 } else {
-                    // Caso 2: Mostrar primer estudiante tutorado
-                    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                    
-                    if (!currentUser.id_usuario) {
-                        throw new Error('No se encontró información del tutor');
-                    }
-
-                    console.log('📊 Buscando estudiantes del tutor:', currentUser.id_usuario);
-
-                    // Buscar estudiantes asignados al tutor
-                    const estudiantes = await usuariosService.getByRol('estudiante');
-                    const estudiantesTutor = estudiantes.filter(est => {
-                        const key = `estudiante_tutor_${est.id_usuario}`;
-                        const idTutor = localStorage.getItem(key);
-                        return Number(idTutor) === Number(currentUser.id_usuario);
-                    });
-
-                    console.log('✅ Estudiantes encontrados:', estudiantesTutor.length);
-
-                    if (estudiantesTutor.length === 0) {
-                        document.getElementById('estudianteNombre').textContent = 'Sin estudiantes asignados';
-                        document.getElementById('estudianteGrupo').textContent = '-';
-                        mostrarMensaje('No hay estudiantes asignados a este tutor', 'info');
-                        return;
-                    }
-
-                    // Mostrar primer estudiante
-                    const estudiante = estudiantesTutor[0];
-                    document.getElementById('estudianteNombre').textContent = 
-                        `${estudiante.nombre} ${estudiante.ape_p} ${estudiante.ape_m || ''}`.trim();
-                    
-                    estudianteId = estudiante.id_usuario;
-                    
-                    // Cargar grupo
-                    await cargarGrupoEstudiante(estudiante.id_usuario);
+                    // Mostrar datos de ejemplo
+                    document.getElementById('estudianteNombre').textContent = 'Estudiante de Ejemplo';
+                    document.getElementById('estudianteGrupo').textContent = '1A - Grado 1';
+                    mostrarMensaje('Selecciona un estudiante desde la pantalla principal', 'info');
+                    return;
                 }
 
-                // Cargar asignaturas en el select
-                await cargarAsignaturas(estudianteId);
-
-                // Cargar gráfica del estudiante
+                // Cargar gráfica de calificaciones
                 await cargarGrafica(estudianteId);
 
-                console.log('✅ Estadísticas cargadas correctamente');
+                console.log('Estadísticas cargadas correctamente');
 
             } catch (error) {
-                console.error('❌ Error cargando estadísticas:', error);
+                console.error('Error cargando estadísticas:', error);
                 document.getElementById('estudianteNombre').textContent = 'Error al cargar';
                 mostrarMensaje('Error al cargar estadísticas: ' + error.message, 'error');
             }
@@ -468,25 +558,55 @@
         // ==========================================
         // INICIALIZACIÓN
         // ==========================================
-        (async function init() {
+        let initializationStarted = false;
+        
+        async function initializeApp() {
+            if (initializationStarted) {
+                console.log('⚠️ Inicialización ya en progreso');
+                return;
+            }
+            
+            initializationStarted = true;
+            
             try {
-                console.log('🚀 Inicializando aplicación de estadísticas...');
+                console.log('🔄 Inicializando aplicación de estadísticas...');
                 
-                await waitForServices([
-                    'usuariosService', 
-                    'estudianteGrupoService', 
-                    'calificacionesService',
-                    'httpClient'
-                ]);
+                // Esperar a que los servicios necesarios estén disponibles
+                console.log('⏳ Esperando servicios...');
+                await waitForServices(['calificacionesService', 'httpClient', 'API_CONFIG', 'usuariosService', 'estudianteGrupoService']);
                 
-                console.log('✅ Servicios cargados');
+                console.log('✅ Servicios cargados correctamente');
+                console.log('calificacionesService disponible:', typeof calificacionesService !== 'undefined');
+                console.log('httpClient disponible:', typeof httpClient !== 'undefined');
+                console.log('API_CONFIG disponible:', typeof API_CONFIG !== 'undefined');
+                
                 await loadEstadisticasTutor();
+                
+                console.log('✅ Aplicación de estadísticas inicializada');
                 
             } catch (error) {
                 console.error('❌ Error en la inicialización:', error);
                 mostrarMensaje('Error al inicializar la aplicación. Por favor, recarga la página.', 'error');
             }
-        })();
+        }
+        
+        // Esperar a dependenciesLoaded para iniciar
+        window.addEventListener('dependenciesLoaded', async () => {
+            console.log('📢 Evento dependenciesLoaded disparado');
+            await initializeApp();
+        });
+        
+        // Fallback: iniciar en DOMContentLoaded si dependenciesLoaded no se ha disparado
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log('DOMContentLoaded disparado');
+            // Dar 200ms para que dependenciesLoaded se dispare
+            setTimeout(async () => {
+                if (!initializationStarted) {
+                    console.log('⚠️ dependenciesLoaded no se disparó, iniciando con fallback...');
+                    await initializeApp();
+                }
+            }, 200);
+        });
     </script>
     <script src="../../scripts/utils/logoutModal.js"></script>
 </body>

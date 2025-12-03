@@ -22,24 +22,14 @@
         </div>
     </header>
 
-    <nav class="sidebar" id="sidebar">
-        <ul class="menu-list">
-            <li class="active">
-                <span class="icon"><img class="icon" src="../../icons/calificaciones.svg" alt=""></span>
-                <span class="text">Calificaciones</span>
-            </li>
-            <li>
-                <a href="../estadisticas/estadisticastutor.html">
-                    <span class="icon"><img class="icon" src="../../icons/estadisticas.svg" alt=""></span>
-                    <span class="text">Estadísticas</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-
-    <main class="content" id="content">
+    <main class="content" id="content" style="width: 100%; margin-left: 0; padding: 20px;">
         <section class="calificaciones-section">
-            <h1 class="titulo">Calificaciones</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1 class="titulo" style="margin: 0;">Calificaciones</h1>
+                <button onclick="window.location.href='../bienvenidas/bienvenida Tutor.html'" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                    ← Volver
+                </button>
+            </div>
             <div class="container">
                 <div class="header-div">
                     <div class="col">
@@ -68,7 +58,7 @@
         // ==========================================
         const CALIFICACION_MIN = 0;
         const CALIFICACION_MAX = 10;
-        const SERVICE_TIMEOUT = 5000;
+        const SERVICE_TIMEOUT = 10000;  // Aumentado a 10 segundos para asegurar carga
 
         // Normalizar diferentes estructuras de respuesta del API
         function normalizeApiResponse(response) {
@@ -105,16 +95,54 @@
         // Esperar a que los servicios estén disponibles
         function waitForServices(services, timeout = SERVICE_TIMEOUT) {
             return new Promise((resolve, reject) => {
+                let resolved = false;
+                
+                const onDependenciesLoaded = () => {
+                    if (resolved) return;
+                    // Dar 100ms más para que los servicios se ejecuten completamente
+                    setTimeout(() => {
+                        const allAvailable = services.every(service => typeof window[service] !== 'undefined');
+                        if (allAvailable) {
+                            if (!resolved) {
+                                resolved = true;
+                                window.removeEventListener('dependenciesLoaded', onDependenciesLoaded);
+                                resolve();
+                            }
+                        }
+                    }, 100);
+                };
+                
+                window.addEventListener('dependenciesLoaded', onDependenciesLoaded);
+                
+                // Fallback: verificar manualmente con timeout
                 const startTime = Date.now();
                 const check = setInterval(() => {
+                    if (resolved) {
+                        clearInterval(check);
+                        return;
+                    }
+                    
                     const allAvailable = services.every(service => typeof window[service] !== 'undefined');
                     
                     if (allAvailable) {
+                        resolved = true;
                         clearInterval(check);
+                        window.removeEventListener('dependenciesLoaded', onDependenciesLoaded);
                         resolve();
                     } else if (Date.now() - startTime > timeout) {
+                        resolved = true;
                         clearInterval(check);
-                        reject(new Error('Timeout esperando servicios: ' + services.join(', ')));
+                        window.removeEventListener('dependenciesLoaded', onDependenciesLoaded);
+                        
+                        // Listar servicios que NO están disponibles
+                        const missing = services.filter(s => typeof window[s] === 'undefined');
+                        console.error('❌ Servicios no disponibles:', missing);
+                        console.log('✅ Servicios disponibles en window:', Object.keys(window).filter(k => {
+                            const val = window[k];
+                            return typeof val === 'object' && val && (val.constructor.name.includes('Service') || k.includes('Config'));
+                        }));
+                        
+                        reject(new Error('Timeout esperando servicios: ' + missing.join(', ')));
                     }
                 }, 100);
             });
@@ -131,7 +159,7 @@
                     setTimeout(() => waitForRouteGuard(roles), 50);
                 }
             }
-            waitForRouteGuard(['tutor', 'admin']);
+            waitForRouteGuard(['tutor', 'director']);
         })();
 
         // ==========================================
@@ -159,162 +187,152 @@
         // ==========================================
         async function loadEstudianteData() {
             try {
-                console.log('📊 Cargando datos del estudiante...');
+                console.log('Cargando datos del estudiante...');
                 
                 const estudianteId = localStorage.getItem('selectedEstudianteId');
                 const estudianteNombre = localStorage.getItem('selectedEstudianteNombre');
                 
                 if (!estudianteId) {
-                    alert('No se seleccionó ningún estudiante. Redirigiendo...');
-                    window.location.href = '../bienvenidas/bienvenida Tutor.html';
+                    console.error('No se seleccionó estudiante');
+                    document.getElementById('estudianteNombre').textContent = 'No disponible';
+                    document.getElementById('estudianteGrupo').textContent = 'No disponible';
+                    mostrarCalificacionesEjemplo();
                     return;
                 }
 
-                console.log('👤 Estudiante ID:', estudianteId);
+                console.log('Estudiante ID:', estudianteId);
 
-                // Obtener datos del estudiante
-                const estudiante = await usuariosService.getById(estudianteId);
-                
-                // Mostrar nombre del estudiante
-                const nombreCompleto = estudianteNombre || 
-                    `${estudiante.nombre} ${estudiante.ape_p} ${estudiante.ape_m || ''}`.trim();
-                document.getElementById('estudianteNombre').textContent = nombreCompleto;
-                
-                console.log('✅ Estudiante cargado:', nombreCompleto);
-                
-                // Obtener y mostrar grupos del estudiante
-                let gruposEstudiante = [];
-                try {
-                    const todasInscripciones = await estudianteGrupoService.getAll();
-                    gruposEstudiante = todasInscripciones.filter(insc => {
-                        const idEst = getEstudianteId(insc);
-                        return Number(idEst) === Number(estudianteId);
-                    });
-                    
-                    console.log('📚 Grupos encontrados:', gruposEstudiante.length);
-                    
-                    if (gruposEstudiante && gruposEstudiante.length > 0) {
-                        const grupoInfo = gruposEstudiante.map(eg => {
-                            const grupo = eg.grupo;
-                            if (grupo && grupo.nombre) {
-                                return `${grupo.nombre} - Grado ${grupo.grado || ''}`;
-                            }
-                            return `Grupo ${eg.idGrupo}`;
-                        }).join(', ');
-                        document.getElementById('estudianteGrupo').textContent = grupoInfo;
-                    } else {
-                        document.getElementById('estudianteGrupo').textContent = 'Sin grupo asignado';
-                    }
-                } catch (grupoError) {
-                    console.error('❌ Error cargando grupos:', grupoError);
-                    document.getElementById('estudianteGrupo').textContent = 'Error al cargar grupo';
+                // Mostrar nombre del estudiante (desde localStorage)
+                if (estudianteNombre) {
+                    document.getElementById('estudianteNombre').textContent = estudianteNombre;
                 }
                 
-                // Cargar calificaciones del estudiante
-                await loadCalificacionesReales(estudianteId, gruposEstudiante);
+                // Intentar cargar datos adicionales del servidor
+                try {
+                    if (typeof usuariosService !== 'undefined') {
+                        const estudiante = await usuariosService.getById(estudianteId);
+                        const nombreCompleto = estudianteNombre || 
+                            `${estudiante.nombre} ${estudiante.ape_p} ${estudiante.ape_m || ''}`.trim();
+                        document.getElementById('estudianteNombre').textContent = nombreCompleto;
+                    }
+                } catch (err) {
+                    console.warn('No se pudo cargar info adicional del estudiante:', err);
+                }
+                
+                // Intentar cargar grupos
+                try {
+                    if (typeof estudianteGrupoService !== 'undefined') {
+                        const todasInscripciones = await estudianteGrupoService.getAll();
+                        const gruposEstudiante = todasInscripciones.filter(insc => {
+                            const idEst = getEstudianteId(insc);
+                            return Number(idEst) === Number(estudianteId);
+                        });
+                        
+                        if (gruposEstudiante && gruposEstudiante.length > 0) {
+                            const grupoInfo = gruposEstudiante.map(eg => {
+                                const grupo = eg.grupo;
+                                if (grupo && grupo.nombre) {
+                                    return `${grupo.nombre} - Grado ${grupo.grado || ''}`;
+                                }
+                                return `Grupo ${eg.idGrupo}`;
+                            }).join(', ');
+                            document.getElementById('estudianteGrupo').textContent = grupoInfo;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('No se pudieron cargar grupos:', err);
+                }
+                
+                // Cargar calificaciones
+                await loadCalificacionesReales(estudianteId);
 
             } catch (error) {
-                console.error('❌ Error al cargar datos del estudiante:', error);
-                alert('Error: ' + error.message);
-                window.location.href = '../bienvenidas/bienvenida Tutor.html';
+                console.error('Error al cargar datos del estudiante:', error);
+                mostrarCalificacionesEjemplo();
             }
         }
 
         // ==========================================
         // CARGAR CALIFICACIONES REALES
         // ==========================================
-        async function loadCalificacionesReales(estudianteId, gruposEstudiante) {
+        async function loadCalificacionesReales(estudianteId) {
             try {
-                console.log('📚 Cargando calificaciones del estudiante ID:', estudianteId);
+                console.log('=== INICIANDO loadCalificacionesReales ===');
+                console.log('Estudiante ID:', estudianteId);
+                console.log('calificacionesService disponible:', typeof calificacionesService !== 'undefined');
+                console.log('httpClient disponible:', typeof httpClient !== 'undefined');
+                console.log('API_CONFIG disponible:', typeof API_CONFIG !== 'undefined');
 
                 let todasCalificaciones = [];
+                let asignaturas = [];
 
-                // 1. Intentar cargar desde backend
-                try {
-                    const response = await httpClient.get(API_CONFIG.ENDPOINTS.CALIFICACIONES.LIST);
-                    console.log('📡 Response del backend:', response);
-                    
-                    const calificacionesBackend = normalizeApiResponse(response);
-                    
-                    console.log('📊 Total calificaciones en BD:', calificacionesBackend.length);
-                    
-                    // Filtrar por estudiante
-                    todasCalificaciones = calificacionesBackend.filter(cal => {
-                        const idEst = getEstudianteId(cal);
-                        const match = Number(idEst) === Number(estudianteId);
-                        if (match) {
-                            console.log('✅ Calificación encontrada:', cal);
-                        }
-                        return match;
-                    });
-                    
-                    console.log('✅ Calificaciones del backend para este estudiante:', todasCalificaciones.length);
-                } catch (error) {
-                    console.error('❌ Error al cargar desde backend:', error);
-                    console.warn('⚠️ Backend no disponible, usando localStorage');
-                }
-
-                // 2. Cargar desde localStorage (calificaciones guardadas localmente)
-                try {
-                    const calificacionesLocales = JSON.parse(
-                        localStorage.getItem('calificaciones_pendientes') || '[]'
-                    );
-                    const calificacionesEstudiante = calificacionesLocales.filter(cal => 
-                        Number(cal.idEstudiante) === Number(estudianteId)
-                    );
-
-                    if (calificacionesEstudiante.length > 0) {
-                        console.log('📦 Calificaciones locales encontradas:', calificacionesEstudiante.length);
+                // Intentar cargar calificaciones usando calificacionesService
+                if (typeof calificacionesService !== 'undefined') {
+                    try {
+                        console.log('Llamando calificacionesService.getAll()...');
                         
-                        // Combinar con backend (localStorage tiene prioridad)
-                        calificacionesEstudiante.forEach(calLocal => {
-                            const existe = todasCalificaciones.find(cal => 
-                                cal.idAsignatura === calLocal.idAsignatura
-                            );
-                            if (!existe) {
-                                todasCalificaciones.push(calLocal);
-                            } else {
-                                // localStorage tiene prioridad, actualizar con datos locales
-                                Object.assign(existe, calLocal);
-                            }
+                        // Obtener todas las calificaciones
+                        const allCalificaciones = await calificacionesService.getAll();
+                        
+                        console.log('Respuesta de calificacionesService:', {
+                            tipo: typeof allCalificaciones,
+                            esArray: Array.isArray(allCalificaciones),
+                            cantidad: Array.isArray(allCalificaciones) ? allCalificaciones.length : 'N/A',
+                            datos: allCalificaciones
                         });
+                        
+                        // Filtrar por estudiante
+                        todasCalificaciones = allCalificaciones.filter(cal => {
+                            return Number(cal.idEstudiante) === Number(estudianteId);
+                        });
+                        
+                        console.log('Calificaciones filtradas para estudiante:', {
+                            cantidad: todasCalificaciones.length,
+                            datos: todasCalificaciones
+                        });
+                    } catch (error) {
+                        console.error('Error llamando calificacionesService.getAll():', error);
                     }
-                } catch (error) {
-                    console.warn('⚠️ Error al cargar calificaciones locales:', error);
+                } else {
+                    console.warn('⚠️ calificacionesService NO está definido');
                 }
 
-                // 3. Si no hay calificaciones, mostrar datos de ejemplo
+                // Si no hay calificaciones, mostrar ejemplo
                 if (todasCalificaciones.length === 0) {
-                    console.log('ℹ️ No hay calificaciones reales, mostrando ejemplo');
+                    console.log('❌ Sin calificaciones - mostrando ejemplo');
                     mostrarCalificacionesEjemplo();
                     return;
                 }
 
-                // 4. Cargar asignaturas para obtener nombres
-                let asignaturas = [];
-                try {
-                    const respAsignaturas = await httpClient.get(API_CONFIG.ENDPOINTS.ASIGNATURAS.LIST);
-                    asignaturas = normalizeApiResponse(respAsignaturas);
-                    console.log('📚 Asignaturas cargadas:', asignaturas.length);
-                } catch (error) {
-                    console.warn('⚠️ No se pudieron cargar asignaturas:', error);
-                }
+                console.log('✅ Cargando calificaciones reales...');
 
-                // 5. Organizar calificaciones por asignatura
+                // Los nombres de asignaturas ya vienen del backend en normalizeCalificacion
+                // No es necesario hacer llamadas adicionales
+                
+                // Organizar calificaciones por asignatura
                 const calificacionesPorAsignatura = {};
                 
+                console.log('[DEBUG] Procesando calificaciones. Total:', todasCalificaciones.length);
+                
                 todasCalificaciones.forEach(cal => {
-                    const idAsig = cal.idAsignatura || cal.asignatura?.idAsignatura;
+                    const idAsig = cal.idAsignatura;
                     
                     if (!idAsig) {
-                        console.warn('⚠️ Calificación sin ID de asignatura:', cal);
+                        console.warn('[DEBUG] Calificación sin idAsignatura:', cal);
                         return;
                     }
                     
                     if (!calificacionesPorAsignatura[idAsig]) {
-                        const asignatura = asignaturas.find(a => a.idAsignatura === idAsig);
+                        // El nombre de la asignatura ya viene normalizado del servicio
+                        const nombreAsignatura = cal.nombreAsignatura || `Asignatura ${idAsig}`;
+                        
+                        console.log(`[DEBUG] Asignatura ${idAsig}:`, {
+                            nombre: nombreAsignatura,
+                            calificacionCompleta: cal
+                        });
+                        
                         calificacionesPorAsignatura[idAsig] = {
-                            nombre: asignatura?.nombre || `Asignatura ${idAsig}`,
+                            nombre: nombreAsignatura,
                             calificacion1: validarCalificacion(cal.calificacion1),
                             calificacion2: validarCalificacion(cal.calificacion2),
                             calificacion3: validarCalificacion(cal.calificacion3),
@@ -322,14 +340,12 @@
                         };
                     }
                 });
-                
-                console.log('📋 Calificaciones organizadas:', calificacionesPorAsignatura);
 
-                // 6. Renderizar calificaciones
+                console.log('[DEBUG] Calificaciones por asignatura:', calificacionesPorAsignatura);
                 renderCalificaciones(calificacionesPorAsignatura);
 
             } catch (error) {
-                console.error('❌ Error cargando calificaciones:', error);
+                console.error('Error cargando calificaciones:', error);
                 mostrarCalificacionesEjemplo();
             }
         }
@@ -367,16 +383,9 @@
                 `;
             }).join('');
 
-            document.getElementById('calificacionesGrid').innerHTML = `
-                <div style="grid-column: 1/-1; background: #e8f5e9; padding: 12px 20px; border-radius: 8px; margin-bottom: 15px;">
-                    <p style="margin: 0; color: #2e7d32; font-size: 14px;">
-                        ✅ Mostrando calificaciones reales del estudiante (${Object.keys(calificacionesPorAsignatura).length} asignaturas)
-                    </p>
-                </div>
-                ${cardsHTML}
-            `;
+            document.getElementById('calificacionesGrid').innerHTML = `${cardsHTML}`;
 
-            console.log('✅ Calificaciones renderizadas correctamente');
+            console.log('Calificaciones renderizadas correctamente');
         }
 
         // ==========================================
@@ -439,7 +448,7 @@
             document.getElementById('calificacionesGrid').innerHTML = `
                 <div style="grid-column: 1/-1; background: #e3f2fd; padding: 12px 20px; border-radius: 8px; margin-bottom: 15px;">
                     <p style="margin: 0; color: #1565c0; font-size: 14px;">
-                        💡 No hay calificaciones registradas aún. Mostrando datos de ejemplo.
+                        No hay calificaciones registradas aún. Mostrando datos de ejemplo.
                     </p>
                 </div>
                 ${cardsHTML}
@@ -449,22 +458,57 @@
         // ==========================================
         // INICIALIZACIÓN
         // ==========================================
-        window.addEventListener('DOMContentLoaded', async () => {
+        // Variable para controlar si ya se ha iniciado la carga
+        let initializationStarted = false;
+        
+        async function initializeApp() {
+            if (initializationStarted) {
+                console.log('⚠️ Inicialización ya en progreso');
+                return;
+            }
+            
+            initializationStarted = true;
+            
             try {
-                console.log('🚀 Inicializando aplicación...');
+                console.log('🔄 Inicializando aplicación...');
                 
-                // Esperar a que los servicios estén disponibles
-                await waitForServices(['usuariosService', 'estudianteGrupoService', 'httpClient']);
+                // Esperar a que los servicios necesarios estén disponibles
+                console.log('⏳ Esperando servicios...');
+                await waitForServices(['calificacionesService', 'httpClient', 'API_CONFIG']);
                 
                 console.log('✅ Servicios cargados correctamente');
+                console.log('calificacionesService disponible:', typeof calificacionesService !== 'undefined');
+                console.log('httpClient disponible:', typeof httpClient !== 'undefined');
+                console.log('API_CONFIG disponible:', typeof API_CONFIG !== 'undefined');
                 
                 // Cargar datos del estudiante
                 await loadEstudianteData();
                 
+                console.log('✅ Aplicación inicializada correctamente');
+                
             } catch (error) {
                 console.error('❌ Error en la inicialización:', error);
-                alert('Error al inicializar la aplicación. Por favor, recarga la página.');
+                // Mostrar datos de ejemplo como fallback
+                mostrarCalificacionesEjemplo();
             }
+        }
+        
+        // Esperar a dependenciesLoaded para iniciar
+        window.addEventListener('dependenciesLoaded', async () => {
+            console.log('📢 Evento dependenciesLoaded disparado');
+            await initializeApp();
+        });
+        
+        // Fallback: iniciar en DOMContentLoaded si dependenciesLoaded no se ha disparado
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log('DOMContentLoaded disparado');
+            // Dar 200ms para que dependenciesLoaded se dispare
+            setTimeout(async () => {
+                if (!initializationStarted) {
+                    console.log('⚠️ dependenciesLoaded no se disparó, iniciando con fallback...');
+                    await initializeApp();
+                }
+            }, 200);
         });
     </script>
     <script src="../../scripts/utils/logoutModal.js"></script>

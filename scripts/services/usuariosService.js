@@ -127,13 +127,42 @@ class UsuariosService {
      */
     async update(id, usuario) {
         try {
-            const response = await httpClient.put(API_CONFIG.ENDPOINTS.USUARIOS.UPDATE(id), usuario);
+            console.log('=== INICIO UPDATE USUARIO ===');
+            console.log('ID:', id);
+            console.log('Datos recibidos:', usuario);
+            
+            // Sanitize and normalize incoming data before sending to API
+            const collapse = s => (typeof s === 'string' ? s.replace(/\s+/g, ' ').trim() : s);
+            const compact = s => (typeof s === 'string' ? s.replace(/\s+/g, '').toUpperCase() : s);
+
+            const payload = {
+                nombre: collapse(usuario.nombre) || '',
+                ape_p: collapse(usuario.ape_p) || '',
+                ape_m: collapse(usuario.ape_m) || '',
+                curp: usuario.curp ? compact(usuario.curp) : '', // ✅ AGREGADO: incluir CURP en update
+                rfc: usuario.rfc ? compact(usuario.rfc) : '', // ✅ AGREGADO: incluir RFC en update
+                sexo: typeof usuario.sexo === 'string' ? usuario.sexo.trim().toUpperCase() : usuario.sexo || '',
+                usuario: collapse(usuario.usuario) || '',
+                password: usuario.password || '',
+                fecha_nacimiento: usuario.fecha_nacimiento || '',
+                rol: usuario.rol || 'tutor',
+                estado: usuario.estado || 'Activo'
+            };
+
+            console.log('Payload normalizado:', payload);
+            console.log('Enviando petición PUT a:', API_CONFIG.ENDPOINTS.USUARIOS.UPDATE(id));
+            
+            const response = await httpClient.put(API_CONFIG.ENDPOINTS.USUARIOS.UPDATE(id), payload);
+            console.log('Respuesta recibida:', response);
+            
             if (response.success) {
                 return normalizeUsuario(response.data);
             }
-            throw new Error(response.message);
+            throw new Error(response.message || 'Error desconocido al actualizar usuario');
         } catch (error) {
             console.error(`Error al actualizar usuario ${id}:`, error);
+            console.error('Tipo de error:', error.constructor.name);
+            console.error('Mensaje:', error.message);
             throw error;
         }
     }
@@ -177,20 +206,26 @@ class UsuariosService {
             errors.push('El apellido materno es requerido');
         }
 
-        // Validación de CURP - clean before checking length
+        // Validación de CURP - requerido solo para docentes y estudiantes
         const curpClean = cleanCompact(usuario.curp);
-        if (!usuario.curp || curpClean === '') {
-            errors.push('El CURP es requerido');
-        } else if (curpClean.length !== 18) {
-            errors.push(`El CURP debe tener 18 caracteres (actualmente tiene ${curpClean.length})`);
+        if (usuario.rol && ['docente', 'estudiante'].includes(usuario.rol)) {
+            // CURP requerido para docentes y estudiantes
+            if (!usuario.curp || curpClean === '') {
+                errors.push('El CURP es requerido');
+            } else if (curpClean.length !== 18) {
+                errors.push(`El CURP debe tener 18 caracteres (actualmente tiene ${curpClean.length})`);
+            }
         }
 
-        // Validación de RFC - clean before checking length
+        // Validación de RFC - requerido solo para docentes y estudiantes
         const rfcClean = cleanCompact(usuario.rfc);
-        if (!usuario.rfc || rfcClean === '') {
-            errors.push('El RFC es requerido');
-        } else if (rfcClean.length < 12 || rfcClean.length > 13) {
-            errors.push(`El RFC debe tener 12 o 13 caracteres (actualmente tiene ${rfcClean.length})`);
+        if (usuario.rol && ['docente', 'estudiante'].includes(usuario.rol)) {
+            // RFC requerido para docentes y estudiantes
+            if (!usuario.rfc || rfcClean === '') {
+                errors.push('El RFC es requerido');
+            } else if (rfcClean.length < 12 || rfcClean.length > 13) {
+                errors.push(`El RFC debe tener 12 o 13 caracteres (actualmente tiene ${rfcClean.length})`);
+            }
         }
 
         // Validación de sexo

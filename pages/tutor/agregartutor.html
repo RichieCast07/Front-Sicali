@@ -16,12 +16,40 @@
         </div>
         <div class="user-info">
             <div class="text-info">
-                <div class="role">Director</div>
-                <div class="name">Jorge Luis Omalley Pinacho</div>
+                <div class="role" id="userRole">Cargando...</div>
+                <div class="name" id="userName">Cargando...</div>
             </div>
             <div class="avatar"><img src="../../img/nino.png" alt=""></div>
         </div>
     </header>
+    
+    <script>
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                } else {
+                    userRole.textContent = 'Usuario';
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
+            }
+        })();
+    </script>
     
     <script>
       (function() {
@@ -32,7 +60,7 @@
             setTimeout(function() { waitForRouteGuard(roles); }, 50);
           }
         }
-        waitForRouteGuard(['docente','admin']);
+        waitForRouteGuard(['docente','director']);
       })();
     </script>
 
@@ -73,11 +101,6 @@
 
       <div class="form-group">
         <label>Apellido Materno:</label>
-        <input type="text"  placeholder="">
-      </div>
-
-      <div class="form-group">
-        <label>Parentesco:</label>
         <input type="text"  placeholder="">
       </div>
 
@@ -133,7 +156,6 @@
 </div>
 
 <script src="../../scripts/loadDependencies.js"></script>
-<script src="../../scripts/services/tutorService.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Role guard: only docente or director can add tutors
@@ -147,33 +169,53 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // click handler: collect form and call service
   btn.addEventListener('click', async function() {
-    const inputs = document.querySelectorAll('.form-group input');
-    const nombre = inputs[0]?.value?.trim() || '';
-    const ape_p = inputs[1]?.value?.trim() || '';
-    const ape_m = inputs[2]?.value?.trim() || '';
-    const parentesco = inputs[3]?.value?.trim() || '';
-    const sexo = document.querySelector('#tutorSexo').value || '';
-    const usuario = document.querySelector('#tutorUsuario').value.trim() || `${nombre.toLowerCase()}.${ape_p.toLowerCase()}`.replace(/\s+/g,'');
-    const password = document.querySelector('#tutorPassword').value || 'password123';
-
-    if (!nombre || !ape_p) { alert('Nombre y apellido paterno son obligatorios'); return; }
-
-    const payload = {
-      nombre, ape_p, ape_m, usuario, password, rol: 'tutor', sexo, parentesco
-    };
-
     try {
-      const res = await tutorService.create(payload);
-      console.log('Tutor creado', res);
+      const nombre = document.querySelector('.form-group input[placeholder=""]')?.value?.trim() || '';
+      const ape_p = document.querySelectorAll('.form-group input')[1]?.value?.trim() || '';
+      const ape_m = document.querySelectorAll('.form-group input')[2]?.value?.trim() || '';
+      const sexo = document.querySelector('#tutorSexo').value || '';
+      const usuario = document.querySelector('#tutorUsuario').value.trim() || `${nombre.toLowerCase()}.${ape_p.toLowerCase()}`.replace(/\s+/g,'');
+      const password = document.querySelector('#tutorPassword').value || 'password123';
+
+      if (!nombre || !ape_p) { 
+        alert('Nombre y apellido paterno son obligatorios'); 
+        return; 
+      }
+
+      const payload = {
+        nombre, ape_p, ape_m, usuario, password, rol: 'tutor', sexo
+      };
+
+      // Wait for service to be available
+      let retries = 0;
+      while (typeof usuariosService === 'undefined' && retries < 50) {
+        await new Promise(r => setTimeout(r, 100));
+        retries++;
+      }
+
+      if (typeof usuariosService === 'undefined') {
+        throw new Error('usuariosService not available');
+      }
+
+      console.log('Creating tutor:', payload);
+      const res = await usuariosService.create(payload);
+      console.log('✅ Tutor creado:', res);
       document.getElementById('modal-overlay').style.display = 'flex';
     } catch (err) {
-      console.error('Error creando tutor', err);
-      alert('Error creando tutor. Revisa la consola.');
+      console.error('❌ Error creando tutor:', err);
+      alert('Error creando tutor: ' + (err.message || err));
     }
   });
 
-  document.querySelector('.back-link').addEventListener('click', function(){ window.history.back(); });
+  document.querySelector('.back-link').addEventListener('click', function(){ 
+    window.history.back(); 
+  });
 });
+
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+  window.location.href = 'tutor.html';
+}
 </script>
 </main>
 </body>

@@ -77,7 +77,7 @@
 
             const redirectMap = {
                 'docente': baseUrl + '/pages/bienvenidas/bienvenida Docente.html',
-                'admin': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
+                'director': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
                 'tutor': baseUrl + '/pages/bienvenidas/bienvenida Tutor.html',
                 'estudiante': baseUrl + '/pages/bienvenidas/bienvenida Estudiante.html'
             };

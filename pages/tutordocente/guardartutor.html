@@ -72,7 +72,7 @@
             setTimeout(function() { waitForRouteGuard(roles); }, 50);
           }
         }
-        waitForRouteGuard(['docente','admin']);
+        waitForRouteGuard(['docente','director']);
       })();
     </script>
 
@@ -110,11 +110,6 @@
       <div class="form-group">
         <label>Apellido Materno:</label>
         <input type="text" id="tutorApeM" name="ape_m">
-      </div>
-
-      <div class="form-group">
-        <label>Parentesco:</label>
-        <input type="text" id="tutorParentesco" name="parentesco">
       </div>
     </div>
 
@@ -189,9 +184,8 @@ let tutorId = null;
 // CARGAR DATOS DEL TUTOR AL CARGAR LA PÁGINA
 // ==========================================
 document.addEventListener('DOMContentLoaded', async function() {
-    // Obtener el ID del tutor desde la URL
-    const urlParams = new URLSearchParams(window.location.search);
-    tutorId = urlParams.get('id');
+    // Get ID from sessionStorage (from tutor.html edit button)
+    tutorId = sessionStorage.getItem('tutorIdToEdit');
 
     if (!tutorId) {
         alert('No se proporcionó ID del tutor');
@@ -201,18 +195,20 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     try {
         // Cargar datos del tutor
-        const response = await tutorService.getById(tutorId);
+        const response = await usuariosService.getById(tutorId);
         const tutor = response.data || response;
 
         // Llenar los campos del formulario
         document.getElementById('tutorNombre').value = tutor.nombre || '';
         document.getElementById('tutorApeP').value = tutor.ape_p || '';
         document.getElementById('tutorApeM').value = tutor.ape_m || '';
-        document.getElementById('tutorParentesco').value = tutor.parentesco || '';
         document.getElementById('tutorSexo').value = tutor.sexo || '';
         document.getElementById('tutorFechaNacimiento').value = tutor.fecha_nacimiento || '';
         document.getElementById('tutorUsuario').value = tutor.usuario || '';
         document.getElementById('tutorPassword').value = '********'; // Por seguridad
+
+        // Limpiar sessionStorage después de cargar
+        sessionStorage.removeItem('tutorIdToEdit');
 
         console.log('✅ Datos del tutor cargados:', tutor);
     } catch (error) {
@@ -247,7 +243,6 @@ async function confirmSave() {
     const nombre = document.getElementById('tutorNombre').value.trim();
     const ape_p = document.getElementById('tutorApeP').value.trim();
     const ape_m = document.getElementById('tutorApeM').value.trim();
-    const parentesco = document.getElementById('tutorParentesco').value.trim();
     const sexo = document.getElementById('tutorSexo').value;
     const fecha_nacimiento = document.getElementById('tutorFechaNacimiento').value;
     const usuario = document.getElementById('tutorUsuario').value.trim();
@@ -264,9 +259,8 @@ async function confirmSave() {
         nombre,
         ape_p,
         ape_m,
-        parentesco,
         sexo,
-        fecha_nacimiento, // ✅ Incluye fecha_nacimiento
+        fecha_nacimiento,
         usuario,
         rol: 'tutor'
     };
@@ -277,7 +271,7 @@ async function confirmSave() {
     }
 
     try {
-        await tutorService.update(tutorId, payload);
+        await usuariosService.update(tutorId, payload);
         console.log('✅ Tutor actualizado correctamente');
         document.getElementById('success-modal-overlay').style.display = 'flex';
     } catch (error) {

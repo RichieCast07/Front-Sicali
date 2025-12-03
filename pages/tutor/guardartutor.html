@@ -16,12 +16,40 @@
         </div>
         <div class="user-info">
             <div class="text-info">
-                <div class="role">Director</div>
-                <div class="name">Jorge Luis Omalley Pinacho</div>
+                <div class="role" id="userRole">Cargando...</div>
+                <div class="name" id="userName">Cargando...</div>
             </div>
             <div class="avatar"><img src="../../img/nino.png" alt=""></div>
         </div>
     </header>
+    
+    <script>
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                } else {
+                    userRole.textContent = 'Usuario';
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
+            }
+        })();
+    </script>
     
     <script>
       (function() {
@@ -32,7 +60,7 @@
             setTimeout(function() { waitForRouteGuard(roles); }, 50);
           }
         }
-        waitForRouteGuard(['docente','admin']);
+        waitForRouteGuard(['docente','director']);
       })();
     </script>
 
@@ -61,22 +89,17 @@
       
 <div class="form-group">
         <label>Nombre:</label>
-        <input type="text" value="Antonio">
+        <input type="text" id="nombre">
       </div>
 
       <div class="form-group">
         <label>Apellido Paterno:</label>
-        <input type="text" value="Giron">
+        <input type="text" id="ape_p">
       </div>
 
       <div class="form-group">
         <label>Apellido Materno:</label>
-        <input type="text" value="Garcia">
-      </div>
-
-      <div class="form-group">
-        <label>Parentesco:</label>
-        <input type="text" value="PADRE">
+        <input type="text" id="ape_m">
       </div>
       
     </div>
@@ -88,24 +111,24 @@
 
       <div class="form-group">
         <label>Sexo</label>
-        <select>
+        <select id="sexo">
           <option>Seleccionar</option>
-          <option>Femenino</option>
-          <option>Masculino</option>
+          <option value="M">Masculino</option>
+          <option value="F">Femenino</option>
         </select>
       </div>
 
       <div class="form-group">
         <label>Fecha de Nacimiento</label>
-        <input type="date">
+        <input type="date" id="fechaNacimiento">
       </div>
       <div class="form-group">
             <label>Usuario:</label>
-            <input type="text" value="alejandra.vela">
+            <input type="text" id="usuario">
           </div>
           <div class="form-group" style="position: relative;">
           <label>Contraseña:</label>
-          <input type="password" id="password" value="1sicali">
+          <input type="password" id="password">
           <button type="button" onclick="togglePassword()" style="position: absolute; right: 10px; top: 32px;">
             <span class="iconpasswor"><img src="../../icons/visualizar password.svg" alt="Flecha atrás" /></span>
           </button>
@@ -144,36 +167,197 @@
     </div>
 </div>
 
+<script src="../../scripts/loadDependencies.js"></script>
 <script>
-function showModal() {
-    document.getElementById('modal-overlay').style.display = 'flex';
-}
+    let tutorId = null;
+    let tutorRol = null;
 
-function closeModal() {
-    document.getElementById('modal-overlay').style.display = 'none';
-}
+    // Load tutor data from API based on sessionStorage or URL params
+    async function loadTutorData() {
+        try {
+            // Get ID from sessionStorage first (from editartutor click), then from URL params
+            let id = sessionStorage.getItem('tutorIdToEdit');
+            
+            if (!id) {
+                const params = new URLSearchParams(window.location.search);
+                id = params.get('id');
+            }
+            
+            console.log('📍 sessionStorage tutorIdToEdit:', sessionStorage.getItem('tutorIdToEdit'));
+            console.log('📌 ID final a usar:', id);
+            
+            if (!id) {
+                console.error('❌ No tutor ID provided');
+                alert('No se proporcionó ID de tutor');
+                window.history.back();
+                return;
+            }
 
-function closeSuccessModal() {
-    document.getElementById('success-modal-overlay').style.display = 'none';
-}
+            tutorId = Number(id);
 
-function confirmSave() {
-    closeModal();
-    document.getElementById('success-modal-overlay').style.display = 'flex';
-}
+            // Wait for service to be available
+            let retries = 0;
+            while (typeof usuariosService === 'undefined' && retries < 50) {
+                await new Promise(r => setTimeout(r, 100));
+                retries++;
+            }
 
- document.querySelector(".back-link").addEventListener("click", function () {
-    window.history.back();
+            if (typeof usuariosService === 'undefined') {
+                throw new Error('usuariosService not available');
+            }
+
+            console.log('✅ Loading tutor with ID:', tutorId);
+            const tutor = await usuariosService.getById(tutorId);
+            
+            if (!tutor) {
+                alert('Tutor no encontrado');
+                window.history.back();
+                return;
+            }
+
+            // Verify it's a tutor
+            if (tutor.rol !== 'tutor') {
+                console.warn('⚠️ Usuario encontrado pero no es tutor, rol:', tutor.rol);
+                alert('El usuario no tiene rol de tutor');
+                window.history.back();
+                return;
+            }
+
+            // Store the role
+            tutorRol = tutor.rol;
+            console.log('✅ Usuario es tutor, datos:', tutor);
+
+            // Populate form fields from API data
+            document.getElementById('nombre').value = tutor.nombre || '';
+            document.getElementById('ape_p').value = tutor.ape_p || '';
+            document.getElementById('ape_m').value = tutor.ape_m || '';
+            document.getElementById('sexo').value = tutor.sexo || '';
+            document.getElementById('fechaNacimiento').value = tutor.fecha_nacimiento || '';
+            document.getElementById('usuario').value = tutor.usuario || '';
+            document.getElementById('password').value = tutor.password || '';
+
+            // Clear sessionStorage after loading
+            sessionStorage.removeItem('tutorIdToEdit');
+
+            console.log('✅ Tutor data loaded successfully:', tutor);
+        } catch (error) {
+            console.error('❌ Error loading tutor:', error);
+            alert('Error cargando datos del tutor: ' + error.message);
+            window.history.back();
+        }
+    }
+
+    // Load data when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTutorData();
+    });
+
+    function showModal() {
+        document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+    }
+
+    function closeSuccessModal() {
+        document.getElementById('success-modal-overlay').style.display = 'none';
+        window.location.href = 'tutor.html';
+    }
+
+    async function confirmSave() {
+        try {
+            closeModal();
+
+            if (!tutorId) {
+                alert('Error: ID de tutor no disponible');
+                return;
+            }
+
+            const nombre = document.getElementById('nombre').value?.trim();
+            const ape_p = document.getElementById('ape_p').value?.trim();
+            const ape_m = document.getElementById('ape_m').value?.trim();
+            const sexo = document.getElementById('sexo').value;
+            const fecha_nacimiento = document.getElementById('fechaNacimiento').value;
+            const usuario = document.getElementById('usuario').value?.trim();
+            const password = document.getElementById('password').value;
+
+            // Validate required fields
+            if (!nombre) {
+                alert('Nombre es obligatorio');
+                return;
+            }
+            if (!ape_p) {
+                alert('Apellido paterno es obligatorio');
+                return;
+            }
+
+            const tutorData = {
+                nombre: nombre || '',
+                ape_p: ape_p || '',
+                ape_m: ape_m || '',
+                sexo: sexo || '',
+                fecha_nacimiento: fecha_nacimiento || '',
+                usuario: usuario || '',
+                password: password || '',
+                rol: tutorRol || 'tutor',
+                estado: 'Activo'
+            };
+
+            console.log('🔍 Datos a enviar:', tutorData);
+            console.log('🔍 tutorId:', tutorId);
+
+            // Wait for service to be available
+            let retries = 0;
+            while (typeof usuariosService === 'undefined' && retries < 50) {
+                await new Promise(r => setTimeout(r, 100));
+                retries++;
+            }
+
+            if (typeof usuariosService === 'undefined') {
+                throw new Error('usuariosService not available');
+            }
+
+            console.log('✅ Enviando actualización para tutor ID:', tutorId);
+            console.log('📦 Payload completo:', JSON.stringify(tutorData, null, 2));
+            const result = await usuariosService.update(tutorId, tutorData);
+            
+            console.log('✅ Tutor updated successfully:', result);
+            document.getElementById('success-modal-overlay').style.display = 'flex';
+        } catch (error) {
+            console.error('❌ Error updating tutor:', error);
+            console.error('Error completo:', JSON.stringify(error, null, 2));
+            
+            let errorMsg = 'Error actualizando tutor';
+            if (error.message) {
+                errorMsg += ': ' + error.message;
+            }
+            if (error.data && typeof error.data === 'object') {
+                console.error('Detalles del error del backend:', error.data);
+                if (error.data.error) {
+                    errorMsg += ' - ' + error.data.error;
+                } else if (error.data.message) {
+                    errorMsg += ' - ' + error.data.message;
+                }
+            }
+            
+            alert(errorMsg);
+            closeModal();
+        }
+    }
+
+    document.querySelector(".back-link").addEventListener("click", function () {
+        window.history.back();
     });
 
     function togglePassword() {
-      const passwordInput = document.getElementById('password');
-      if (passwordInput.type === 'password') {
-    passwordInput.type = 'text';
-  } else {
-    passwordInput.type = 'password';
-  }}
-
+        const passwordInput = document.getElementById('password');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+        } else {
+            passwordInput.type = 'password';
+        }
+    }
 </script>
 </main>
 </body>

@@ -174,7 +174,7 @@
     <script src="../../scripts/loadDependencies.js"></script>
 
     <script>
-    // Proteger esta página solo para admins
+    // Proteger esta página solo para directores
     (function() {
         function waitForRouteGuard(roles) {
             if (typeof RouteGuard !== 'undefined') {
@@ -183,7 +183,7 @@
                 setTimeout(function() { waitForRouteGuard(roles); }, 50);
             }
         }
-        waitForRouteGuard(['admin']);
+        waitForRouteGuard(['director']);
     })();
 
     // ==========================================
@@ -233,7 +233,7 @@
                 const sexo = document.getElementById('sexo').value;
                 const fecha_nacimiento = document.getElementById('fecha_nacimiento').value;
                 const grupoSelect = document.getElementById('grupoSelect');
-                const idGrupo = grupoSelect ? Number(grupoSelect.value) || null : null;
+                const nuevoGrupoId = grupoSelect ? Number(grupoSelect.value) || null : null;
                 const usuarioVal = document.getElementById('usuario').value.trim();
                 const passwordVal = document.getElementById('password').value;
 
@@ -253,7 +253,7 @@
                     curp: curp || '',
                     rfc: rfc,
                     sexo: sexo || '',
-                    fecha_nacimiento: fecha_nacimiento || null, // ✅ Incluir fecha
+                    fecha_nacimiento: fecha_nacimiento || null,
                     usuario: usuarioVal,
                     password: passwordVal || 'ChangeMe123',
                     rol: 'estudiante',
@@ -275,35 +275,77 @@
                     // Crear nuevo estudiante
                     const nuevoEstudiante = await usuariosService.create(payload);
                     estudianteId = nuevoEstudiante.id_usuario || nuevoEstudiante.id;
-                    console.log('✅ Estudiante creado');
+                    console.log('✅ Estudiante creado con ID:', estudianteId);
                 }
 
-                // Inscribir en grupo si se seleccionó
-                if (idGrupo && estudianteId) {
+                // ==========================================
+                // MANEJO DE CAMBIO DE GRUPO
+                // ==========================================
+                if (nuevoGrupoId && estudianteId) {
                     try {
-                        const inscripcion = {
-                            idEstudiante: estudianteId,
-                            idGrupo: idGrupo,
-                            fechaInscripcion: new Date().toISOString().split('T')[0]
-                        };
+                        // Obtener inscripciones actuales del estudiante
+                        console.log('🔍 Buscando inscripciones actuales del estudiante...');
+                        const inscripcionesActuales = await estudianteGrupoService.getByEstudiante(Number(estudianteId));
                         
-                        console.log('📝 Creando inscripción estudiante-grupo:', inscripcion);
-                        await estudianteGrupoService.create(inscripcion);
-                        console.log('✅ Inscripción creada');
-                    } catch (inscErr) {
-                        console.error('❌ Error al inscribir en grupo:', inscErr);
-                        if (inscErr.message && inscErr.message.includes('not found')) {
-                            console.warn('⚠️ El backend aún no tiene disponible el endpoint POST /api/estudiante-grupo');
-                        } else {
-                            alert('Advertencia: El estudiante fue guardado pero hubo un error al asignarlo al grupo:\n' + inscErr.message);
+                        // Filtrar inscripciones activas
+                        const inscripcionesActivas = Array.isArray(inscripcionesActuales) 
+                            ? inscripcionesActuales.filter(ins => ins.estado === 'Activo')
+                            : (inscripcionesActuales && inscripcionesActuales.estado === 'Activo' ? [inscripcionesActuales] : []);
+                        
+                        console.log('📊 Inscripciones activas encontradas:', inscripcionesActivas.length);
+
+                        // Si hay una inscripción activa anterior, eliminarla
+                        if (inscripcionesActivas.length > 0) {
+                            const grupoAnterior = inscripcionesActivas[0].grupo;
+                            const idGrupoAnterior = grupoAnterior.idGrupo || grupoAnterior.id;
+                            
+                            // Solo eliminar si es diferente del nuevo grupo
+                            if (idGrupoAnterior !== nuevoGrupoId) {
+                                console.log('🗑️ Eliminando inscripción anterior en grupo:', idGrupoAnterior);
+                                await estudianteGrupoService.delete(Number(estudianteId), idGrupoAnterior);
+                                console.log('✅ Inscripción anterior eliminada');
+                            } else {
+                                console.log('ℹ️ El estudiante ya está en el grupo seleccionado');
+                            }
                         }
+
+                        // Crear nueva inscripción si no existe o fue eliminada
+                        const inscripcionesFinales = await estudianteGrupoService.getByEstudiante(Number(estudianteId));
+                        const enNuevoGrupo = Array.isArray(inscripcionesFinales) 
+                            ? inscripcionesFinales.some(ins => (ins.grupo.idGrupo || ins.grupo.id) === nuevoGrupoId && ins.estado === 'Activo')
+                            : false;
+
+                        if (!enNuevoGrupo) {
+                            console.log('📝 Creando inscripción en nuevo grupo:', nuevoGrupoId);
+                            const nuevaInscripcion = {
+                                idEstudiante: estudianteId,
+                                idGrupo: nuevoGrupoId,
+                                fechaInscripcion: new Date().toISOString().split('T')[0],
+                                estado: 'Activo'
+                            };
+                            
+                            await estudianteGrupoService.create(nuevaInscripcion);
+                            console.log('✅ Inscripción en nuevo grupo creada exitosamente');
+                        } else {
+                            console.log('ℹ️ El estudiante ya tiene una inscripción activa en este grupo');
+                        }
+                        
+                    } catch (inscErr) {
+                        console.error('❌ Error al gestionar inscripción en grupo:', inscErr);
+                        console.error('Detalles del error:', inscErr.message);
+                        alert('Advertencia: El estudiante fue guardado pero hubo un error al asignarlo al grupo:\n' + inscErr.message);
                     }
+                } else if (!nuevoGrupoId && id) {
+                    // Si no se seleccionó grupo pero es actualización, verificar si eliminar grupo anterior
+                    console.log('⚠️ No se seleccionó grupo para el estudiante');
                 }
 
+                console.log('✅ Proceso completado exitosamente');
                 document.getElementById('success-modal-overlay').style.display = 'flex';
                 
             } catch (err) {
                 console.error('❌ Error guardando estudiante:', err);
+                console.error('Tipo de error:', err.constructor.name);
                 alert('Error: ' + (err.message || err));
             }
         })();

@@ -118,7 +118,7 @@
     <script src="../../scripts/loadDependencies.js"></script>
     
     <script>
-        // Proteger esta página para docentes y admins
+        // Proteger esta página para docentes y directores
         (function() {
             function waitForRouteGuard(roles) {
                 if (typeof RouteGuard !== 'undefined') {
@@ -127,7 +127,7 @@
                     setTimeout(function() { waitForRouteGuard(roles); }, 50);
                 }
             }
-            waitForRouteGuard(['docente', 'admin']);
+            waitForRouteGuard(['docente', 'director']);
         })();
 
         // Cargar información del docente logueado
@@ -157,16 +157,23 @@
               throw new Error('No se encontró información del docente');
             }
 
-            console.log('📊 Cargando estadísticas para docente:', currentUser.id_usuario);
+            console.log('Cargando estadísticas para docente:', currentUser.id_usuario);
 
             // Obtener todos los grupos y filtrar por docente
-            const todosGrupos = await gruposService.getAll();
-            const grupos = todosGrupos.filter(g => {
-              const docenteId = g.idDocente?.id_usuario || g.idDocente;
-              return Number(docenteId) === Number(currentUser.id_usuario);
-            });
+            let grupos = [];
+            if (typeof gruposService !== 'undefined') {
+              try {
+                const todosGrupos = await gruposService.getAll();
+                grupos = todosGrupos.filter(g => {
+                  const docenteId = g.idDocente?.id_usuario || g.idDocente;
+                  return Number(docenteId) === Number(currentUser.id_usuario);
+                });
+              } catch (error) {
+                console.warn('No se pudieron cargar grupos:', error.message);
+              }
+            }
             
-            console.log('✅ Grupos del docente:', grupos.length);
+            console.log('Grupos del docente:', grupos.length);
             
             if (!grupos || grupos.length === 0) {
               document.getElementById('grupoNombre').textContent = 'Sin grupos asignados';
@@ -179,23 +186,30 @@
             const grupo = grupos[0];
             document.getElementById('grupoNombre').textContent = `${grupo.nombre} - Grado ${grupo.grado}`;
             
-            // Obtener estudiantes del grupo filtrando todas las inscripciones
-            const todasInscripciones = await estudianteGrupoService.getAll();
-            const inscripciones = todasInscripciones.filter(insc => {
-              const grupoId = insc.idGrupo || insc.grupo?.idGrupo;
-              return Number(grupoId) === Number(grupo.idGrupo);
-            });
+            // Obtener estudiantes del grupo
+            let totalEstudiantes = 0;
+            if (typeof estudianteGrupoService !== 'undefined') {
+              try {
+                const todasInscripciones = await estudianteGrupoService.getAll();
+                const inscripciones = todasInscripciones.filter(insc => {
+                  const grupoId = insc.idGrupo || insc.grupo?.idGrupo;
+                  return Number(grupoId) === Number(grupo.idGrupo);
+                });
+                totalEstudiantes = inscripciones.length;
+              } catch (error) {
+                console.warn('No se pudieron cargar inscripciones:', error.message);
+              }
+            }
             
-            const totalEstudiantes = inscripciones.length;
             document.getElementById('totalEstudiantes').textContent = totalEstudiantes;
             
-            console.log('✅ Total estudiantes:', totalEstudiantes);
+            console.log('Total estudiantes:', totalEstudiantes);
             
             // Cargar gráfica de calificaciones
             await cargarGrafica(grupo.idGrupo);
             
           } catch (error) {
-            console.error('❌ Error cargando estadísticas:', error);
+            console.error('Error cargando estadísticas:', error);
             document.getElementById('grupoNombre').textContent = 'Error al cargar';
             document.getElementById('chart-bars').innerHTML = '<div class="no-data" style="text-align: center; padding: 40px; color: #f44;">Error al cargar datos</div>';
           }
@@ -203,18 +217,29 @@
 
         async function cargarGrafica(idGrupo) {
             try {
-                console.log('📊 Cargando gráfica para grupo:', idGrupo);
+                console.log('Cargando gráfica para grupo:', idGrupo);
                 
-                // Obtener calificaciones del grupo
-                const calificaciones = await calificacionesService.getByGrupo(idGrupo);
-                console.log('✅ Calificaciones cargadas:', calificaciones.length);
+                // Obtener calificaciones del grupo usando calificacionesService
+                let calificaciones = [];
+                if (typeof calificacionesService !== 'undefined') {
+                    try {
+                        const allCalificaciones = await calificacionesService.getAll();
+                        calificaciones = allCalificaciones.filter(cal => 
+                            Number(cal.idGrupo) === Number(idGrupo)
+                        );
+                    } catch (error) {
+                        console.warn('No se pudieron cargar calificaciones:', error.message);
+                    }
+                }
+
+                console.log('Calificaciones cargadas:', calificaciones.length);
 
                 if (calificaciones.length === 0) {
                     document.getElementById('chart-bars').innerHTML = '<div class="no-data" style="text-align: center; padding: 40px; color: #999;">No hay calificaciones registradas</div>';
                     return;
                 }
 
-                // Calcular promedio por asignatura
+                // Calcular promedio por asignatura con porcentaje
                 const promediosPorAsignatura = {};
                 
                 calificaciones.forEach(calif => {
@@ -223,12 +248,15 @@
                         promediosPorAsignatura[idAsig] = {
                             suma: 0,
                             count: 0,
-                            nombre: calif.nombreAsignatura || 'Sin nombre'
+                            nombre: calif.nombreAsignatura || 'Asignatura ' + idAsig
                         };
                     }
                     
                     // Calcular promedio de las 4 calificaciones
-                    const califs = [calif.calificacion1, calif.calificacion2, calif.calificacion3, calif.calificacion4].filter(c => c !== null && c !== undefined);
+                    const califs = [calif.calificacion1, calif.calificacion2, calif.calificacion3, calif.calificacion4]
+                        .filter(c => c !== null && c !== undefined)
+                        .map(Number);
+                    
                     if (califs.length > 0) {
                         const promedio = califs.reduce((a, b) => a + b, 0) / califs.length;
                         promediosPorAsignatura[idAsig].suma += promedio;
@@ -236,32 +264,41 @@
                     }
                 });
 
+                // Calcular porcentajes
+                Object.keys(promediosPorAsignatura).forEach(idAsig => {
+                    const data = promediosPorAsignatura[idAsig];
+                    if (data.count > 0) {
+                        const promedio = data.suma / data.count;
+                        data.promedio = promedio;
+                        data.porcentaje = (promedio / 10) * 100;
+                    }
+                });
+
                 // Generar barras
                 const barsContainer = document.getElementById('chart-bars');
                 barsContainer.innerHTML = '';
 
-                const colores = ['color-1', 'color-2', 'color-3', 'color-4'];
+                const colores = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6'];
                 let colorIndex = 0;
 
                 Object.keys(promediosPorAsignatura).forEach(idAsig => {
                     const data = promediosPorAsignatura[idAsig];
-                    const promedioFinal = data.count > 0 ? (data.suma / data.count) : 0;
-                    const altura = (promedioFinal / 10) * 200; // Escala de 0-10 a 0-200px
+                    const altura = (data.porcentaje / 100) * 200; // Escala de 0-100% a 0-200px
 
                     const barGroup = document.createElement('div');
                     barGroup.className = 'bar-group';
                     barGroup.innerHTML = `
-                        <div class="bar ${colores[colorIndex % colores.length]}" style="height: ${altura}px;"></div>
-                        <div class="bar-label">${data.nombre}<br><small>${promedioFinal.toFixed(1)}</small></div>
+                        <div class="bar ${colores[colorIndex % colores.length]}" style="height: ${altura}px;" title="Promedio: ${data.promedio?.toFixed(1)}/10 (${data.porcentaje?.toFixed(0)}%)"></div>
+                        <div class="bar-label">${data.nombre}<br><small>${data.porcentaje?.toFixed(0)}%</small></div>
                     `;
                     barsContainer.appendChild(barGroup);
                     colorIndex++;
                 });
 
-                console.log('✅ Gráfica renderizada');
+                console.log('Gráfica renderizada');
 
             } catch (error) {
-                console.error('❌ Error cargando gráfica:', error);
+                console.error('Error cargando gráfica:', error);
                 document.getElementById('chart-bars').innerHTML = '<div class="no-data" style="text-align: center; padding: 40px; color: #f44;">Error al cargar datos</div>';
             }
         }

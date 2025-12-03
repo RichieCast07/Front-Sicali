@@ -1,12 +1,49 @@
-import API_CONFIG from '../config/apiConfig.js';
-import { httpClient } from '../utils/httpClient.js';
-
 /**
  * Servicio para manejo de calificaciones
  */
 class CalificacionesService {
     constructor() {
         this.endpoints = API_CONFIG.ENDPOINTS.CALIFICACIONES;
+        this.asignaturasCache = null; // Caché de asignaturas
+    }
+
+    /**
+     * Obtiene y cachea todas las asignaturas
+     * @private
+     * @returns {Promise<Object>} Mapa de idAsignatura -> nombre
+     */
+    async obtenerAsignaturas() {
+        if (this.asignaturasCache !== null) {
+            return this.asignaturasCache;
+        }
+
+        try {
+            console.log('[CalificacionesService] Obteniendo asignaturas...');
+            const response = await httpClient.get(API_CONFIG.ENDPOINTS.ASIGNATURAS.LIST);
+            
+            let asignaturas = [];
+            if (response.data) {
+                asignaturas = Array.isArray(response.data) ? response.data : [response.data];
+            } else if (Array.isArray(response)) {
+                asignaturas = response;
+            }
+
+            // Crear mapa: idAsignatura -> nombre
+            this.asignaturasCache = {};
+            asignaturas.forEach(asig => {
+                const id = asig.idAsignatura || asig.id;
+                const nombre = asig.nombre || asig.name || 'Sin nombre';
+                if (id) {
+                    this.asignaturasCache[id] = nombre;
+                }
+            });
+
+            console.log('[CalificacionesService] Asignaturas en caché:', this.asignaturasCache);
+            return this.asignaturasCache;
+        } catch (error) {
+            console.error('[CalificacionesService] Error al obtener asignaturas:', error);
+            return {};
+        }
     }
 
     /**
@@ -83,15 +120,57 @@ class CalificacionesService {
      */
     async getAll() {
         try {
+            console.log('[CalificacionesService] Llamando a:', this.endpoints.LIST);
             const response = await httpClient.get(this.endpoints.LIST);
             
-            if (Array.isArray(response)) {
-                return response.map(c => this.normalizeCalificacion(c));
+            console.log('[CalificacionesService] Respuesta recibida:', {
+                tieneSuccess: response && typeof response.success !== 'undefined',
+                success: response?.success,
+                tieneData: response && typeof response.data !== 'undefined',
+                dataEsArray: Array.isArray(response?.data),
+                datos: response
+            });
+            
+            // Verificar que la respuesta fue exitosa
+            if (!response) {
+                console.warn('[CalificacionesService] Respuesta vacía');
+                return [];
             }
             
-            return [];
+            // Extraer datos de la respuesta
+            let datos = [];
+            
+            // Si viene con estructura { data: [], success: true }
+            if (response.data !== undefined) {
+                if (Array.isArray(response.data)) {
+                    datos = response.data;
+                } else if (response.data && typeof response.data === 'object' && Array.isArray(response.data.data)) {
+                    datos = response.data.data;
+                }
+            }
+            // Si viene como array directo
+            else if (Array.isArray(response)) {
+                datos = response;
+            }
+            
+            console.log('[CalificacionesService] Datos a procesar:', datos.length, 'registros');
+            
+            const resultado = datos.map(c => this.normalizeCalificacion(c)).filter(c => c !== null);
+            console.log('[CalificacionesService] Datos normalizados:', resultado.length, 'registros');
+            
+            // Enriquecer con nombres de asignaturas
+            const asignaturasMap = await this.obtenerAsignaturas();
+            resultado.forEach(cal => {
+                if (cal.idAsignatura && asignaturasMap[cal.idAsignatura]) {
+                    cal.nombreAsignatura = asignaturasMap[cal.idAsignatura];
+                }
+            });
+            
+            console.log('[CalificacionesService] Datos enriquecidos con asignaturas');
+            
+            return resultado;
         } catch (error) {
-            console.error('Error al obtener calificaciones:', error);
+            console.error('[CalificacionesService] Error al obtener calificaciones:', error);
             throw error;
         }
     }
@@ -104,7 +183,22 @@ class CalificacionesService {
     async getById(id) {
         try {
             const response = await httpClient.get(this.endpoints.GET_BY_ID(id));
-            return this.normalizeCalificacion(response);
+            
+            if (!response || !response.success) {
+                throw new Error(response?.message || 'Error al obtener calificación');
+            }
+            
+            const resultado = this.normalizeCalificacion(response.data);
+            
+            // Enriquecer con nombre de asignatura
+            if (resultado && resultado.idAsignatura) {
+                const asignaturasMap = await this.obtenerAsignaturas();
+                if (asignaturasMap[resultado.idAsignatura]) {
+                    resultado.nombreAsignatura = asignaturasMap[resultado.idAsignatura];
+                }
+            }
+            
+            return resultado;
         } catch (error) {
             console.error(`Error al obtener calificación ${id}:`, error);
             throw error;
@@ -118,15 +212,40 @@ class CalificacionesService {
      */
     async getByEstudiante(idEstudiante) {
         try {
+            console.log('[CalificacionesService] Obteniendo calificaciones para estudiante:', idEstudiante);
             const response = await httpClient.get(this.endpoints.BY_ESTUDIANTE(idEstudiante));
             
-            if (Array.isArray(response)) {
-                return response.map(c => this.normalizeCalificacion(c));
+            console.log('[CalificacionesService] Respuesta para estudiante:', {
+                tieneSuccess: response && typeof response.success !== 'undefined',
+                success: response?.success,
+                dataEsArray: Array.isArray(response?.data),
+                cantidad: Array.isArray(response?.data) ? response.data.length : 0
+            });
+            
+            if (!response || !response.success) {
+                console.warn('[CalificacionesService] Respuesta no exitosa para estudiante:', response?.message);
+                return [];
             }
             
-            return [];
+            // Extraer datos de la respuesta
+            let datos = [];
+            if (Array.isArray(response.data)) {
+                datos = response.data;
+            }
+            
+            const resultado = datos.map(c => this.normalizeCalificacion(c));
+            
+            // Enriquecer con nombres de asignaturas
+            const asignaturasMap = await this.obtenerAsignaturas();
+            resultado.forEach(cal => {
+                if (cal.idAsignatura && asignaturasMap[cal.idAsignatura]) {
+                    cal.nombreAsignatura = asignaturasMap[cal.idAsignatura];
+                }
+            });
+            
+            return resultado;
         } catch (error) {
-            console.error(`Error al obtener calificaciones del estudiante ${idEstudiante}:`, error);
+            console.error(`[CalificacionesService] Error al obtener calificaciones del estudiante ${idEstudiante}:`, error);
             throw error;
         }
     }
@@ -138,15 +257,33 @@ class CalificacionesService {
      */
     async getByGrupo(idGrupo) {
         try {
+            console.log('[CalificacionesService] Obteniendo calificaciones para grupo:', idGrupo);
             const response = await httpClient.get(this.endpoints.BY_GRUPO(idGrupo));
             
-            if (Array.isArray(response)) {
-                return response.map(c => this.normalizeCalificacion(c));
+            if (!response || !response.success) {
+                console.warn('[CalificacionesService] Respuesta no exitosa para grupo:', response?.message);
+                return [];
             }
             
-            return [];
+            // Extraer datos de la respuesta
+            let datos = [];
+            if (Array.isArray(response.data)) {
+                datos = response.data;
+            }
+            
+            const resultado = datos.map(c => this.normalizeCalificacion(c));
+            
+            // Enriquecer con nombres de asignaturas
+            const asignaturasMap = await this.obtenerAsignaturas();
+            resultado.forEach(cal => {
+                if (cal.idAsignatura && asignaturasMap[cal.idAsignatura]) {
+                    cal.nombreAsignatura = asignaturasMap[cal.idAsignatura];
+                }
+            });
+            
+            return resultado;
         } catch (error) {
-            console.error(`Error al obtener calificaciones del grupo ${idGrupo}:`, error);
+            console.error(`[CalificacionesService] Error al obtener calificaciones del grupo ${idGrupo}:`, error);
             throw error;
         }
     }
@@ -160,11 +297,28 @@ class CalificacionesService {
         try {
             const response = await httpClient.get(this.endpoints.BY_ASIGNATURA(idAsignatura));
             
-            if (Array.isArray(response)) {
-                return response.map(c => this.normalizeCalificacion(c));
+            if (!response || !response.success) {
+                console.warn('[CalificacionesService] Respuesta no exitosa para asignatura:', response?.message);
+                return [];
             }
             
-            return [];
+            // Extraer datos de la respuesta
+            let datos = [];
+            if (Array.isArray(response.data)) {
+                datos = response.data;
+            }
+            
+            const resultado = datos.map(c => this.normalizeCalificacion(c));
+            
+            // Enriquecer con nombres de asignaturas
+            const asignaturasMap = await this.obtenerAsignaturas();
+            resultado.forEach(cal => {
+                if (cal.idAsignatura && asignaturasMap[cal.idAsignatura]) {
+                    cal.nombreAsignatura = asignaturasMap[cal.idAsignatura];
+                }
+            });
+            
+            return resultado;
         } catch (error) {
             console.error(`Error al obtener calificaciones de asignatura ${idAsignatura}:`, error);
             throw error;
@@ -339,5 +493,5 @@ class CalificacionesService {
     }
 }
 
-// Exportar instancia única
-export const calificacionesService = new CalificacionesService();
+// Instancia global (compatible con global scope)
+const calificacionesService = new CalificacionesService();

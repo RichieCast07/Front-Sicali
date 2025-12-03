@@ -66,7 +66,7 @@
     </script>
 
     <script>
-        // Proteger esta página para docentes y admins
+        // Proteger esta página para docentes y directores
         (function() {
             function waitForRouteGuard(roles) {
                 if (typeof RouteGuard !== 'undefined') {
@@ -75,7 +75,7 @@
                     setTimeout(function() { waitForRouteGuard(roles); }, 50);
                 }
             }
-            waitForRouteGuard(['docente', 'admin']);
+            waitForRouteGuard(['docente', 'director']);
         })();
     </script>
 
@@ -247,7 +247,9 @@
 
                     tutores.forEach((t, idx) => {
                         const tr = document.createElement('tr');
-                        tr.setAttribute('data-id', t.id || t.id_usuario || '');
+                        const tutorId = t.id || t.id_usuario;
+                        console.log(`📌 Tutor ${idx}:`, { id: t.id, id_usuario: t.id_usuario, finalId: tutorId, nombre: t.nombre });
+                        tr.setAttribute('data-id', tutorId || '');
                         tr.innerHTML = `
                             <td>${idx + 1}</td>
                             <td>${escapeHtml(t.nombre)}</td>
@@ -261,7 +263,9 @@
                         
                         const editBtn = tr.querySelector('.btn-editar');
                         editBtn.addEventListener('click', () => { 
-                            window.location.href = 'editartutor.html?id=' + encodeURIComponent(t.id || t.id_usuario); 
+                            sessionStorage.setItem('tutorIdToEdit', tutorId);
+                            console.log('🔗 Guardado tutorId en sessionStorage:', tutorId);
+                            window.location.href = 'editartutor.html'; 
                         });
 
                         const delBtn = tr.querySelector('.btn-eliminar');
@@ -354,8 +358,8 @@
                 const role = (currentUser.rol || currentUser.role || '').toString().toLowerCase();
                 const btnAdd = document.getElementById('btnAdd');
                 
-                // Solo docentes y admins pueden agregar tutores
-                if (btnAdd && role !== 'docente' && role !== 'admin') {
+                // Solo docentes y directores pueden agregar tutores
+                if (btnAdd && role !== 'docente' && role !== 'director') {
                     btnAdd.style.display = 'none';
                     console.log('⚠️ Botón Agregar oculto para rol:', role);
                 } else {

@@ -166,25 +166,104 @@ class GruposService {
      */
     async update(id, grupo) {
         try {
-            // Normalize update payload to include nested objects where backend expects them
-            const nombre = typeof grupo.nombre === 'string' ? grupo.nombre.trim() : grupo.nombre;
-            const grado = grupo.grado !== undefined ? Number(grupo.grado) : undefined;
-            const idPeriodoNum = grupo.idPeriodo ? Number(grupo.idPeriodo) : (grupo.idPeriodo && typeof grupo.idPeriodo === 'object' ? (grupo.idPeriodo.idPeriodo || grupo.idPeriodo.id) : undefined);
-            const idDocenteNum = grupo.idDocente ? Number(grupo.idDocente) : (grupo.idDocente && typeof grupo.idDocente === 'object' ? (grupo.idDocente.id || grupo.idDocente.id_usuario) : undefined);
+            console.log('=== INICIO UPDATE GRUPO ===');
+            console.log('ID:', id);
+            console.log('Datos recibidos:', JSON.stringify(grupo, null, 2));
+            
+            // PASO 1: Obtener grupo actual para completar datos faltantes
+            console.log('📥 Obteniendo grupo actual...');
+            let grupoActual = {};
+            try {
+                grupoActual = await this.getById(id);
+                console.log('✅ Grupo actual obtenido:', JSON.stringify(grupoActual, null, 2));
+            } catch (e) {
+                console.error('❌ Error al obtener grupo actual:', e.message);
+                throw new Error('No se pudo obtener datos del grupo para actualizar. Verifica que el grupo exista.');
+            }
 
-            const payload = {};
-            if (nombre !== undefined) payload.nombre = nombre;
-            if (!isNaN(grado)) payload.grado = grado;
-            if (idPeriodoNum) payload.idPeriodo = { idPeriodo: idPeriodoNum };
-            if (idDocenteNum) payload.idDocente = { id_usuario: idDocenteNum };
-
+            // PASO 2: Preparar valores finales - SIEMPRE usar actuales como fallback
+            const nombre = grupo.nombre && grupo.nombre.trim() 
+                ? grupo.nombre.trim() 
+                : grupoActual.nombre;
+                
+            const grado = grupo.grado != null 
+                ? Number(grupo.grado)
+                : grupoActual.grado;
+            
+            // PASO 3: Obtener IDs de período y docente - CRÍTICO
+            let idPeriodoNum = null;
+            let idDocenteNum = null;
+            
+            // Período
+            if (grupo.idPeriodo) {
+                idPeriodoNum = Number(grupo.idPeriodo);
+            } else if (grupoActual.idPeriodo) {
+                if (typeof grupoActual.idPeriodo === 'object') {
+                    idPeriodoNum = grupoActual.idPeriodo.idPeriodo || grupoActual.idPeriodo.id;
+                } else {
+                    idPeriodoNum = Number(grupoActual.idPeriodo);
+                }
+            }
+            
+            // Docente
+            if (grupo.idDocente) {
+                idDocenteNum = Number(grupo.idDocente);
+            } else if (grupoActual.idDocente) {
+                if (typeof grupoActual.idDocente === 'object') {
+                    idDocenteNum = grupoActual.idDocente.id || grupoActual.idDocente.id_usuario;
+                } else {
+                    idDocenteNum = Number(grupoActual.idDocente);
+                }
+            }
+            
+            console.log('📊 Valores procesados:', {
+                nombre,
+                grado,
+                idPeriodoNum,
+                idDocenteNum
+            });
+            
+            // PASO 4: Validar que todos los campos críticos tengan valor
+            if (!nombre) throw new Error('El nombre del grupo no puede estar vacío');
+            if (!grado || grado < 1 || grado > 6) throw new Error('El grado debe estar entre 1 y 6');
+            if (!idPeriodoNum || idPeriodoNum <= 0) throw new Error('No se pudo obtener el periodo actual del grupo');
+            if (!idDocenteNum || idDocenteNum <= 0) throw new Error('No se pudo obtener el docente actual del grupo');
+            
+            // PASO 5: Construir payload con estructura CORRECTA para el backend
+            // El backend espera: nombre (string), grado (int), idPeriodo (int), idDocente (int)
+            // NO: idPeriodo: { idPeriodo: N }, sino solo: idPeriodo: N
+            const payload = {
+                nombre: String(nombre).trim(),
+                grado: Number(grado),
+                idPeriodo: Number(idPeriodoNum),
+                idDocente: Number(idDocenteNum)
+            };
+            
+            console.log('📤 Payload final a enviar:', JSON.stringify(payload, null, 2));
+            
+            // PASO 6: Enviar actualización
             const response = await httpClient.put(API_CONFIG.ENDPOINTS.GRUPOS.UPDATE(id), payload);
+            console.log('📨 Respuesta del servidor:', JSON.stringify(response, null, 2));
+            
             if (response.success) {
+                console.log('✅ Actualización exitosa');
                 return normalizeGrupo(response.data);
             }
-            throw new Error(response.message);
+            
+            // Manejo de errores del backend
+            let errorMsg = response.message || 'Error desconocido al actualizar';
+            if (response.data && response.data.message) {
+                errorMsg = response.data.message;
+            } else if (response.data && response.data.error) {
+                errorMsg = response.data.error;
+            }
+            
+            console.error('❌ Error del backend:', errorMsg);
+            throw new Error(errorMsg);
+            
         } catch (error) {
-            console.error(`Error al actualizar grupo ${id}:`, error);
+            console.error(`❌ Error en update() para grupo ${id}:`, error.message);
+            console.error('Stack:', error.stack);
             throw error;
         }
     }

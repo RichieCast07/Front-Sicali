@@ -72,7 +72,7 @@
             setTimeout(function() { waitForRouteGuard(roles); }, 50);
           }
         }
-        waitForRouteGuard(['docente','admin']);
+        waitForRouteGuard(['docente','director']);
       })();
     </script>
 
@@ -111,11 +111,6 @@
       <div class="form-group">
         <label>Apellido Materno:</label>
         <input type="text" id="tutorApeM" name="ape_m" placeholder="">
-      </div>
-
-      <div class="form-group">
-        <label>Parentesco:</label>
-        <input type="text" id="tutorParentesco" name="parentesco" placeholder="">
       </div>
     </div>
 
@@ -174,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const role = (currentUser.rol || currentUser.role || '').toString().toLowerCase();
   const btn = document.getElementById('btnAddTutor');
   if (!btn) return;
-  if (role !== 'docente' && role !== 'director' && role !== 'admin') {
+  if (role !== 'docente' && role !== 'director') {
     btn.style.display = 'none';
   }
 
@@ -183,9 +178,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const nombre = document.getElementById('tutorNombre')?.value?.trim() || '';
     const ape_p = document.getElementById('tutorApeP')?.value?.trim() || '';
     const ape_m = document.getElementById('tutorApeM')?.value?.trim() || '';
-    const parentesco = document.getElementById('tutorParentesco')?.value?.trim() || '';
     const sexo = document.getElementById('tutorSexo')?.value || '';
-    const fecha_nacimiento = document.getElementById('tutorFechaNacimiento')?.value || ''; // ✅ NUEVO
+    const fecha_nacimiento = document.getElementById('tutorFechaNacimiento')?.value || '';
     const usuario = document.getElementById('tutorUsuario')?.value?.trim() || `${nombre.toLowerCase()}.${ape_p.toLowerCase()}`.replace(/\s+/g,'');
     const password = document.getElementById('tutorPassword')?.value || 'password123';
 
@@ -198,7 +192,6 @@ document.addEventListener('DOMContentLoaded', function() {
       nombre, 
       ape_p, 
       ape_m, 
-      parentesco, 
       sexo, 
       fecha_nacimiento,
       usuario, 

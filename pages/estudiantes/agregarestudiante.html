@@ -13,22 +13,33 @@
     <header class="header">
         <div class="left-section">
             <h1 class="logo">SICALI</h1>
-        <li>
-          <a href="../estadisticas/Estadisticadirector.html"
-            ><span class="icon">
-              <img
-                class="icon"
-                src="../../icons/estadisticas.svg"
-                alt="" /></span
-            ><span class="text">Estadísticas</span></a
-          >
-        </li>
-        <li>
-          <a href="../tutordocente/tutor.html"><span class="icon"> <img class="icon" src="../../icons/tutor.svg" alt=""></span><span class="text">Tutor</span></a>
-        </li>
+        </div>
+        <div class="user-info">
+            <div class="text-info">
+                <div class="role" id="userRole">Cargando...</div>
+                <div class="name" id="userName">Cargando...</div>
+            </div>
+            <div class="avatar" id="userAvatar" style="cursor: pointer;"><img src="../../img/nino.png" alt=""></div>
+        </div>
+    </header>
+
+    <script>
+      (function() {
+        function waitForRouteGuard(roles) {
+          if (typeof RouteGuard !== 'undefined') {
+            RouteGuard.protect(roles);
+          } else {
+            setTimeout(function() { waitForRouteGuard(roles); }, 50);
+          }
+        }
+        waitForRouteGuard(['director']);
+      })();
+    </script>
+
     <nav class="sidebar" id="sidebar">
         <ul class="menu-list">
       <li><a href="../docentes/docente.html"><img class="icon" src="../../icons/docente.svg" alt=""><span class="text">Docentes</span></a></li>
+      <li><a href="../tutor/tutor.html"><span class="icon"><img class="icon" src="../../icons/tutor.svg" alt=""></span><span class="text">Tutor</span></a></li>
       <li class="active"><a href="estudiante.html"><img class="icon" src="../../icons/estudiante.svg" alt=""><span class="text">Estudiantes</span></a></li>
       <li><a href="../grupos/grupos.html"><img class="icon" src="../../icons/grupos.svg" alt=""><span class="text">Grupos</span></a></li>
       <li><a href="../asignaturas/asignatura.html"><img class="icon" src="../../icons/asignatura.svg" alt=""><span class="text">Asignaturas</span></a></li>
@@ -136,7 +147,35 @@
 </div>
 
 <script>
-    // Proteger esta página solo para admins
+    // ==========================================
+    // CARGAR INFORMACIÓN DEL USUARIO DINÁMICAMENTE
+    // ==========================================
+    (function() {
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            const userName = document.getElementById('userName');
+            const userRole = document.getElementById('userRole');
+            
+            if (currentUser.nombre && currentUser.ape_p) {
+                const fullName = (currentUser.nombre + ' ' + currentUser.ape_p + ' ' + (currentUser.ape_m || '')).trim();
+                userName.textContent = fullName;
+            } else {
+                userName.textContent = 'Usuario';
+            }
+
+            if (currentUser.rol) {
+                const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                userRole.textContent = rolCapitalizado;
+            } else {
+                userRole.textContent = 'Usuario';
+            }
+        } catch (error) {
+            console.error('❌ Error al cargar datos del usuario:', error);
+            document.getElementById('userName').textContent = 'Usuario';
+            document.getElementById('userRole').textContent = 'Usuario';
+        }
+    })();
+
     (function() {
         function waitForRouteGuard(roles) {
             if (typeof RouteGuard !== 'undefined') {
@@ -145,7 +184,7 @@
                 setTimeout(function() { waitForRouteGuard(roles); }, 50);
             }
         }
-        waitForRouteGuard(['admin']);
+        waitForRouteGuard(['director']);
     })();
 
     (function(){

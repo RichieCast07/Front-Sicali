@@ -14,7 +14,8 @@
         'services/ciclosService.js',
         'services/usuariosService.js',
         'services/authService.js',
-        'services/tutorService.js'
+        'services/tutorService.js',
+        'services/calificacionesService.js'
     ];
 
     const base = (function() {
@@ -52,8 +53,46 @@
                 console.error(err);
             }
         }
+        
+        // Crear alias para servicios (para compatibilidad)
+        if (typeof tutorService !== 'undefined') {
+            window.tutoresService = tutorService;
+        }
+        
+        // Asegurar que todos los servicios estén en window scope
+        if (typeof calificacionesService !== 'undefined') {
+            window.calificacionesService = calificacionesService;
+        }
+        if (typeof httpClient !== 'undefined') {
+            window.httpClient = httpClient;
+        }
+        if (typeof API_CONFIG !== 'undefined') {
+            window.API_CONFIG = API_CONFIG;
+        }
+        if (typeof authService !== 'undefined') {
+            window.authService = authService;
+        }
+        if (typeof usuariosService !== 'undefined') {
+            window.usuariosService = usuariosService;
+        }
+        if (typeof grupoAsignaturaService !== 'undefined') {
+            window.grupoAsignaturaService = grupoAsignaturaService;
+        }
+        
+        // Esperar un tick de evento para asegurar que todos los scripts están ejecutados
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // Disparar evento cuando todas las dependencias estén cargadas
         window.dispatchEvent(new Event('dependenciesLoaded'));
+        
+        // También disparar evento de forma manual para verificación
+        console.log('[loadDependencies] Evento dependenciesLoaded disparado');
+        console.log('[loadDependencies] Servicios disponibles:', {
+            calificacionesService: typeof window.calificacionesService !== 'undefined',
+            httpClient: typeof window.httpClient !== 'undefined',
+            API_CONFIG: typeof window.API_CONFIG !== 'undefined',
+            authService: typeof window.authService !== 'undefined'
+        });
     }
 
     // iniciar carga en cuanto se evalúe este archivo

@@ -60,7 +60,7 @@
             setTimeout(function() { waitForRouteGuard(roles); }, 50);
           }
         }
-        waitForRouteGuard(['docente','admin']);
+        waitForRouteGuard(['docente','director']);
       })();
     </script>
 
@@ -98,11 +98,6 @@
       <div class="form-group">
         <label>Apellido Materno:</label>
         <input type="text" id="tutorApeM" name="ape_m" placeholder="Cargando...">
-      </div>
-
-      <div class="form-group">
-        <label>Parentesco:</label>
-        <input type="text" id="tutorParentesco" name="parentesco" placeholder="Cargando...">
       </div>
     </div>
 
@@ -175,6 +170,7 @@
 (function() {
     // Variables globales
     let tutorId = null;
+    let currentTutorId = null;
     let originalData = null;
     let dataLoaded = false;
     let currentPassword = '';
@@ -192,42 +188,43 @@
         try {
             console.log('🔍 Iniciando carga de datos del tutor...');
             
-            // Verificar que las dependencias estén disponibles
-            if (typeof tutorService === 'undefined') {
-                throw new Error('tutorService no está disponible');
-            }
-            if (typeof httpClient === 'undefined') {
-                throw new Error('httpClient no está disponible');
-            }
-            if (typeof API_CONFIG === 'undefined') {
-                throw new Error('API_CONFIG no está disponible');
-            }
-
-            // Obtener el ID del tutor desde la URL
-            const urlParams = new URLSearchParams(window.location.search);
-            tutorId = urlParams.get('id');
-
+            // Get ID from sessionStorage first, then from URL params as fallback
+            tutorId = sessionStorage.getItem('tutorIdToEdit');
+            
             if (!tutorId) {
-                alert('No se proporcionó ID del tutor');
-                window.location.href = '../tutordocente/tutor.html';
+                // Try URL params as fallback
+                const params = new URLSearchParams(window.location.search);
+                tutorId = params.get('id');
+            }
+            
+            console.log('📍 URL Completa:', window.location.href);
+            console.log('🔍 sessionStorage tutorIdToEdit:', sessionStorage.getItem('tutorIdToEdit'));
+            console.log('📌 ID final a usar:', tutorId);
+            
+            if (!tutorId) {
+                console.error('❌ No tutor ID provided en sessionStorage ni URL params');
+                console.error('URL:', window.location.href);
+                console.error('sessionStorage:', sessionStorage.getItem('tutorIdToEdit'));
+                alert('No se proporcionó ID de tutor');
                 return;
             }
 
-            console.log('📌 ID del tutor:', tutorId);
+            // Store ID globally
+            currentTutorId = Number(tutorId);
 
-            // Cargar datos del tutor usando el servicio
-            const response = await tutorService.getById(tutorId);
-            console.log('📦 Respuesta completa del servidor:', response);
-
-            // Manejar diferentes formatos de respuesta
-            let tutor;
-            if (response && response.data) {
-                tutor = response.data;
-            } else if (response && typeof response === 'object') {
-                tutor = response;
-            } else {
-                throw new Error('Formato de respuesta inválido');
+            // Wait for service to be available
+            let retries = 0;
+            while (typeof usuariosService === 'undefined' && retries < 50) {
+                await new Promise(r => setTimeout(r, 100));
+                retries++;
             }
+
+            if (typeof usuariosService === 'undefined') {
+                throw new Error('usuariosService not available');
+            }
+
+            console.log('✅ Loading tutor with ID:', currentTutorId);
+            const tutor = await usuariosService.getById(currentTutorId);
 
             console.log('✅ Datos del tutor procesados:', tutor);
 
@@ -244,7 +241,6 @@
             document.getElementById('tutorNombre').value = tutor.nombre || '';
             document.getElementById('tutorApeP').value = tutor.ape_p || '';
             document.getElementById('tutorApeM').value = tutor.ape_m || '';
-            document.getElementById('tutorParentesco').value = tutor.parentesco || '';
             document.getElementById('tutorSexo').value = tutor.sexo || '';
             document.getElementById('tutorUsuario').value = tutor.usuario || '';
             
@@ -310,7 +306,6 @@
         const nombre = document.getElementById('tutorNombre').value.trim();
         const ape_p = document.getElementById('tutorApeP').value.trim();
         const ape_m = document.getElementById('tutorApeM').value.trim();
-        const parentesco = document.getElementById('tutorParentesco').value.trim();
         const sexo = document.getElementById('tutorSexo').value;
         const fecha_nacimiento = document.getElementById('tutorFechaNacimiento').value;
         const usuario = document.getElementById('tutorUsuario').value.trim();
@@ -324,7 +319,7 @@
 
         console.log('💾 Preparando datos para guardar...');
         console.log('📝 Valores del formulario:', {
-            nombre, ape_p, ape_m, parentesco, sexo, fecha_nacimiento, usuario
+            nombre, ape_p, ape_m, sexo, fecha_nacimiento, usuario
         });
         console.log('🔑 Password actual:', currentPassword);
         console.log('🔑 Password del input:', password);
@@ -350,7 +345,7 @@
 
         try {
             console.log('🚀 Enviando actualización al servidor...');
-            const response = await tutorService.update(tutorId, payload);
+            const response = await usuariosService.update(tutorId, payload);
             console.log('✅ Respuesta del servidor:', response);
             console.log('✅ Tutor actualizado correctamente');
             

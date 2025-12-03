@@ -154,7 +154,7 @@
       </div>
 
       <script>
-        // Proteger esta página para docentes y admins
+        // Proteger esta página para docentes y directores
         (function() {
             function waitForRouteGuard(roles) {
                 if (typeof RouteGuard !== 'undefined') {
@@ -163,7 +163,7 @@
                     setTimeout(function() { waitForRouteGuard(roles); }, 50);
                 }
             }
-            waitForRouteGuard(['docente', 'admin']);
+            waitForRouteGuard(['docente', 'director']);
         })();
 
         let currentGrupo = null;
@@ -365,65 +365,31 @@
             const asignaturaId = document.getElementById('asignaturaSelect').value;
             if (!asignaturaId || !currentGrupo) return;
 
-            console.log('📊 Cargando calificaciones existentes para grupo', currentGrupo.idGrupo, 'asignatura', asignaturaId);
+            console.log('Cargando calificaciones existentes para grupo', currentGrupo.idGrupo, 'asignatura', asignaturaId);
 
             let calificacionesActuales = [];
 
-            // Intentar cargar del backend
-            try {
-              const response = await httpClient.get(API_CONFIG.ENDPOINTS.CALIFICACIONES.LIST);
-              
-              console.log('📦 Response completo del backend:', response);
-              
-              let calificaciones = [];
-              
-              // El httpClient ya desenvuelve response.data, pero calificaciones tiene otro nivel
-              if (response && response.data) {
-                // Si response.data tiene otra propiedad data (doble anidamiento)
-                if (response.data.data && Array.isArray(response.data.data)) {
-                  calificaciones = response.data.data;
-                } 
-                // Si response.data es directamente un array
-                else if (Array.isArray(response.data)) {
-                  calificaciones = response.data;
-                }
-                // Si response.data es un solo objeto
-                else {
-                  calificaciones = [response.data];
-                }
-              } 
-              // Si response es directamente un array
-              else if (Array.isArray(response)) {
-                calificaciones = response;
-              }
-              
-              console.log(`🔎 Total calificaciones en BD: ${calificaciones.length}`);
-              if (calificaciones.length > 0) {
-                console.log('📋 Primera calificación de ejemplo:', calificaciones[0]);
-              }
-              console.log(`🎯 Filtrando por grupo ${currentGrupo.idGrupo} y asignatura ${asignaturaId}`);
-              
-              // Filtrar calificaciones del grupo y asignatura actual
-              calificacionesActuales = calificaciones.filter(cal => {
-                const grupoId = cal.idGrupo || cal.grupo?.idGrupo;
-                const asigId = cal.idAsignatura || cal.asignatura?.idAsignatura;
-                const coincideGrupo = Number(grupoId) === Number(currentGrupo.idGrupo);
-                const coincideAsignatura = Number(asigId) === Number(asignaturaId);
+            // Intentar cargar del servicio de calificaciones
+            if (typeof calificacionesService !== 'undefined') {
+              try {
+                const allCalificaciones = await calificacionesService.getAll();
                 
-                // Log detallado de cada calificación
-                console.log(`  📋 Cal: Estudiante=${cal.idEstudiante}, Grupo=${grupoId} (buscando ${currentGrupo.idGrupo}), Asig=${asigId} (buscando ${asignaturaId})`);
-                console.log(`     Coincide Grupo: ${coincideGrupo}, Coincide Asignatura: ${coincideAsignatura}`);
+                console.log('Total calificaciones en BD:', allCalificaciones.length);
                 
-                if (coincideGrupo && coincideAsignatura) {
-                  console.log(`  ✅ MATCH! Esta calificación será cargada`);
-                }
-                
-                return coincideGrupo && coincideAsignatura;
-              });
+                // Filtrar calificaciones del grupo y asignatura actual
+                calificacionesActuales = allCalificaciones.filter(cal => {
+                  const grupoId = cal.idGrupo;
+                  const asigId = cal.idAsignatura;
+                  const coincideGrupo = Number(grupoId) === Number(currentGrupo.idGrupo);
+                  const coincideAsignatura = Number(asigId) === Number(asignaturaId);
+                  
+                  return coincideGrupo && coincideAsignatura;
+                });
 
-              console.log('✅ Calificaciones filtradas del backend:', calificacionesActuales.length);
-            } catch (error) {
-              console.warn('⚠️ Backend no disponible, usando localStorage:', error.message);
+                console.log('Calificaciones filtradas del backend:', calificacionesActuales.length);
+              } catch (error) {
+                console.warn('No se pudieron cargar calificaciones del servicio:', error.message);
+              }
             }
 
             // Cargar calificaciones de localStorage

@@ -15,12 +15,40 @@
         </div>
         <div class="user-info">
             <div class="text-info">
-                <div class="role">Director</div>
-                <div class="name">Jorge Luis Omalley Pinacho</div>
+                <div class="role" id="userRole">Cargando...</div>
+                <div class="name" id="userName">Cargando...</div>
             </div>
             <div class="avatar"><img src="../../img/nino.png" alt=""></div>
         </div>
     </header>
+    
+    <script>
+        (function() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                if (currentUser.nombre && currentUser.ape_p) {
+                    const fullName = `${currentUser.nombre} ${currentUser.ape_p} ${currentUser.ape_m || ''}`.trim();
+                    userName.textContent = fullName;
+                } else {
+                    userName.textContent = 'Usuario';
+                }
+
+                if (currentUser.rol) {
+                    const rolCapitalizado = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+                    userRole.textContent = rolCapitalizado;
+                } else {
+                    userRole.textContent = 'Usuario';
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Usuario';
+            }
+        })();
+    </script>
     
     <script>
       (function() {
@@ -31,7 +59,7 @@
             setTimeout(function() { waitForRouteGuard(roles); }, 50);
           }
         }
-        waitForRouteGuard(['docente','admin']);
+        waitForRouteGuard(['docente','director']);
       })();
     </script>
 
@@ -61,22 +89,17 @@
 
       <div class="form-group">
         <label>Nombre:</label>
-        <input disabled type="text" value="Antonio">
+        <input disabled type="text" id="nombre">
       </div>
 
       <div class="form-group">
         <label>Apellido Paterno:</label>
-        <input disabled type="text" value="Giron">
+        <input disabled type="text" id="ape_p">
       </div>
 
       <div class="form-group">
         <label>Apellido Materno:</label>
-        <input disabled type="text" value="Garcia">
-      </div>
-
-      <div class="form-group">
-        <label>Parentesco:</label>
-        <input disabled type="text" value="PADRE">
+        <input disabled type="text" id="ape_m">
       </div>
 
      
@@ -89,24 +112,24 @@
 
       <div class="form-group">
         <label>Sexo</label>
-        <select disabled>
+        <select disabled id="sexo">
           <option>Seleccionar</option>
-          <option>Femenino</option>
-          <option>Masculino</option>
+          <option value="M">Masculino</option>
+          <option value="F">Femenino</option>
         </select>
       </div>
 
       <div class="form-group">
         <label>Fecha de Nacimiento</label>
-        <input disabled type="date">
+        <input disabled type="date" id="fechaNacimiento">
       </div>
       <div class="form-group">
         <label>Usuario:</label>
-        <input type="text" value="antonio" disabled>
+        <input type="text" id="usuario" disabled>
       </div>
       <div class="form-group" style="position: relative;">
         <label>Contraseña:</label>
-        <input type="password" id="password" value="123an" disabled>
+        <input type="password" id="password" disabled>
         <button type="button" onclick="togglePassword()" style="position: absolute; right: 10px; top: 32px;">
           <span class="iconpasswor"><img src="../../icons/visualizar password.svg" alt="Flecha atrás" /></span>
         </button>
@@ -116,26 +139,120 @@
   </div>
 
   <div class="boton-agregar">
-    <button type="button" onclick="window.location.href='guardartutor.html'">
+    <button type="button" onclick="irAlGuardar()">
       <img src="../../icons/editar.svg" class="btn-icon" alt="Agregar">
       Editar
     </button>
   </div>
 </section>
 
+<script src="../../scripts/loadDependencies.js"></script>
 <script>
+    // Global variable to store tutorId
+    let currentTutorId = null;
+
+    // Load tutor data from API based on sessionStorage ID
+    async function loadTutorData() {
+        try {
+            // Get ID from sessionStorage first, then from URL params as fallback
+            let tutorId = sessionStorage.getItem('tutorIdToEdit');
+            
+            if (!tutorId) {
+                // Try URL params as fallback
+                const params = new URLSearchParams(window.location.search);
+                tutorId = params.get('id');
+            }
+            
+            console.log('📍 URL Completa:', window.location.href);
+            console.log('🔍 sessionStorage tutorIdToEdit:', sessionStorage.getItem('tutorIdToEdit'));
+            console.log('📌 ID final a usar:', tutorId);
+            
+            if (!tutorId) {
+                console.error('❌ No tutor ID provided en sessionStorage ni URL params');
+                console.error('URL:', window.location.href);
+                console.error('sessionStorage:', sessionStorage.getItem('tutorIdToEdit'));
+                alert('No se proporcionó ID de tutor');
+                return;
+            }
+
+            // Store ID globally
+            currentTutorId = Number(tutorId);
+
+            // Wait for service to be available
+            let retries = 0;
+            while (typeof usuariosService === 'undefined' && retries < 50) {
+                await new Promise(r => setTimeout(r, 100));
+                retries++;
+            }
+
+            if (typeof usuariosService === 'undefined') {
+                throw new Error('usuariosService not available');
+            }
+
+            console.log('✅ Loading tutor with ID:', currentTutorId);
+            const tutor = await usuariosService.getById(currentTutorId);
+            
+            if (!tutor) {
+                alert('Tutor no encontrado');
+                return;
+            }
+
+            // Verify it's a tutor
+            if (tutor.rol !== 'tutor') {
+                console.warn('⚠️ Usuario encontrado pero no es tutor, rol:', tutor.rol);
+                alert('El usuario no tiene rol de tutor');
+                window.history.back();
+                return;
+            }
+
+            console.log('✅ Usuario es tutor, datos:', tutor);
+
+            // Populate form fields from API data
+            document.getElementById('nombre').value = tutor.nombre || '';
+            document.getElementById('ape_p').value = tutor.ape_p || '';
+            document.getElementById('ape_m').value = tutor.ape_m || '';
+            document.getElementById('sexo').value = tutor.sexo || '';
+            document.getElementById('fechaNacimiento').value = tutor.fecha_nacimiento || '';
+            document.getElementById('usuario').value = tutor.usuario || '';
+            document.getElementById('password').value = tutor.password || '';
+
+            // Clear sessionStorage after loading
+            sessionStorage.removeItem('tutorIdToEdit');
+
+            console.log('✅ Tutor data loaded successfully:', tutor);
+        } catch (error) {
+            console.error('❌ Error loading tutor:', error);
+            alert('Error cargando datos del tutor: ' + error.message);
+            window.history.back();
+        }
+    }
+
+    // Load data when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTutorData();
+    });
+
     document.querySelector(".back-link").addEventListener("click", function () {
-    window.history.back();
+        window.history.back();
     });
 
     function togglePassword() {
-      const passwordInput = document.getElementById('password');
-      if (passwordInput.type === 'password') {
-    passwordInput.type = 'text';
-  } else {
-    passwordInput.type = 'password';
-  }}
-    </script>
+        const passwordInput = document.getElementById('password');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+        } else {
+            passwordInput.type = 'password';
+        }
+    }
+
+    function irAlGuardar() {
+        if (currentTutorId) {
+            sessionStorage.setItem('tutorIdToEdit', currentTutorId);
+            console.log('🔗 Guardado tutorId en sessionStorage:', currentTutorId);
+        }
+        window.location.href = 'guardartutor.html';
+    }
+</script>
 </main>
 </body>
 </html>
