@@ -86,7 +86,6 @@
                     'director': baseUrl + '/pages/bienvenidas/bienvenida Director.html',
                     'tutor': baseUrl + '/pages/bienvenidas/bienvenida Tutor.html',
                     'estudiante': baseUrl + '/pages/bienvenidas/bienvenida Estudiante.html',
-                    'admin': baseUrl + '/pages/bienvenidas/bienvenida Director.html'
                 };
                 
                 console.log('✅ redirectMap creado exitosamente');
