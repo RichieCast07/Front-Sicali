@@ -37,10 +37,10 @@ class AuthService {
                 throw new Error('Usuario o contraseña incorrectos');
             }
 
-            // Verificar que el usuario esté activo
-            if (user.estado && user.estado.toLowerCase() !== 'activo') {
-                console.error('Usuario inactivo:', user.estado);
-                throw new Error('Usuario inactivo. Contacta al administrador.');
+            // Verificar que el usuario esté habilitado
+            if (user.habilitado === false || (user.estado && user.estado.toLowerCase() !== 'activo')) {
+                console.error('Usuario inhabilitado:', user.habilitado, user.estado);
+                throw new Error('Usuario inhabilitado. Contacta al administrador.');
             }
 
             console.log('✅ Login exitoso para:', user.nombre, user.ape_p, '| Rol:', user.rol);

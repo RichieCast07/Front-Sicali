@@ -84,7 +84,7 @@ class UsuariosService {
                 usuario: collapse(usuario.usuario),
                 password: usuario.password,
                 rol: collapse(usuario.rol),
-                estado: 'Activo' // Backend usa "Activo" con mayúscula inicial
+                habilitado: true // Nuevo usuario habilitado por defecto
             };
 
             console.log('Payload normalizado:', payload);
@@ -146,7 +146,7 @@ class UsuariosService {
                 password: usuario.password || '',
                 fecha_nacimiento: usuario.fecha_nacimiento || '',
                 rol: usuario.rol || 'tutor',
-                estado: usuario.estado || 'Activo'
+                habilitado: usuario.habilitado !== undefined ? usuario.habilitado : true
             };
 
             console.log('Payload normalizado:', payload);
@@ -286,7 +286,7 @@ function normalizeUsuario(u) {
     if (out.id_usuario && !out.id) out.id = out.id_usuario;
 
     // Trim string fields that may contain extra spaces
-    ['nombre', 'ape_p', 'ape_m', 'curp', 'rfc', 'sexo', 'usuario', 'rol', 'estado'].forEach(k => {
+    ['nombre', 'ape_p', 'ape_m', 'curp', 'rfc', 'sexo', 'usuario', 'rol', 'habilitado'].forEach(k => {
         if (typeof out[k] === 'string') out[k] = out[k].trim();
     });
 

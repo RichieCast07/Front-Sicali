@@ -1,6 +1,6 @@
 const tutorService = {
   async create(tutor) {
-    const payload = Object.assign({}, tutor, { rol: 'tutor', estado: 'Activo' });
+    const payload = Object.assign({}, tutor, { rol: 'tutor', habilitado: true });
     return httpClient.post(API_CONFIG.ENDPOINTS.USUARIOS.CREATE, payload);
   },
 
@@ -52,7 +52,7 @@ const tutorService = {
       const payload = Object.assign({}, tutor, { 
         idEstudiante, 
         rol: 'tutor', 
-        estado: 'Activo' 
+        habilitado: true 
       });
       
       // Buscar si ya existe un tutor para este estudiante
